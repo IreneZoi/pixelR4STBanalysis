@@ -19,5 +19,6 @@ CMD_REG(getcal, "", "pulse height image from r4s")
 CMD_REG(scancal, "", "scan Vcal from r4s")
 CMD_REG(seqreadout, "", "Load measure -> readout sequence")
 CMD_REG(seqcalscan, "", "Load calibrate scan sequence")
+CMD_REG(seqreadcol, "", "Load measure -> readout columns")
 
 //CMD_REG(gui, "", "Start graphical user interface");

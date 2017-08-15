@@ -224,6 +224,53 @@ void CTestboard::r4s_SetSeqReadout()
   r4s_SetSequence(prog);
 }
 
+void CTestboard::r4s_SetSeqReadCol()
+{
+  vector<uint32_t> prog(41);
+  prog[ 0] = 0xf2154321; // clear SR, cal hold, clear SR,
+  prog[ 1] = 0xbababab9; // start row 0
+  prog[ 2] = 0xbabababa; // a = next column, b = read entire column (all rows)
+  prog[ 3] = 0xbabababa;
+  prog[ 4] = 0xbabababa;
+  prog[ 5] = 0xbabababa;
+  prog[ 6] = 0xbabababa;
+  prog[ 7] = 0xbabababa;
+  prog[ 8] = 0xbabababa;
+  prog[ 9] = 0xbabababa;
+  prog[10] = 0xbabababa;
+  prog[11] = 0xbabababa;
+  prog[12] = 0xbabababa;
+  prog[13] = 0xbabababa;
+  prog[14] = 0xbabababa;
+  prog[15] = 0xbabababa;
+  prog[16] = 0xbabababa;
+  prog[17] = 0xbabababa;
+  prog[18] = 0xbabababa;
+  prog[19] = 0xbabababa;
+  prog[20] = 0xbabababa;
+  prog[21] = 0xbabababa;
+  prog[22] = 0xbabababa;
+  prog[23] = 0xbabababa;
+  prog[24] = 0xbabababa;
+  prog[25] = 0xbabababa;
+  prog[26] = 0xbabababa;
+  prog[27] = 0xbabababa;
+  prog[28] = 0xbabababa;
+  prog[29] = 0xbabababa;
+  prog[30] = 0xbabababa;
+  prog[31] = 0xbabababa;
+  prog[32] = 0xbabababa;
+  prog[33] = 0xbabababa;
+  prog[34] = 0xbabababa;
+  prog[35] = 0xbabababa;
+  prog[36] = 0xbabababa;
+  prog[37] = 0xbabababa;
+  prog[38] = 0xbabababa;
+  prog[39] = 0xbabababa;
+  prog[40] = 0x0abababa;
+  r4s_SetSequence(prog);
+}
+
 
 void CTestboard::r4s_SetSeqCalScan()
 {

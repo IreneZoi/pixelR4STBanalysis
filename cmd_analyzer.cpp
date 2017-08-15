@@ -468,6 +468,13 @@ CMD_PROC(seqreadout)
 }
 
 //------------------------------------------------------------------------------
+CMD_PROC(seqreadcol)
+{
+  tb.r4s_SetSeqReadCol();
+  DO_FLUSH;
+}
+
+//------------------------------------------------------------------------------
 CMD_PROC(seqcalscan)
 {
   tb.r4s_SetSeqCalScan();

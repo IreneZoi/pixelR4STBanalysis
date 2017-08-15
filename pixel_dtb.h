@@ -246,6 +246,7 @@ class CTestboard
 
   void r4s_SetSeqReadout();
   void r4s_SetSeqCalScan();
+  void r4s_SetSeqReadCol();
 
   void r4s_SetPixCal(uint8_t x, uint8_t y);
 

@@ -16,7 +16,7 @@ vaux3 0 mV
 adcdel 10
 daqena 2
 
-cal 4 0
+cal 1 150
 hold 11
 
 d1 5 trigger
@@ -24,7 +24,7 @@ d2 0
 a2 6
 a1 1 roc4sens data out
 
-seqreadout
+seqreadcol
 
 pon
 mdelay 500
