@@ -5,14 +5,12 @@ UNAME := $(shell uname)
 OBJS = cmd_analyzer.o cmd.o command.o cmd_dtb.o error.o file.o pixel_dtb.o profiler.o protocol.o r4stest.o rpc_calls.o rpc.o rpc_error.o rpc_io.o scanner.o settings.o usb.o linux/rs232.o
 
 ROOTCFLAGS = $(shell $(ROOTSYS)/bin/root-config --cflags)
-# root C flags =  -pthread -m64 -I/home/pitzl/ROOT/armin/root-cern/include
-
 ROOTLIBS   = $(shell $(ROOTSYS)/bin/root-config --libs)
 ROOTGLIBS  = $(shell $(ROOTSYS)/bin/root-config --glibs) # with Gui
 
 ifeq ($(UNAME), Darwin)
-CXXFLAGS = -g -Os -Wall -I/usr/local/include -Wno-logical-op-parentheses -I/usr/X11/include
-LDFLAGS = -lftd2xx -lreadline -L/usr/local/lib -L/usr/X11/lib -lX11
+CXXFLAGS = -g -Os -Wall -Wextra $(ROOTCFLAGS) -I/usr/local/include -Wno-logical-op-parentheses -I/usr/X11/include
+LDFLAGS = -lftd2xx -lreadline -L/usr/local/lib $(ROOTGLIBS) -L/usr/X11/lib -lX11
 endif
 
 ifeq ($(UNAME), Linux)
@@ -57,6 +55,36 @@ rpc_calls.cpp:
 
 bin/r4stest: $(addprefix obj/,$(OBJS)) bin rpc_calls.cpp
 	$(CXX) -o $@ $(addprefix obj/,$(OBJS)) $(LDFLAGS)
+
+r2r: r2r.cc
+	g++ $(ROOTCFLAGS) r2r.cc \
+	-Wall -O2 -o r2r $(ROOTLIBS)
+	@echo 'done: r2r'
+
+c2r: c2r.cc
+	g++ $(ROOTCFLAGS) c2r.cc \
+	-Wall -O2 -o c2r $(ROOTLIBS)
+	@echo 'done: c2r'
+
+rdroi: rdroi.cc
+	g++ $(ROOTCFLAGS) rdroi.cc \
+	-Wall -O2 -o rdroi $(ROOTLIBS)
+	@echo 'done: rdroi'
+
+edroi: edroi.cc
+	g++ $(ROOTCFLAGS) edroi.cc \
+	-Wall -O2 -o edroi $(ROOTGLIBS)
+	@echo 'done: edroi'
+
+drawRun: drawRun.cc
+	g++ $(ROOTCFLAGS) drawRun.cc \
+	-Wall -O2 -o drawRun $(ROOTLIBS)
+	@echo 'done: drawRun'
+
+ped: ped.cc
+	g++ $(ROOTCFLAGS) ped.cc \
+	-Wall -O2 -o ped $(ROOTLIBS)
+	@echo 'done: ped'
 
 clean:
 	rm -rf obj

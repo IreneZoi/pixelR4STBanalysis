@@ -19,18 +19,19 @@
 #include "pixel_dtb.h"
 #include "settings.h"
 #include "protocol.h"
+#include "roc.h"
 
 #define VERSIONINFO TITLE " " VERSION " (" TIMESTAMP ")"
 
+// global variables:
 
-// global variables
 extern int nEntry; // counts the entries in the log file
 
 extern CTestboard tb;
 extern CSettings settings;  // global settings
 extern CProtocol Log;  // log file
+extern CRoc roc;
 
 void cmd();
-
 
 #endif

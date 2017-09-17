@@ -11,17 +11,17 @@
 
 class CFileBuffer
 {
-	FILE *f;
-	char lastChar;
-	unsigned int pos, n;
-	char *buffer;
-	char FillBuffer();
-public:
-	CFileBuffer() : f(0), lastChar(0), pos(0), n(0) {}
-	~CFileBuffer() { Close(); }
-	void Open(const char *fileName);
-	bool IsOpen() { return f != 0; }
-	void Close();
-	char Get() { return lastChar; }
-	char GetNext();
+  FILE *f;
+  char lastChar;
+  unsigned int pos, n;
+  char *buffer;
+  char FillBuffer();
+ public:
+ CFileBuffer() : f(0), lastChar(0), pos(0), n(0) {}
+  ~CFileBuffer() { Close(); }
+  void Open(const char *fileName);
+  bool IsOpen() { return f != 0; }
+  void Close();
+  char Get() { return lastChar; }
+  char GetNext();
 };

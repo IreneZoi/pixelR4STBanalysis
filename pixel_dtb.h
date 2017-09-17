@@ -13,7 +13,6 @@
 #pragma once
 
 #include "profiler.h"
-
 #include "rpc.h"
 #include "config.h"
 
@@ -39,7 +38,6 @@ class CTestboard
 
   CTestboard() { RPC_INIT rpc_io = &usb; }
   ~CTestboard() { RPC_EXIT }
-
 
   // === RPC ==============================================================
 
@@ -76,7 +74,6 @@ class CTestboard
   void Flush() { rpc_io->Flush(); }
   void Clear() { rpc_io->Clear(); }
 
-
   // === DTB identification ===============================================
 
   RPC_EXPORT void GetInfo(stringR &info);
@@ -85,7 +82,6 @@ class CTestboard
   RPC_EXPORT void GetHWVersion(stringR &version);
   RPC_EXPORT uint16_t GetFWVersion();
   RPC_EXPORT uint16_t GetSWVersion();
-
 
   // === DTB service ======================================================
 
@@ -97,7 +93,6 @@ class CTestboard
   RPC_EXPORT void     UpgradeErrorMsg(stringR &msg);
   RPC_EXPORT void     UpgradeExec(uint16_t recordCount);
 
-
   // === DTB functions ====================================================
 
   RPC_EXPORT void Init();
@@ -105,24 +100,24 @@ class CTestboard
   RPC_EXPORT void Welcome();
   RPC_EXPORT void SetLed(uint8_t x);
 
-
   // === Clock, Timing ====================================================
 
   RPC_EXPORT void cDelay(uint16_t clocks);
   RPC_EXPORT void uDelay(uint16_t us);
   void mDelay(uint16_t ms);
 
-
   // --- select ROC/Module clock source
+
 #define CLK_SRC_INT  0
 #define CLK_SRC_EXT  1
   RPC_EXPORT void SetClockSource(uint8_t source);
 
   // --- check if external clock is present
+
   RPC_EXPORT bool IsClockPresent();
 
-
   // --- Signal Delay -----------------------------------------------------
+
 #define SIG_CLK 0
 #define SIG_CTR 1
 #define SIG_SDA 2
@@ -134,8 +129,8 @@ class CTestboard
   RPC_EXPORT void Sig_SetLCDS();
   RPC_EXPORT void Sig_SetRdaToutDelay(uint8_t delay);
 
-
   // --- digital signal probe ---------------------------------------------
+
 #define PROBE_OFF             0
 #define PROBE_ADC_DAVAIL     12
 #define PROBE_HOLD           11
@@ -153,8 +148,8 @@ class CTestboard
   RPC_EXPORT void SignalProbeD1(uint8_t signal);
   RPC_EXPORT void SignalProbeD2(uint8_t signal);
 
-
   // --- analog signal probe ----------------------------------------------
+
 #define PROBEA_TIN     0
 #define PROBEA_SDATA1  1
 #define PROBEA_SDATA2  2
@@ -169,13 +164,12 @@ class CTestboard
 #define GAIN_3   2
 #define GAIN_4   3
 
-
   RPC_EXPORT void SignalProbeA1(uint8_t signal);
   RPC_EXPORT void SignalProbeA2(uint8_t signal);
   RPC_EXPORT void SignalProbeADC(uint8_t signal, uint8_t gain = 0);
 
-
   // --- ROC/Module power VD/VA -------------------------------------------
+
   RPC_EXPORT void Pon();
   RPC_EXPORT void Poff();
 
@@ -189,10 +183,10 @@ class CTestboard
   RPC_EXPORT uint16_t _GetID();
   RPC_EXPORT uint16_t _GetIA();
 
-  void SetVA(double V) { _SetVA(uint16_t(V*1000)); }  // set VA voltage
-  void SetVD(double V) { _SetVD(uint16_t(V*1000)); }  // set VD voltage
-  void SetIA(double A) { _SetIA(uint16_t(A*10000)); }  // set VA current limit
-  void SetID(double A) { _SetID(uint16_t(A*10000)); }  // set VD current limit
+  //void SetVA(double V) { _SetVA(uint16_t(V*1000)); }  // set VA voltage
+  //void SetVD(double V) { _SetVD(uint16_t(V*1000)); }  // set VD voltage
+  //void SetIA(double A) { _SetIA(uint16_t(A*10000)); }  // set VA current limit
+  //void SetID(double A) { _SetID(uint16_t(A*10000)); }  // set VD current limit
 
   double GetVA() { return _GetVA()/1000.0; }   // get VA voltage in V
   double GetVD() { return _GetVD()/1000.0; }	 // get VD voltage in V
@@ -213,8 +207,8 @@ class CTestboard
 
   RPC_EXPORT uint8_t GetStatus();
 
-
   // --- data aquisition --------------------------------------------------
+
   RPC_EXPORT uint32_t Daq_Open(uint32_t buffersize = 10000000);
   RPC_EXPORT void Daq_Close();
   RPC_EXPORT void Daq_Start();
@@ -234,21 +228,24 @@ class CTestboard
   RPC_EXPORT uint8_t Daq_Read(HWvectorR<uint16_t> &data,
 			      uint32_t blocksize, uint32_t &availsize);
 
-
   // Ethernet test functions
+
   RPC_EXPORT void Ethernet_Send(string &message);
   RPC_EXPORT uint32_t Ethernet_RecvPackets();
 
   // --- ROC4Sens adapter test functions ----------------------------------
+
   RPC_EXPORT void r4s_SetHoldPos(uint8_t t);
   RPC_EXPORT void r4s_AdcDelay(uint8_t t);
   RPC_EXPORT void r4s_SetSequence(vector<uint32_t> &prog);
 
-  void r4s_SetSeqReadout();
-  void r4s_SetSeqCalScan();
-  void r4s_SetSeqReadCol();
+  void r4s_SetSeqReadout(int ext = 0); // FW 0.8
+  void r4s_SetSeqReadCol(int ext = 0); // FW 0.7, 0.8
+  void r4s_SetSeqCalScan(int ext = 0);
 
   void r4s_SetPixCal(uint8_t x, uint8_t y);
+  void r4s_Set2PixCal(uint8_t x, uint8_t y);
+  void r4s_Set4PixCal(uint8_t x, uint8_t y);
 
   RPC_EXPORT void r4s_SetRegX(vector<uint32_t> &shr_x);
   RPC_EXPORT void r4s_SetRegY(vector<uint32_t> &shr_y);
@@ -258,13 +255,13 @@ class CTestboard
   RPC_EXPORT void r4s_Stop();
   RPC_EXPORT bool r4s_Running();
 
-
+  RPC_EXPORT void r4s_SetVdig(uint16_t mV);
+  RPC_EXPORT void r4s_SetVana(uint16_t mV);
   RPC_EXPORT void r4s_SetVcal(uint16_t mV);
   RPC_EXPORT void r4s_SetRgsh(uint16_t mV);
   RPC_EXPORT void r4s_SetRgpr(uint16_t mV);
   RPC_EXPORT void r4s_SetVref(uint16_t mV);
   RPC_EXPORT void r4s_SetVaux1(uint16_t mV);
   RPC_EXPORT void r4s_SetVaux2(uint16_t mV);
-  RPC_EXPORT void r4s_SetVaux3(uint16_t mV);
 
 };

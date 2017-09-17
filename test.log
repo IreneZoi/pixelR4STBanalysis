@@ -1,13 +1,12 @@
-[OPEN] Tue Aug 15 09:17:21 2017
+[OPEN] Sat Sep 16 17:46:34 2017
 [VERSION] ROC4sens Tester V0.2 (24.7.2017)
 [DTB]
-Board id:    102
+Board id:    85
 HW version:  DTB1.2
-FW version:  0.7
-SW version:  0.7
+FW version:  1.0
+SW version:  1.0
 Options:     
-USB id:      DTB_WV7RVG
-MAC address: 40D855118066
-Hostname:    pixelDTB102
-Comment:     with CMOS buffer
-[CLOSE] Tue Aug 15 09:32:36 2017
+USB id:      DTB_WS8ZAW
+MAC address: 40D855118055
+Hostname:    pixelDTB085
+Comment:     

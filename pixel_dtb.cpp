@@ -12,26 +12,22 @@
 bool CTestboard::RpcLink(bool verbose)
 {
   bool error = false;
-  for( unsigned short i = 2; i < rpc_cmdListSize; i++)
-    {
-      try
-	{
-	  rpc_GetCallId(i);
-	}
-      catch (CRpcError &e)
-	{
-	  e.SetFunction(0);
-	  if( verbose)
-	    {
-	      if( !error) printf("\nMissing DTB functions:\n");
-	      std::string fname(rpc_cmdName[i]);
-	      std::string fname_pretty;
-	      rpc_TranslateCallName(fname, fname_pretty);
-	      printf("%s\n", fname_pretty.c_str());
-	    }
-	  error = true;
-	}
+  for( unsigned short i = 2; i < rpc_cmdListSize; ++i ) {
+    try {
+      rpc_GetCallId(i);
     }
+    catch (CRpcError &e) {
+      e.SetFunction(0);
+      if( verbose) {
+	if( !error) printf("\nMissing DTB functions:\n");
+	std::string fname(rpc_cmdName[i]);
+	std::string fname_pretty;
+	rpc_TranslateCallName(fname, fname_pretty);
+	printf("%s\n", fname_pretty.c_str());
+      }
+      error = true;
+    }
+  }
   return !error;
 }
 
@@ -61,68 +57,58 @@ bool CTestboard::FindDTB(string &usbId)
   unsigned int nDev;
   unsigned int nr;
 
-  try
-    {
-      if( !EnumFirst(nDev)) throw int(1);
-      for( nr=0; nr<nDev; nr++)
-	{
-	  if( !EnumNext(name)) continue;
-	  if( name.size() < 4) continue;
-	  if( name.compare(0, 4, "DTB_") == 0) devList.push_back(name);
-	}
+  try {
+    if( !EnumFirst(nDev)) throw int(1);
+    for( nr=0; nr<nDev; nr++) {
+      if( !EnumNext(name)) continue;
+      if( name.size() < 4) continue;
+      if( name.compare(0, 4, "DTB_") == 0) devList.push_back(name);
     }
-  catch (int e)
-    {
-      switch (e)
-	{
-	case 1: printf("Cannot access the USB driver\n"); return false;
-	default: return false;
-	}
-    }
+  }
+  catch (int e) {
+    switch (e)
+      {
+      case 1: printf("Cannot access the USB driver\n"); return false;
+      default: return false;
+      }
+  }
 
-  if( devList.size() == 0)
-    {
-      printf("No DTB connected.\n");
-      return false;
-    }
+  if( devList.size() == 0) {
+    printf("No DTB connected.\n");
+    return false;
+  }
 
-  if( devList.size() == 1)
-    {
-      usbId = devList[0];
-      return true;
-    }
+  if( devList.size() == 1) {
+    usbId = devList[0];
+    return true;
+  }
 
   // If more than 1 connected device list them
   printf("\nConnected DTBs:\n");
-  for( nr=0; nr<devList.size(); nr++)
-    {
-      printf("%2u: %s", nr, devList[nr].c_str());
-      if( Open(devList[nr], false))
-	{
-	  try
-	    {
-	      unsigned int bid = GetBoardId();
-	      printf("  BID=%2u\n", bid);
-	    }
-	  catch (...)
-	    {
-	      printf("  Not identifiable\n");
-	    }
-	  Close();
-	}
-      else printf(" - in use\n");
+  for( nr=0; nr<devList.size(); nr++) {
+    printf("%2u: %s", nr, devList[nr].c_str());
+    if( Open(devList[nr], false)) {
+      try {
+	unsigned int bid = GetBoardId();
+	printf("  BID=%2u\n", bid);
+      }
+      catch (...) {
+	printf("  Not identifiable\n");
+      }
+      Close();
     }
+    else printf(" - in use\n");
+  }
 
   printf("Please choose DTB (0-%u): ", (nDev-1));
   char choice[8];
   fgets(choice, 8, stdin);
   sscanf (choice, "%d", &nr);
-  if( nr >= devList.size())
-    {
-      nr = 0;
-      printf("No DTB opened\n");
-      return false;
-    }
+  if( nr >= devList.size() ) {
+    nr = 0;
+    printf("No DTB opened\n");
+    return false;
+  }
 
   usbId = devList[nr];
   return true;
@@ -158,30 +144,103 @@ void CTestboard::mDelay(uint16_t ms)
 }
 
 
-void CTestboard::r4s_SetPixCal(uint8_t x, uint8_t y)
+void CTestboard::r4s_SetPixCal( uint8_t x, uint8_t y )
 {
-  vector<uint32_t> regx(5);
-  vector<uint32_t> regy(5);
-	
+  vector <uint32_t> regx(5); // initialized with zero
+  vector <uint32_t> regy(5);
+
   unsigned int wpos, bpos;
 
-  wpos = x / 32; bpos = 1 << (x % 32);
-  if( wpos < 5) regx[wpos] = bpos;
+  wpos = x / 32;
+  bpos = 1 << (x % 32);
+  if( wpos < 5 )
+    regx[wpos] = bpos;
 
-  wpos = y / 32; bpos = 1 << (y % 32);
-  if( wpos < 5) regy[wpos] = bpos;
+  wpos = y / 32;
+  bpos = 1 << (y % 32);
+  if( wpos < 5 )
+    regy[wpos] = bpos;
 
   r4s_SetRegX(regx);
   r4s_SetRegY(regy);
 }
 
 
-void CTestboard::r4s_SetSeqReadout()
+void CTestboard::r4s_Set2PixCal( uint8_t x, uint8_t y )
 {
-  vector<uint32_t> prog(42);
-  prog[ 0] = 0xf2154321; // clear SR, cal hold, clear SR,
-  prog[ 1] = 0x68686867; // start row 0
-  prog[ 2] = 0x68686868; // 8 = next row, 6 = read entire row (all cols)
+  vector <uint32_t> regx(5); // initialized with zero
+  vector <uint32_t> regy(5);
+
+  unsigned int wpos, bpos;
+
+  wpos = x / 32;
+  bpos = 3 << (x % 32); // 3 = b_11 = two adjacent col
+  if( wpos < 5 )
+    regx[wpos] = bpos;
+
+  wpos = y / 32;
+  bpos = 1 << (y % 32);
+  if( wpos < 5 )
+    regy[wpos] = bpos;
+
+  r4s_SetRegX(regx);
+  r4s_SetRegY(regy);
+}
+
+
+void CTestboard::r4s_Set4PixCal( uint8_t x, uint8_t y )
+{
+  vector <uint32_t> regx(5); // initialized with zero
+  vector <uint32_t> regy(5);
+
+  unsigned int wpos, bpos;
+
+  wpos = x / 32;
+  bpos = 15 << (x % 32); // 15 = b_1111 = four adjacent col
+  if( wpos < 5 )
+    regx[wpos] = bpos;
+
+  wpos = y / 32;
+  bpos = 1 << (y % 32);
+  if( wpos < 5 )
+    regy[wpos] = bpos;
+
+  r4s_SetRegX(regx);
+  r4s_SetRegY(regy);
+}
+
+//------------------------------------------------------------------------------
+// sequence building blocks:
+// see ~/psi/r4s/src/FPGA/roc4sens_firmware/dtb/seq_main.v
+/*
+   0: stop
+   1: seq_resetx
+   2: seq_resety
+   3: seq_loadx (from regx)
+   4: seq_loady (from regy)
+   5: seq_measure
+   6: seq_readline
+   7: seq_firstline
+   8: seq_nextline
+FW 0.7:
+   9: seq_firstcol
+   A: seq_nextcol
+   B: seq_readcol
+   C: seq_exttrg
+   D: seq_calib
+*/
+//------------------------------------------------------------------------------
+void CTestboard::r4s_SetSeqReadout( int ext )
+{
+  cout << "r4s_SetSeqReadout called with ext " << ext << endl;
+
+  vector<uint32_t> prog(42); // read from right to left:
+  if( ext ) // external trigger flag
+    prog[ 0] = 0x21CD4321; // 21=clear SR x, y, 43=load cal D=cal C=trg 21=clear SR
+  else
+    prog[ 0] = 0xf2154321; // 21=clear SR x, y, 43=load cal, 5=meas, 21=clear SR
+  prog[ 1] = 0x68686867; // 7=start row 0
+  prog[ 2] = 0x68686868; // 8=next row, 6=read entire row (all cols)
   prog[ 3] = 0x68686868;
   prog[ 4] = 0x68686868;
   prog[ 5] = 0x68686868;
@@ -189,7 +248,7 @@ void CTestboard::r4s_SetSeqReadout()
   prog[ 7] = 0x68686868;
   prog[ 8] = 0x68686868;
   prog[ 9] = 0x68686868;
-  prog[10] = 0x68686868;
+  prog[10] = 0x68686868; // 40
   prog[11] = 0x68686868;
   prog[12] = 0x68686868;
   prog[13] = 0x68686868;
@@ -199,7 +258,7 @@ void CTestboard::r4s_SetSeqReadout()
   prog[17] = 0x68686868;
   prog[18] = 0x68686868;
   prog[19] = 0x68686868;
-  prog[20] = 0x68686868;
+  prog[20] = 0x68686868; // 80
   prog[21] = 0x68686868;
   prog[22] = 0x68686868;
   prog[23] = 0x68686868;
@@ -209,7 +268,7 @@ void CTestboard::r4s_SetSeqReadout()
   prog[27] = 0x68686868;
   prog[28] = 0x68686868;
   prog[29] = 0x68686868;
-  prog[30] = 0x68686868;
+  prog[30] = 0x68686868; // 120
   prog[31] = 0x68686868;
   prog[32] = 0x68686868;
   prog[33] = 0x68686868;
@@ -219,16 +278,20 @@ void CTestboard::r4s_SetSeqReadout()
   prog[37] = 0x68686868;
   prog[38] = 0x68686868;
   prog[39] = 0x68686868;
-  prog[40] = 0x68686868;
-  prog[41] = 0x08686868;
+  prog[40] = 0x68686868; // 160
+  prog[41] = 0x08686868; // 163
   r4s_SetSequence(prog);
 }
 
-void CTestboard::r4s_SetSeqReadCol()
+//------------------------------------------------------------------------------
+void CTestboard::r4s_SetSeqReadCol( int ext ) // FW 0.7
 {
   vector<uint32_t> prog(41);
-  prog[ 0] = 0xf2154321; // clear SR, cal hold, clear SR,
-  prog[ 1] = 0xbababab9; // start row 0
+  if( ext ) // external trigger flag
+    prog[ 0] = 0x21CD4321; // clear_SR cal trg clear_SR
+  else
+    prog[ 0] = 0xf2154321; // clear SR, cal hold, clear SR,
+  prog[ 1] = 0xbababab9; // 9 = start col 0
   prog[ 2] = 0xbabababa; // a = next column, b = read entire column (all rows)
   prog[ 3] = 0xbabababa;
   prog[ 4] = 0xbabababa;
@@ -237,7 +300,7 @@ void CTestboard::r4s_SetSeqReadCol()
   prog[ 7] = 0xbabababa;
   prog[ 8] = 0xbabababa;
   prog[ 9] = 0xbabababa;
-  prog[10] = 0xbabababa;
+  prog[10] = 0xbabababa; // 40
   prog[11] = 0xbabababa;
   prog[12] = 0xbabababa;
   prog[13] = 0xbabababa;
@@ -247,7 +310,7 @@ void CTestboard::r4s_SetSeqReadCol()
   prog[17] = 0xbabababa;
   prog[18] = 0xbabababa;
   prog[19] = 0xbabababa;
-  prog[20] = 0xbabababa;
+  prog[20] = 0xbabababa; // 80
   prog[21] = 0xbabababa;
   prog[22] = 0xbabababa;
   prog[23] = 0xbabababa;
@@ -257,7 +320,7 @@ void CTestboard::r4s_SetSeqReadCol()
   prog[27] = 0xbabababa;
   prog[28] = 0xbabababa;
   prog[29] = 0xbabababa;
-  prog[30] = 0xbabababa;
+  prog[30] = 0xbabababa; // 120
   prog[31] = 0xbabababa;
   prog[32] = 0xbabababa;
   prog[33] = 0xbabababa;
@@ -267,15 +330,15 @@ void CTestboard::r4s_SetSeqReadCol()
   prog[37] = 0xbabababa;
   prog[38] = 0xbabababa;
   prog[39] = 0xbabababa;
-  prog[40] = 0x0abababa;
+  prog[40] = 0x00000aba; // 157
   r4s_SetSequence(prog);
 }
 
-
-void CTestboard::r4s_SetSeqCalScan()
+//------------------------------------------------------------------------------
+void CTestboard::r4s_SetSeqCalScan( int ext )
 {
   vector<uint32_t> prog(103);
-  prog[ 0] = 0x86153721;
+  prog[ 0] = 0x86153721; // 1=resetx 2=resety 7=first 3=loadx 5=meas 1=resetx 6=read 8=next
   prog[ 1] = 0x15386153; prog[ 2] = 0x38615386; prog[ 3] = 0x61538615; prog[ 4] = 0x53861538;	prog[ 5] = 0x86153861;
   prog[ 6] = 0x15386153; prog[ 7] = 0x38615386; prog[ 8] = 0x61538615; prog[ 9] = 0x53861538;	prog[10] = 0x86153861;
   prog[11] = 0x15386153; prog[12] = 0x38615386; prog[13] = 0x61538615; prog[14] = 0x53861538;	prog[15] = 0x86153861;
@@ -299,7 +362,9 @@ void CTestboard::r4s_SetSeqCalScan()
   prog[101]= 0x15386153; prog[102]= 0x00000086;  // limit 1023
   r4s_SetSequence(prog);
 
-  vector<uint32_t> calx(5, 0xffffffff); // activate all col cal
+  vector <uint32_t> calx( 5, 0xffffffff ); // activate all col cal: 5x32 = 160
+  cout << "calx.size " << calx.size() << endl;
+
   r4s_SetRegX(calx);
 
 }

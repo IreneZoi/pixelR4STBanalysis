@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------
  *
- *  file:        cmd_dtb.cpp
+ *  file:        cmd_dtb.h
  *
  *  description: command line interpreter
  *               DTB base functions
@@ -13,10 +13,10 @@
  * -------------------------------------------------------------
  */
 
-
 // =======================================================================
 //  connection, communication, startup commands
 // =======================================================================
+
 HELP_CAT("dtb");
 
 CMD_REG(scan, "", "Get infos of all connected DTBs")
@@ -43,7 +43,6 @@ CMD_REG(clear, "", "clears usb data buffer")
 
 CMD_REG(udelay, "<us>", "waits <us> microseconds")
 CMD_REG(mdelay, "<ms>", "waits <ms> milliseconds")
-
 
 // =======================================================================
 //  test board commands
@@ -96,8 +95,11 @@ CMD_REG(dread, "", "Read Daq buffer and show as raw data")
 
 HELP_CAT("r4s")
 
-CMD_REG(cal, "<x> <y>", "Set calibrate to pixel (x/y)")
-CMD_REG(hold, "<t>", "Set hold position in 5 ns steps")
+CMD_REG(show, "", "print ROC settings")
+CMD_REG(cal, "<x> <y>", "Set calibrate to pixel (x.y)")
+CMD_REG(cal2, "<x> <y>", "Set calibrate to pixel (x.y, x+1.y)")
+CMD_REG(cal4, "<x> <y>", "Set calibrate to pixel (x.y, x+3.y)")
+CMD_REG(hold, "<t>", "Set hold position in 6.25 ns steps")
 CMD_REG(adcdel, "<t>", "Set ADC sampling point in 5ns steps")
 CMD_REG(daqena, "<slow, enable>", "Enable DAQ")
 
@@ -105,10 +107,11 @@ CMD_REG(go, "", "Start ROC4sens measurement sequence")
 CMD_REG(goloop, "", "Start readout loop. Stop by pressing any key")
 CMD_REG(running, "", "Check if measurement sequence running")
 
+CMD_REG(vdig, "<mV>", "Set Roc4sens Vaux3")
+CMD_REG(vana, "<mV>", "Set Roc4sens Vaux3")
 CMD_REG(vcal, "<mV>", "Set Roc4sens Vcal")
 CMD_REG(rgpr, "<mV>", "Set Roc4sens RgPr")
 CMD_REG(rgsh, "<mV>", "Set Roc4sens RgSh")
 CMD_REG(vref, "<mV>", "Set Roc4sens Vref")
 CMD_REG(vaux1, "<mV>", "Set Roc4sens Vaux1")
 CMD_REG(vaux2, "<mV>", "Set Roc4sens Vaux2")
-CMD_REG(vaux3, "<mV>", "Set Roc4sens Vaux3")

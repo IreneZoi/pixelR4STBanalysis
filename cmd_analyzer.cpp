@@ -5,43 +5,127 @@
  *  description: command line interpreter for Chip/Wafer tester
  *
  *  author:      Beat Meier
- *  modified:    31.8.2007
- *
- *  rev:
+ *  modified:    24.7.2017
  *
  * -------------------------------------------------------------
  */
 
 #include "cmd.h"
 //#include "datalink.h"
+
 #include <iostream> // cout
+#include <string>
+#include <fstream> // files
+#include <sys/time.h> // gettimeofday, timeval
 
 #include <TFile.h>
 #include <TH1I.h>
 #include <TH2I.h>
 #include <TProfile.h>
 #include <TProfile2D.h>
+#include <TGraph.h>
+#include <TApplication.h>
+#include <TSystem.h>
+#include <TCanvas.h>
 
 using namespace std;
 
 #define IMG_WIDTH 157
-#define IMG_HEIGHT 163
 #define R4S_VALUE_OR 4096
+
+bool line_wise = 1;
+unsigned IMG_HEIGHT = 163; // FW 0.6
+
+//------------------------------------------------------------------------------
+CMD_PROC(chip)
+{
+  int chip;
+  PAR_INT( chip, 0, 9999 );
+
+  roc.chip = chip;
+  roc.haveGain = 0;
+
+  string gainFileName;
+
+  if( chip == 13 )
+    gainFileName = "r4s_cal_roc013.dat";
+
+  if( chip == 102 )
+    gainFileName = "r102_tb21_cal.dat";
+
+  if( gainFileName.length() > 0 ) {
+
+    ifstream gainFile( gainFileName.c_str() );
+
+    if( gainFile ) {
+
+      roc.haveGain = 1;
+      cout << "gainFile: " << gainFileName << endl;
+
+      while( !gainFile.eof() ) {
+	int icol;
+	int irow;
+	gainFile >> icol;
+	gainFile >> irow;
+	gainFile >> roc.p0[icol][irow];
+	gainFile >> roc.p1[icol][irow];
+	gainFile >> roc.p2[icol][irow];
+	gainFile >> roc.p3[icol][irow];
+      }
+
+    } // gainFile open
+
+  } // gainFileName
+
+}
+
+//------------------------------------------------------------------------------
+// inverse Fermi PH -> Vcal mV
+double PHtoVcal( double ph, unsigned col, unsigned row )
+{
+  if( !roc.haveGain )
+    return ph;
+
+  if( col > 155 )
+    return ph;
+
+  if( row > 160 )
+    return ph;
+
+  // r4scal.C
+
+  double U = ( ph - roc.p3[col][row] ) / roc.p2[col][row];
+
+  if( U >= 1 ) {
+    U = 0.9999999; // avoid overflow
+  }
+
+  return roc.p0[col][row] - roc.p1[col][row] * log( (1-U)/U ); // inverse Fermi
+}
 
 //------------------------------------------------------------------------------
 class R4sImg
 {
   int * data;
+  int evNum;
+
 public:
-  R4sImg() : data(0) {}
+  R4sImg() : data(0) {
+    evNum = 0;
+  }
 
   void Clear() { if( data ) delete[] data; data = 0; }
 
   bool CreateRaw( const vector<uint16_t> &rawdata ); // fills data
 
-  int Get(int x, int y) { return data[y*IMG_WIDTH + x]; } // one pix
+  int Get( int x, int y ) {
+    if( line_wise )
+      return data[y*IMG_WIDTH + x];
+    else
+      return data[x*IMG_HEIGHT + y];
+  } // one pix
 
-  void Print( unsigned int count ); // one row
+  void Print( unsigned int count, unsigned line ); // one row
 
   void Save( const string &filename ); // map.txt
 };
@@ -52,9 +136,11 @@ bool R4sImg::CreateRaw( const vector<uint16_t> &rawdata )
   Clear();
   if( rawdata.size() < IMG_WIDTH * IMG_HEIGHT ) return false;
 
+  ++evNum;
+
   data = new int[IMG_WIDTH * IMG_HEIGHT];
 
-  for( int pos = 0; pos < IMG_WIDTH * IMG_HEIGHT; ++pos ) {
+  for( unsigned pos = 0; pos < IMG_WIDTH * IMG_HEIGHT; ++pos ) {
 
     int value = rawdata[pos];
 
@@ -70,19 +156,25 @@ bool R4sImg::CreateRaw( const vector<uint16_t> &rawdata )
 };
 
 //------------------------------------------------------------------------------
-void R4sImg::Print( unsigned int count )
+void R4sImg::Print( unsigned int count, unsigned line_to_print )
 {
-  if( !data) {
-    printf( "<<empty>>\n" );
+  if( !data ) {
+    printf( "R4sImg::Print: empty data\n" );
     return;
   }
 
   if( count > IMG_WIDTH * IMG_HEIGHT)
     count = IMG_WIDTH * IMG_HEIGHT;
 
-  unsigned i0 = 8*IMG_WIDTH;
-  cout << "row " << i0/IMG_WIDTH << " from top" << endl;
+  cout << "Event " << evNum << endl;
 
+  unsigned i0 = line_to_print*IMG_WIDTH;
+  if( line_wise )
+    cout << "row " << i0/IMG_WIDTH << " from bottom" << endl;
+  else {
+    i0 = line_to_print*IMG_HEIGHT;
+    cout << "col " << i0/IMG_HEIGHT << " from left" << endl;
+  }
   for( unsigned int i = i0; i < i0+count; ++i ) {
     int v = data[i];
     if( v == R4S_VALUE_OR )
@@ -98,18 +190,31 @@ void R4sImg::Print( unsigned int count )
 //------------------------------------------------------------------------------
 void R4sImg::Save( const string &filename )
 {
-  FILE *f = fopen( filename.c_str(), "wt" );
+  if( ! data ) {
+    printf( "R4sImg::Save: empty data\n" );
+    return;
+  }
 
-  TFile * histoFile = new TFile( "one.root", "RECREATE" );
+  //FILE * f = fopen( filename.c_str(), "wt" );
+  FILE * f = fopen( filename.c_str(), "at" ); // append text
+  //FILE * f = fopen( filename.c_str(), "ab" ); // append binary
+  //FILE * f = fopen( filename.c_str(), "wb" ); // append binary
+
+  if( !f ) return;
+
+  TFile * histoFile = NULL;
+  if( evNum == 1 )
+    histoFile = new TFile( "one.root", "RECREATE" );
+
   TProfile2D mapxy( "mapxy",
 		    "ADC map;col;row;<ADC>",
 		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
 
-  if( !f ) return;
+  fprintf( f, " %i\n", evNum );
 
-  for( int y = IMG_HEIGHT-1; y >= 0; --y ) { // start top row
+  for( unsigned y = 0; y < IMG_HEIGHT; ++y ) { // start row 0
 
-    for( int x = 0; x < IMG_WIDTH; ++x ) {
+    for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
 
       int v = Get( x, y );
 
@@ -122,19 +227,22 @@ void R4sImg::Save( const string &filename )
 
     }
 
-    fputs( "\n", f );
+    fputs( "\n", f ); // end of one row
 
   } // rows
 
   fclose(f);
 
-  histoFile->Write();
-  histoFile->Close();
-  cout << histoFile->GetName() << endl;
+  if( evNum == 1 ) {
+    histoFile->Write();
+    histoFile->Close();
+    cout << histoFile->GetName() << endl;
+  }
+
 }
 
 //------------------------------------------------------------------------------
-void ReadImage(R4sImg &map)
+void ReadImage( R4sImg &map, bool slow = 1 )
 {
   tb.Daq_Open(50000);
 
@@ -142,98 +250,968 @@ void ReadImage(R4sImg &map)
 
   tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
   //	tb.r4s_AdcDelay(0);
-  tb.r4s_Enable(3); // slow readout
+
   tb.uDelay(100);
 
   // take data:
 
   tb.Daq_Start();
 
-  tb.r4s_Start();
+  tb.r4s_Start(); // start sequence
+
   tb.uDelay(3000);
+  if( roc.ext )
+    tb.uDelay(64*1000); // 64 ms max
 
   tb.Daq_Stop();
 
-  // stop ADC:
-
-  tb.r4s_Enable(0);
-
   // read buffer:
 
-  vector<uint16_t> data;
-  unsigned int ret = tb.Daq_Read(data);
+  vector<uint16_t> vdata;
+  unsigned int ret = tb.Daq_Read( vdata );
 
-  printf("--- status = %u; n = %u\n", ret, (unsigned int)(data.size()));
+  printf( ", read status %u, n = %u\n", ret, (unsigned int) vdata.size() );
 
   tb.Daq_Close();
 
-  map.CreateRaw( data );
+  map.CreateRaw( vdata );
 }
 
 //------------------------------------------------------------------------------
-CMD_PROC(getimg)
+//                  getimg 24900   (each pix once)
+CMD_PROC(getimg) // getimg  1240 2 (take raw data, pulse 2 pix, write to file)
 {
+  int nevents;
+  if( ! PAR_IS_INT( nevents, 1, 10*24800 ) ) // 155 per row: 1240=8, 12400=80, 24800=160 + 100 ped
+    nevents = 1;
+
+  int npx;
+  if( ! PAR_IS_INT( npx, 1, 4 ) )
+    npx = 1;
+
+  int line_to_print;
+  if( ! PAR_IS_INT( line_to_print, 0, 160 ) )
+    line_to_print = 7;
+
+  cout << "nevents " << nevents << endl;
+
+  // run number from file:
+
+  unsigned int run = 1;
+
+  if( nevents > 1 ) {
+    ifstream irunFile( "runNumber.dat" );
+    irunFile >> run;
+    irunFile.close();
+
+    ++run;
+    cout << "Run " << run << endl;
+
+    ofstream orunFile( "runNumber.dat" );
+    orunFile << run;
+    orunFile.close();
+  }
+
   R4sImg map;
-  ReadImage(map);
-  map.Print(200);
-  map.Save("map.txt");
-}
+
+  if( nevents > 1 )
+    tb.r4s_SetPixCal( 159, 159 ); // for pedestal
+
+  for( int iev = 0; iev < nevents; ++iev ) {
+
+    if( iev > 99 ) { // 100 quiet events
+
+      if(      npx == 4 )
+	tb.r4s_Set4PixCal( (iev-100)%155, (iev-100)/155 ); // start pulsing at pixel 0 0
+
+      else if( npx == 2 )
+	tb.r4s_Set2PixCal( (iev-100)%155, (iev-100)/155 ); // start pulsing at pixel 0 0
+
+      else
+	tb.r4s_SetPixCal( (iev-100)%155, (iev-100)/155 ); // start pulsing at pixel 0 0
+
+    }
+
+    cout << "ev " << iev;
+
+    ReadImage(map);
+
+    if( line_wise ) {
+      if( nevents == 1 || ( iev - 100 ) / 155 == line_to_print ) map.Print(155,line_to_print); // row with pulses
+    }
+    else
+      if( nevents == 1 || ( iev - 100 ) / 160 == line_to_print ) map.Print(160,line_to_print); // col with pulses
+
+    map.Save( Form( "raw%06i.txt", run ) );
+
+  } // ev
+
+  printf( "Written to raw%06i.txt\n", run );
+
+} // getimg
+
+//------------------------------------------------------------------------------
+CMD_PROC(takedata) // roi data
+{
+  int ntrg;
+  if( ! PAR_IS_INT( ntrg, 1, 999 ) )
+    ntrg = 1;
+
+  int col_to_print;
+  if( ! PAR_IS_INT( col_to_print, 0, 156 ) )
+    col_to_print = 0;
+
+  int fupd;     // every fupd events the plots are updated
+  if( ! PAR_IS_INT( fupd, 10, 5001 ) )
+    fupd = 200;
+
+  // run number from file:
+
+  unsigned int run = 1;
+
+  ifstream irunFile( "runNumber.dat" );
+  irunFile >> run;
+  irunFile.close();
+
+  ++run;
+  cout << "Run " << run << endl;
+  Log.printf( "Run %i takedata %i\n", run, ntrg );
+
+  ofstream orunFile( "runNumber.dat" );
+  orunFile << run;
+  orunFile.close();
+
+  string fileName = Form( "roi%06i.txt", run );
+
+  ofstream outfile;
+
+  outfile.setf( ios::fixed );
+  outfile.precision(1);
+  outfile.open( fileName.c_str() ); // task: check integrity
+
+  int planeNr = 3;    // colorize planes in different ways
+  int nPedAvg = 100;  // number of events to average for pedestal 
+  double thr = -24;   // threshold for hit finding (negative!)
+  int roiCol = 2;     // +-ROI in col
+  int roiRow = 3;     // +-ROI in row
+  bool fiftyfifty = 1;// 1 = 50x50 sensor, 0 = 100x25
+
+  // write header for output file:
+
+  outfile << "run " << run
+          << endl << "pedestal " << nPedAvg
+          << endl << "threshold " << thr
+          << endl << "row_wise " << line_wise
+          << endl << "50_by_50 " << fiftyfifty
+          << endl << "roi_col " << roiCol*2 + 1
+          << endl << "roi_row " << roiRow*2 + 1
+          << endl << "START"
+    ;
+
+  TFile * histoFile = new TFile( Form( "roi%06i.root", run ), "RECREATE" );
+
+  //TApplication app( "app", 0, 0 );
+
+  int argc = 0;
+  char* argv[1];
+
+  TApplication * app;
+
+  if( gApplication ) { // singleton
+    cout << "gApplication exists" << endl;
+    app = gApplication;
+  }
+  else {
+    cout << "no gApplication" << endl;
+    app = new TApplication( "app", &argc, argv);
+  }
+
+  Char_t name[100];
+  sprintf( name,"P%i - Pulse Heights;PH [ADC];N pixels", planeNr );
+  TH1D hadc( "hadc", name, 4097, -2048.5, 2048.5 );
+
+  sprintf( name,"P%i - Pulse Heights (incl. Pedestal Correction);PH [ADC];N pixels",planeNr);
+  TH1D hadcSubPed( "hadcSubPed", name, 4097, -2048.5, 2048.5 );
+
+  sprintf( name,"P%i - Pulse Heights Differences (incl. Pedestal Correction);PH [ADC];N pixels",planeNr);
+  TH1D hadcNoCoMo( "hadcNoCoMo", name, 4097, -2048.5, 2048.5 );
+
+  sprintf( name,"P%i - Pixel over Threshold; N Pixel; entries",planeNr);
+  TH1D pixelOverThr("pixelOverThr", name, 51, -0.5, 50.5);
+  
+  //profiles:
+
+  sprintf( name,"P%i - Running Pedestal Map;col;row;<ADC>",planeNr);
+  TProfile2D pedxy( "pedxy", name, 155, 0, 155, 160, 0, 160, -2222, 2222 );
+
+  sprintf( name,"P%i - RMS Pulse Height (incl. Pedestal Correction);col;row;<ADC>",planeNr);
+  TProfile2D phRMS( "phRMS", name, 155, 0, 155, 160, 0, 160, -2222, 2222 );
+
+  sprintf(name,"P%i - RMS Pulse Height Differences (incl. Pedestal Correction);col;row;<ADC>",planeNr);
+  TProfile2D phCRMS( "phCRMS", name, 155, 0, 155, 160, 0, 160, -2222, 2222 );
+
+  sprintf(name,"P%i - Pulse Height of Pixel over Threshold (incl. Pedestal Correction);col;row;<ADC>",planeNr);
+  TProfile2D hitAmplAvg( "hitAmplAvg",
+                         name, 155, 0, 155, 160, 0, 160, -2222., 2222. );
+
+  // time development
+
+  TGraph* gPedAvg = new TGraph();
+  gPedAvg->SetName( "gPedAvg" );
+  sprintf( name, "P%i - Average Pedestal",planeNr );
+  gPedAvg->SetTitle(name);
+  gPedAvg->GetXaxis()->SetTitle( "Event Number" );
+  gPedAvg->GetYaxis()->SetTitle( "<ADC>" );
+  gPedAvg->SetPoint( 0, 0, 0 );
+
+  TGraph* gHitAvg = new TGraph();
+  gHitAvg->SetName( "gHitAvg" );
+  sprintf( name, "P%i - Average Number of hit Pixels", planeNr );
+  gHitAvg->SetTitle( name );
+  gHitAvg->GetXaxis()->SetTitle( "Event Number" );
+  gHitAvg->GetYaxis()->SetTitle( "N pixels" );
+  gHitAvg->SetPoint( 0, 0, 1 );
+
+  // hitmap:
+
+  sprintf(name,"P%i - Hitmap;col;row;[entries]",planeNr);
+  TH2D hitmap( "hitmap", name, 155, 0, 155, 160, 0, 160 );
+
+  //canvas for live draw
+
+  TCanvas * h1 = new TCanvas( "h1", "h1", 600, 400 );
+  h1->SetLogy();
+  hadc.Draw();
+
+  TCanvas * h2 = new TCanvas( "h2", "h2", 600, 400 );
+  h2->SetLogy();
+  hadcSubPed.Draw();
+
+  TCanvas * h3 = new TCanvas( "h3", "h3", 600, 400 );
+  h3->SetLogy();
+  hadcNoCoMo.Draw();
+
+  TCanvas * h4 = new TCanvas( "h4", "h4", 600, 400 );
+  h4->SetLogy();
+  pixelOverThr.Draw();
+
+  TCanvas * p1 = new TCanvas( "p1", "p1", 900, 800 );
+  pedxy.Draw( "colz" );
+
+  TCanvas * p2 = new TCanvas( "p2", "p2", 900, 800 );
+  phRMS.Draw( "colz" );
+
+  TCanvas * p3 = new TCanvas( "p3", "p3", 900, 800 );
+  phCRMS.Draw( "colz" );
+
+  TCanvas * p4 = new TCanvas( "p4", "p4", 900, 800 );
+  hitAmplAvg.Draw("colz");
+
+  TCanvas * g1 = new TCanvas( "g1", "g1", 200, 10, 600, 400 );
+  gPedAvg->Draw( "AC*" );
+
+  TCanvas * g2 = new TCanvas( "g2", "g2", 200, 10, 600, 400 );
+  gHitAvg->Draw( "AC*" );
+
+  TCanvas * d1 = new TCanvas( "d1", "d1", 900, 800 ); // square
+  d1->SetLogz();
+  hitmap.Draw( "colz" );
+
+  if( planeNr == 1 ){ // upstream = red
+
+    h1->SetFillColor( kRed-10 );
+    h2->SetFillColor( kRed-10 );
+    h3->SetFillColor( kRed-10 );
+    h4->SetFillColor( kRed-10 );
+    p1->SetFillColor( kRed-10 );
+    p2->SetFillColor( kRed-10 );
+    p3->SetFillColor( kRed-10 );
+    p4->SetFillColor( kRed-10 );
+    g1->SetFillColor( kRed-10 );
+    g2->SetFillColor( kRed-10 );
+    d1->SetFillColor( kRed-10 );
+  }
+
+  if( planeNr == 2 ) { // middle = yellow
+
+    h1->SetFillColor( kYellow-10 );
+    h2->SetFillColor( kYellow-10 );
+    h3->SetFillColor( kYellow-10 );
+    h4->SetFillColor( kYellow-10 );
+    p1->SetFillColor( kYellow-10 );
+    p2->SetFillColor( kYellow-10 );
+    p3->SetFillColor( kYellow-10 );
+    p4->SetFillColor( kYellow-10 );
+    g1->SetFillColor( kYellow-10 );
+    g2->SetFillColor( kYellow-10 );
+    d1->SetFillColor( kYellow-10 );
+  }
+
+  if( planeNr == 3 ){ //down stream = green
+
+    h1->SetFillColor( kGreen-10 );
+    h2->SetFillColor( kGreen-10 );
+    h3->SetFillColor( kGreen-10 );
+    h4->SetFillColor( kGreen-10 );
+    p1->SetFillColor( kGreen-10 );
+    p2->SetFillColor( kGreen-10 );
+    p3->SetFillColor( kGreen-10 );
+    p4->SetFillColor( kGreen-10 );
+    g1->SetFillColor( kGreen-10 );
+    g2->SetFillColor( kGreen-10 );
+    d1->SetFillColor( kGreen-10 );
+  }
+
+  line_wise = 0;
+  IMG_HEIGHT = 162; // FW 0.7
+  cout << "line_wise " << line_wise << endl;
+
+  tb.Daq_Open( 48*1024*1024 ); // [words] max 64*1024*1024
+
+  const uint32_t Blocksize = 4 * 1024 * 1024;
+
+  // prepare ADC:
+
+  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
+  //	tb.r4s_AdcDelay(0);
+
+  tb.uDelay(100);
+
+  int iev = 0;
+  int wev = 0; // write event
+  double hitAvg = 0;
+
+  // Define matrices to store e.g. pedestal information on the run:
+
+  double savePH[155][160] = {0};
+  double runPed[155][160] = {0};
+  double mPhRMS[155][160] = {0};
+  double mPhCRMS[155][160] = {0};
+  double notHitPH[155][160] = {0};
+  double notHitPHC[155][160] = {0};
+
+  timeval tv;
+  gettimeofday( &tv, NULL );
+  long s0 = tv.tv_sec; // seconds since 1.1.1970
+  long u0 = tv.tv_usec; // microseconds
+
+  while( !keypressed() ) {
+
+    gettimeofday( &tv, NULL );
+    long s1 = tv.tv_sec; // seconds since 1.1.1970
+    long u1 = tv.tv_usec; // microseconds
+
+    tb.Daq_Start(); // ADC -> RAM
+
+    for( int itrg = 0; itrg < ntrg; ++itrg ) {
+
+      ++iev; // triggered events
+      cout << "ev " << iev;
+
+      tb.r4s_Start(); // R4S sequence
+
+      tb.uDelay(800); // 157*163*25 ns = 640 us R4S readout
+
+    }
+
+    if( roc.ext ) tb.uDelay( 64*1000 ); // uint16 goes to 64 ms
+
+    tb.Daq_Stop();
+
+    // read DTB memory:
+
+    vector<uint16_t> vdata;
+
+    unsigned int ret = tb.Daq_Read( vdata, Blocksize );
+
+    cout << "  status " << ret << " read " << vdata.size() << " words";
+
+    gettimeofday( &tv, NULL );
+    long s2 = tv.tv_sec; // seconds since 1.1.1970
+    long u2 = tv.tv_usec; // microseconds
+    cout << " in " << s2 - s1 + ( u2 - u1 ) * 1e-6 << " s";
+    cout << endl;
+
+    unsigned pos = 0;
+
+    int ktrg  = vdata.size() / IMG_WIDTH /  IMG_HEIGHT;
+    cout << "  try  to unpack " << ktrg << " event blocks" << endl;
+
+    for( int itrg = 0; itrg < ktrg; ++itrg ) {
+
+      gSystem->ProcessEvents(); // ROOT
+
+      ++wev;
+
+      double prevPH = 0;
+      double pedAvg = 0;
+
+      int nHit = 0; // number of hit pixel per event
+      double hit[155][160] = {0};
+      double stored[155][160] = {0};
+
+      for( int col = 0; col < IMG_WIDTH; ++col ) { // column-wise
+
+	for( unsigned row = 0; row < IMG_HEIGHT; ++row ) {
+
+	  int adc = vdata.at(pos);
+	  ++pos;
+
+	  if( adc & 0x1000 ) // ADC overrange
+	    adc = R4S_VALUE_OR;
+	  else if( adc & 0x0800 ) // negative
+	    adc -= 0x1000;
+
+	  double adcD = adc; // avoid type problems
+
+	  // suppress fake pixels:
+
+	  if( col < 155 && row < 160 ) {
+
+	    // Collect pedestal from the first nPedAvg events. CAUTION ASSUMES NO HITS IN THESE
+
+	    if( wev <= nPedAvg )
+	      runPed[col][row] += adcD / nPedAvg;
+
+	    else { // hit finding
+
+	      // calculate pulse height difference:
+
+	      double thisPH = adcD - runPed[col][row]; // hits are negative
+
+	      double diffPH = thisPH - prevPH; // first px in clus is negative
+
+	      prevPH = thisPH;
+
+	      savePH[col][row] = thisPH; // store 
+
+	      hadc.Fill( adc );
+	      hadcSubPed.Fill( thisPH );
+	      hadcNoCoMo.Fill( diffPH );
+
+	      // seed finding using forward difference:
+
+	      bool overThr = 0;
+
+	      if( diffPH <  thr ) { // thr is negative, leading edge of clus
+
+		hit[col][row] = 1;
+		++nHit;
+		overThr = 1;
+		hitAmplAvg.Fill( col+0.5, row+0.5, thisPH );
+
+	      }
+
+	      else if( diffPH > -thr  && row > 0 ) { // thr is negative, trailing edge of clus
+
+		hit[col][row-1] = 1; // assign to previous
+		++nHit;
+		overThr = 1;
+
+	      }
+
+	      if( ! overThr ) { // update pedestal and RMS 
+
+		if( !( thisPH < thr ) &&
+		    !( thisPH > -thr ) ) { // excludes hits inside clusters as well
+
+		  // Running Pedestal update:
+
+		  runPed[col][row] = adcD / nPedAvg +
+		    runPed[col][row] * (nPedAvg - 1.0) / nPedAvg;
+
+		  // for RMS:
+		  mPhRMS[col][row] += thisPH * thisPH;
+
+		  notHitPH[col][row] += 1;
+
+		}
+
+		mPhCRMS[col][row] += diffPH  *diffPH;
+		notHitPHC[col][row] += 1;
+
+	      } // !overThr
+
+	      if( wev%fupd == 0 ) { // update plots
+
+		if( col==0 && row == 0 ) { //reset ONCE before fill
+		  pedxy.Reset();
+		  phRMS.Reset();
+		  phCRMS.Reset();
+		}
+
+		pedxy.Fill( col+0.5, row+0.5, runPed[col][row] );
+		phRMS.Fill( col+0.5, row+0.5, sqrt( mPhRMS[col][row] / notHitPH[col][row] ) );
+		phCRMS.Fill( col+0.5, row+0.5, sqrt( mPhCRMS[col][row] / notHitPHC[col][row] ) );
+
+		// so they can be refilled
+
+		mPhRMS[col][row] = 0;
+		mPhCRMS[col][row] = 0;
+		notHitPH[col][row] = 0;
+		notHitPHC[col][row] = 0;
+
+		pedAvg += runPed[col][row];
+
+            } // update plots
+
+	    } // hit finding
+
+	  } // valid px
+
+	} // px rows
+
+      } // col
+
+      hitAvg += nHit;
+
+      pixelOverThr.Fill(nHit);
+
+      // task: make list of seeds
+
+      bool hitFlag = 0;
+
+      for( int col = 0; col< 155; ++col ) { // seed
+
+	for( int row = 0; row< 160; ++row ) { // seed
+
+	  if( hit[col][row] == 1 ) { // seed
+
+	    if( hitFlag == 0 ) { // only once per event
+	      outfile << endl
+		      << wev << " F"
+		      << endl;
+	      hitFlag = 1;
+	    }
+
+	    hitmap.Fill( col+0.5, row+0.5 );
+
+	    // region of interest:
+
+	    for( int i = col - roiCol; i <= col + roiCol; ++i ) {
+
+	      for( int j = row - roiRow; j <= row + roiRow; ++j ) {
+
+		// fiducial region:
+
+		if( i >= 0 && i < 155 && j >= 0 && j < 160 ) {
+
+		  // write pixel to file (once):
+
+		  // FLAG SEED PIXELS with negative i, j ?
+
+		  if( ! stored[i][j] ) {
+		    outfile << i << " " << j << " " << -savePH[i][j] << " "; // invert PH
+		    stored[i][j] = 1; // avoid double writing
+		  }
+
+		} // valid px
+
+	      } // roi_rows j
+
+	    } // roi_cols i
+
+	  } // seed hit
+
+	} // seed_row
+
+      } // seed_col
+
+      if( ! hitFlag ) // write empty line
+	outfile << endl
+		<< wev << " E no hits"; // no endl here!
+
+      if( wev%fupd == 0 ) {
+
+	int pntnr = wev/fupd;
+	gPedAvg->SetPoint( pntnr, wev, pedAvg/160/155 );
+	gHitAvg->SetPoint( pntnr, wev, hitAvg/fupd );
+	hitAvg = 0;
+
+	h1->Modified();
+	h1->Update();
+	h2->Modified();
+	h2->Update();
+	h3->Modified();
+	h3->Update();
+	h4->Modified();
+	h4->Update();
+
+	p1->Modified();
+	p1->Update();
+	p2->Modified();
+	p2->Update();
+	p3->Modified();
+	p3->Update();
+	p4->Modified();
+	p4->Update();
+
+	g1->Modified();
+	g1->Update();
+	g2->Modified();
+	g2->Update();
+
+	d1->Modified();
+	d1->Update();
+
+      } // update
+
+    } // unpack trg
+
+    if( ktrg == 0 ) {
+      //outfile << endl << iev << " E incomplete"; // no endl here!
+      cout << "  incomplete" << endl;
+      Log.printf( "  trigger %i data size %i incomplete \n", iev, vdata.size() );
+    }
+
+  } // run while not keypressed
+
+  tb.Daq_Close();
+
+  outfile.close();
+
+  cout << wev << " events written to " << fileName << endl;
+
+  Log.printf( "  triggers %i, written %i\n", iev, wev );
+  Log.flush();
+
+  // Final update of some live plots:
+
+  h1->Modified();
+  h1->Update();
+  h2->Modified();
+  h2->Update();
+  h3->Modified();
+  h3->Update();
+  h4->Modified();
+  h4->Update();
+
+  p1->Modified();
+  p1->Update();
+  p2->Modified();
+  p2->Update();
+  p3->Modified();
+  p3->Update();
+  p4->Modified();
+  p4->Update();
+
+  g1->Modified();
+  g1->Update();
+  g2->Modified();
+  g2->Update();
+
+  d1->Modified();
+  d1->Update();
+
+  // explicitely write TGraph:
+
+  gPedAvg->Write();
+  gHitAvg->Write();
+
+  // store all histograms to root file:
+
+  histoFile->Write();
+  histoFile->Close();
+
+  delete histoFile;
+  delete gPedAvg;
+  delete gHitAvg;
+  delete h1;
+  delete h2;
+  delete h3;
+  delete h4;
+  delete p1;
+  delete p2;
+  delete p3;
+  delete p4;
+  delete g1;
+  delete g2;
+  delete d1;
+
+  //app->Terminate(); // ends R4Stest
+
+  //delete app; // don't delete singletons
+
+  //app.Run(true); // want to display plots after running program?
+
+  gettimeofday( &tv, NULL );
+  long s9 = tv.tv_sec; // seconds since 1.1.1970
+  long u9 = tv.tv_usec; // microseconds
+  cout << "  test duration " << s9 - s0 + ( u9 - u0 ) * 1e-6 << " s" << endl;
+
+} // takedata
+
+//------------------------------------------------------------------------------
+CMD_PROC(takeraw)
+{
+  int ntrg;
+  if( ! PAR_IS_INT( ntrg, 1, 999 ) )
+    ntrg = 1;
+
+  int col_to_print;
+  if( ! PAR_IS_INT( col_to_print, 0, 156 ) )
+    col_to_print = 0;
+
+  // run number from file:
+
+  unsigned int run = 1;
+
+  ifstream irunFile( "runNumber.dat" );
+  irunFile >> run;
+  irunFile.close();
+
+  ++run;
+  cout << "Run " << run << endl;
+
+  ofstream orunFile( "runNumber.dat" );
+  orunFile << run;
+  orunFile.close();
+
+  string fileName = Form( "raw%06i.txt", run );
+  FILE * f = fopen( fileName.c_str(), "at" ); // append text
+
+  if( !f ) return;
+
+  line_wise = 0;
+  IMG_HEIGHT = 162; // FW 0.7
+  cout << "line_wise " << line_wise << endl;
+
+  tb.Daq_Open( 48*1024*1024 ); // [words] max 64*1024*1024
+
+  const uint32_t Blocksize = 4 * 1024 * 1024;
+
+  // prepare ADC:
+
+  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
+  //	tb.r4s_AdcDelay(0);
+
+  tb.uDelay(100);
+
+  int iev = 0;
+  int wev = 0; // write event
+
+  timeval tv;
+  gettimeofday( &tv, NULL );
+  long s0 = tv.tv_sec; // seconds since 1.1.1970
+  long u0 = tv.tv_usec; // microseconds
+
+  while( !keypressed() ) {
+
+    gettimeofday( &tv, NULL );
+    long s1 = tv.tv_sec; // seconds since 1.1.1970
+    long u1 = tv.tv_usec; // microseconds
+
+    tb.Daq_Start(); // ADC -> RAM
+
+    for( int itrg = 0; itrg < ntrg; ++itrg ) {
+
+      ++iev;
+      cout << " ev " << iev;
+
+      tb.r4s_Start(); // R4S sequence
+
+      tb.uDelay(800); // 157*163*25 ns = 640 us R4S readout
+
+    }
+
+    if( roc.ext ) tb.uDelay(64*1000); // uint16 goes to 64k
+
+    tb.Daq_Stop();
+
+    // read buffer:
+
+    vector<uint16_t> vdata;
+
+    unsigned int ret = tb.Daq_Read( vdata, Blocksize );
+
+    cout << "  status " << ret << " read " << vdata.size() << " words";
+
+    gettimeofday( &tv, NULL );
+    long s2 = tv.tv_sec; // seconds since 1.1.1970
+    long u2 = tv.tv_usec; // microseconds
+    cout << " in " << s2 - s1 + ( u2 - u1 ) * 1e-6 << " s";
+    cout << endl;
+
+    // unpack data:
+
+    unsigned pos = 0;
+
+    int ktrg  = vdata.size() / IMG_WIDTH /  IMG_HEIGHT;
+    cout << "try  to unpack " << ktrg << " event blocks" << endl;
+
+    for( int itrg = 0; itrg < ktrg; ++itrg ) {
+
+      ++wev;
+      fprintf( f, " %i event\n", wev );
+
+      for( int x = 0; x < IMG_WIDTH; ++x ) { // column-wise
+
+	if( x == col_to_print )
+	  cout << "ev " << wev << " column " << x << " raw data:" << endl;
+
+	for( unsigned y = 0; y < IMG_HEIGHT; ++y ) { // rows
+
+	  int val = vdata.at(pos);
+	  ++pos;
+
+	  if( val & 0x1000 ) // ADC overrange
+	    val = R4S_VALUE_OR;
+	  else if( val & 0x0800 ) // negative
+	    val -= 0x1000;
+
+	  fprintf( f, " %4i", val );
+	  if( x == col_to_print )
+	    printf( " %4i", val );
+
+	} // px rows
+
+	fprintf( f, " col %i\n", x );
+	//fputs( "\n", f ); // end of one col
+	if( x == col_to_print )
+	  printf( "\n" );
+
+      } // col
+
+    } // trg
+
+  } // active
+
+  tb.Daq_Close();
+
+  fclose(f);
+  cout << wev << " events written to " << fileName << endl;
+
+  gettimeofday( &tv, NULL );
+  long s9 = tv.tv_sec; // seconds since 1.1.1970
+  long u9 = tv.tv_usec; // microseconds
+  cout << "  test duration " << s9 - s0 + ( u9 - u0 ) * 1e-6 << " s" << endl;
+
+} // takeraw
 
 //------------------------------------------------------------------------------
 CMD_PROC(getped)
 {
+  int dummy; if( !PAR_IS_INT( dummy, 0, 1 ) ) dummy = 80;
+
   TFile * histoFile = new TFile( "ped.root", "RECREATE" );
+
+  TH1I hped( "ped",
+	     "ped;ped;pixels",
+	     100, 0, 1000 );
+
   TProfile2D pedxy( "pedxy",
 		    "pedestal map;col;row;<ADC>",
 		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+
   TH2I hsuma( "suma",
 	      "suma map;col;row;sum ADC",
 	      IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
+
   TH2I hsumaa( "sumaa",
 	       "sumaa map;col;row;sum ADC^2",
 	       IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
-  TProfile2D rmsxy( "rmsxy",
-		    "rms map;col;row;RMS",
-		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, 0, 2222 );
-  TH1I hrms( "rms",
-	     "rms;rms;pixels",
-	     100, 0, 100 );
+
+  TH2I hab( "ab",
+	    "correlation 76 77 in row 88;pix 88.77 [ADC];pix 88.76 [ADC];events",
+	    600, 100, 700, 600, 100, 700 );
+
+  TH2I h8971( "c8971",
+	      "correlation 89.71 to 89.70;pix 89.70 [ADC];pix 89.71 [ADC];events",
+	      600, 100, 700, 600, 100, 700 );
+
+  TH2I h88120( "c88120",
+	       "correlation 88.120 89.70;pix 88.120 [ADC];pix 89.70 [ADC];events",
+	       600, 100, 700, 600, 100, 700 );
+
+  TH1I hamb( "amb",
+	     "a-b;neighbour difference [ADC];pixel pairs",
+	     101, -50.5, 50.5 );
+  TH1I hapb( "apb",
+	     "a+b;neighbour sum [ADC];pixel pairs",
+	     101, 449.5, 550.5 );
+  TH1I ha( "a",
+	   "a;amplitude [ADC];pixels",
+	   101, 199.5, 300.5 );
 
   R4sImg map;
 
-  tb.r4s_SetSeqReadout(); // pedestal
+  tb.r4s_SetPixCal( 159, 159 );
+
+  if( line_wise )
+    tb.r4s_SetSeqReadout( roc.ext ); // pedestal
+  else
+    tb.r4s_SetSeqReadCol( roc.ext );
 
   unsigned N = 99;
+
   for( unsigned i = 0; i < N; ++i ) { // events
 
-    cout << "event " << i << endl;
+    cout << "event " << i;
 
     ReadImage( map );
 
-    for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
+    for( int y = IMG_HEIGHT-1; y >= 0; --y ) { // start top row
 
-      for( int x = 0; x < IMG_WIDTH; ++x ) {
+      for( unsigned x = 0; x < IMG_WIDTH; ++x ) { // horizontal = readout sequence = readout time
 
-	int a = map.Get( x, y );
+	int a = map.Get( x, y ); // [ADC]
+	if( y < 160 && x < 155 )
+	  hped.Fill( a );
 	pedxy.Fill( x+0.5, y+0.5, a );
 	hsuma.Fill( x+0.5, y+0.5, a );
+
 	hsumaa.Fill( x+0.5, y+0.5, a*a );
 
-      }
+	int b = a;
+	if( x < 154 )
+	  b = map.Get( x+1, y ); // [ADC]
 
+	if( x == 77 && y == 88 ) {
+	  hab.Fill( a+0.5, b+0,5 );
+	  hamb.Fill( a-b );
+	  hapb.Fill( a+b );
+	  ha.Fill( a );
+	}
+	if( x == 71 && y == 89 ) {
+	  h8971.Fill( a+0.5, b+0,5 );
+	}
+	if( x == 70 && y == 89 ) {
+	  b = map.Get( 120, 88 ); // [ADC]
+	  h88120.Fill( a+0.5, b+0,5 );
+	}
+      }
+    }
   } // events
+
+  TProfile2D rmsxy( "rmsxy",
+		    "rms map;col;row;RMS [ADC]",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, 0, 2222 );
+
+  TProfile rms88( "rms88",
+		  "rms row 88;pixel;RMS [ADC]",
+		  2*155, 0, 2*155, 0, 2222 );
+
+  TH1I hrms( "rms",
+	     "rms;rms [ADC];pixels",
+	     100, 0, 20 );
 
   for( int y = IMG_HEIGHT-1; y >= 0; --y ) { // start top row
 
-    for( int x = 0; x < IMG_WIDTH; ++x ) {
+    for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
+
       double suma = hsuma.GetBinContent( x+1, y+1 ); // bins start at 1
       double sumaa = hsumaa.GetBinContent( x+1, y+1 ); // bins start at 1
       double rms = sqrt( sumaa/N - suma/N*suma/N );
-      cout << " " << rms;
+      //cout << " " << rms;
       rmsxy.Fill( x+0.5, y+0.5, rms );
-      hrms.Fill( rms );
+      if( y < 160 && x < 155 )
+	hrms.Fill( rms );
+      if( y == 88 && x < 155 )
+	rms88.Fill( x+0.5, rms );
+      if( y == 89 && x < 155 )
+	rms88.Fill( 155+x+0.5, rms );
     }
-    cout << endl;
+    //cout << endl;
   }
   cout << "mean rms " << hrms.GetMean() << endl;
   histoFile->Write();
@@ -245,38 +1223,47 @@ CMD_PROC(getped)
 //------------------------------------------------------------------------------
 CMD_PROC(getcal) // ph-ped map
 {
+  int dummy; if( !PAR_IS_INT( dummy, 0, 1 ) ) dummy = 80;
+
   TFile * histoFile = new TFile( "cal.root", "RECREATE" );
+
   TProfile2D pedxy( "pedxy",
 		    "pedestal map;col;row;<ADC>",
 		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+
   TH2I hsuma( "suma",
 	      "suma map;col;row;sum ADC",
 	      IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
+
   TH2I hsumaa( "sumaa",
 	       "sumaa map;col;row;sum ADC^2",
 	       IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
-  TProfile2D rmsxy( "rmsxy",
-		    "rms map;col;row;RMS",
-		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, 0, 2222 );
-  TH1I hrms( "rms",
-	     "rms;rms;pixels",
-	     100, 0, 100 );
 
   R4sImg map;
 
-  tb.r4s_SetSeqReadout(); // pedestal
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // take pedestal map:
+
+  //tb.r4s_SetPixCal( 159, 159 );
+  //tb.r4s_SetSeqReadout(roc.ext); // pedestal
+
+  tb.r4s_SetVcal(0); // baseline?
+  tb.r4s_SetSeqCalScan(); // Cal
+
+  line_wise = 1;
+  IMG_HEIGHT = 163; // FW 0.6
 
   unsigned Np = 99;
 
   for( unsigned i = 0; i < Np; ++i ) { // events
 
-    cout << "event " << i << endl;
+    cout << "event " << i;
 
     ReadImage( map );
 
     for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
 
-      for( int x = 0; x < IMG_WIDTH; ++x ) {
+      for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
 
 	int a = map.Get( x, y );
 	pedxy.Fill( x+0.5, y+0.5, a );
@@ -287,56 +1274,96 @@ CMD_PROC(getcal) // ph-ped map
 
   } // events
 
+  TProfile2D rmsxy( "rmsxy",
+		    "rms map;col;row;RMS [ADC]",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, 0, 2222 );
+
+  TH1I hrms( "rms",
+	     "rms;rms [ADC];pixels",
+	     100, 0, 20 );
+
   for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
 
-    for( int x = 0; x < IMG_WIDTH; ++x ) {
+    for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
+
       double suma = hsuma.GetBinContent( x+1, y+1 ); // bins start at 1
       double sumaa = hsumaa.GetBinContent( x+1, y+1 ); // bins start at 1
       double rms = sqrt( sumaa/Np - suma/Np*suma/Np );
       rmsxy.Fill( x+0.5, y+0.5, rms );
-      hrms.Fill( rms );
+      if( y < 160 && x < 155 )
+	hrms.Fill( rms );
     }
 
   cout << "mean rms " << hrms.GetMean() << endl;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  tb.r4s_SetVcal(roc.Vcal);
   tb.r4s_SetSeqCalScan(); // Cal
 
-  TProfile2D phxy( "phxy",
-		   "pulse height;col;row;<ADC>",
-		   IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+  TProfile2D adcxy( "adcxy",
+		    "pulse height;col;row;<ADC>",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
 
-  unsigned Nc = 10;
+  // taka data:
+
+  unsigned Nc = 16;
+
   for( unsigned i = 0; i < Nc; ++i ) { // events
 
-    cout << "event " << i << endl;
+    cout << "event " << i;
 
     ReadImage( map );
 
     for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
 
-      for( int x = 0; x < IMG_WIDTH; ++x )
-	phxy.Fill( x+0.5, y+0.5, map.Get( x, y ) );
+      for( unsigned x = 0; x < IMG_WIDTH; ++x )
 
+	adcxy.Fill( x+0.5, y+0.5, map.Get( x, y ) );
 
   } // events
 
-  TProfile2D calxy( "calxy",
-		    "cal;col;row;<ADC> - ped",
-		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // subtract pedestal:
+
+  TProfile2D phxy( "phxy",
+		   "ph;col;row;<ADC> - ped",
+		   IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+
+  TH1I hph( "ph",
+	     "ph;ph [ADC-ped];pixels",
+	     100, -100, 900 );
+
   TH1I hcal( "cal",
-	     "cal;cal [ADC-ped];pixels",
-	     100, -2000, 2000 );
+	     "Vcal;Vcal [mV];pixels",
+	     200, -100, 1900 );
+
+  TProfile2D s2nxy( "s2nxy",
+		    "pulse height / RMS;col;row;<PH>/RMS",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, 0, 2222 );
+  TH1I hs2n( "s2n",
+	     "signal.noise;PH/RMS;pixels",
+	     100, 0, 200 );
 
   for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
 
-    for( int x = 0; x < IMG_WIDTH; ++x ) {
-      double a = phxy.GetBinContent( x+1, y+1 ); // bins start at 1
+    for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
+
+      double a = adcxy.GetBinContent( x+1, y+1 ); // bins start at 1
       double p = pedxy.GetBinContent( x+1, y+1 ); // bins start at 1
-      calxy.Fill( x+0.5, y+0.5, a-p );
-      hcal.Fill( a-p );
+      double s = rmsxy.GetBinContent( x+1, y+1 ); // bins start at 1
+      phxy.Fill( x+0.5, y+0.5, p-a );
+      s2nxy.Fill( x+0.5, y+0.5, (p-a)/s );
+      if( y < 160 && x < 155 ) {
+	hph.Fill( p-a ); // positive
+	hs2n.Fill( (p-a)/s ); // positive
+	hcal.Fill( PHtoVcal( p-a, x, y ) );
+      }
     }
-  
+
+  cout << hph.GetName() << " mean " << hph.GetMean() << endl;
+  cout << hcal.GetName() << " mean " << hcal.GetMean() << endl;
+
   histoFile->Write();
   histoFile->Close();
   cout << histoFile->GetName() << endl;
@@ -346,38 +1373,61 @@ CMD_PROC(getcal) // ph-ped map
 //------------------------------------------------------------------------------
 CMD_PROC(scancal) // scan Vcal
 {
+  int dummy; if( !PAR_IS_INT( dummy, 0, 1 ) ) dummy = 80;
+
   TFile * histoFile = new TFile( "scancal.root", "RECREATE" );
+
   TProfile2D pedxy( "pedxy",
 		    "pedestal map;col;row;<ADC>",
 		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+
   TH2I hsuma( "suma",
 	      "suma map;col;row;sum ADC",
 	      IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
+
   TH2I hsumaa( "sumaa",
 	       "sumaa map;col;row;sum ADC^2",
 	       IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
+
   TProfile2D rmsxy( "rmsxy",
-		    "rms map;col;row;RMS",
+		    "rms map;col;row;RMS [ADC]",
 		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, 0, 2222 );
+
   TH1I hrms( "rms",
-	     "rms;rms;pixels",
-	     100, 0, 100 );
+	     "rms;rms [ADC];pixels",
+	     100, 0, 20 );
+
+  // for pedestal:
 
   R4sImg map;
 
-  tb.r4s_SetSeqReadout(); // pedestal
+  //tb.r4s_SetPixCal( 159, 159 );
+  //tb.r4s_SetSeqReadout(roc.ext); // pedestal
+
+  tb.r4s_SetVcal(0); // baseline?
+  tb.r4s_SetSeqCalScan(); // Cal
+
+  line_wise = 1;
+  IMG_HEIGHT = 163; // FW 0.6
+
+  unsigned iev = 0;
+  vector <double> via;
+  via.reserve(999);
 
   unsigned Np = 99;
 
   for( unsigned i = 0; i < Np; ++i ) { // events
 
-    cout << "event " << i << endl;
+    double ia = tb.GetIA();
+    via.push_back(ia);
+    ++iev;
+    cout << "event " << iev << ", ia " << ia*1E3 << " mA";
 
     ReadImage( map );
 
     for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
 
-      for( int x = 0; x < IMG_WIDTH; ++x ) {
+      for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
 
 	int a = map.Get( x, y );
 	pedxy.Fill( x+0.5, y+0.5, a );
@@ -390,43 +1440,49 @@ CMD_PROC(scancal) // scan Vcal
 
   for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
 
-    for( int x = 0; x < IMG_WIDTH; ++x ) {
+    for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
+
       double suma = hsuma.GetBinContent( x+1, y+1 ); // bins start at 1
       double sumaa = hsumaa.GetBinContent( x+1, y+1 ); // bins start at 1
       double rms = sqrt( sumaa/Np - suma/Np*suma/Np );
       rmsxy.Fill( x+0.5, y+0.5, rms );
-      hrms.Fill( rms );
+      if( y < 160 && x < 155 )
+	hrms.Fill( rms );
     }
 
   cout << "mean rms " << hrms.GetMean() << endl;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
   tb.r4s_SetSeqCalScan(); // Cal
 
-  TProfile phvscal( "phvscal", "PH vs Vcal pix 77 88;Vcal [mV];PH-ped [ADC]", 40, 25, 2025 );
+  TProfile phvscal( "phvscal", "PH vs Vcal pix 77 88;Vcal [mV];PH-ped [ADC]", 48, 25, 2425 );
 
-  for( unsigned vcal = 50; vcal < 2002; vcal += 50 ) { // [mV]
+  int vstp = 10; // [mV]
+
+  for( unsigned vcal = 0; vcal < 2402; vcal += vstp ) { // [mV]
 
     cout << "Vcal " << vcal << endl;
 
     tb.r4s_SetVcal(vcal);
 
-    TProfile2D phxy( Form( "phxy_v%i", vcal ),
-		     Form( "pulse height Vcal %i;col;row;<ADC>", vcal ),
-		     IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+    TProfile2D adcxy( Form( "adcxy_v%i", vcal ),
+		      Form( "pulse height Vcal %i;col;row;<ADC>", vcal ),
+		      IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
 
-    unsigned Nc = 10;
+    unsigned Nc = 16;
     for( unsigned i = 0; i < Nc; ++i ) { // events
 
-      cout << "event " << i << endl;
+      double ia = tb.GetIA();
+      via.push_back(ia);
+      ++iev;
+      cout << "event " << iev << ", ia " << ia*1E3 << " mA";
 
       ReadImage( map );
 
       for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
-
-      for( int x = 0; x < IMG_WIDTH; ++x )
-	phxy.Fill( x+0.5, y+0.5, map.Get( x, y ) );
-
+	for( unsigned x = 0; x < IMG_WIDTH; ++x )
+	  adcxy.Fill( x+0.5, y+0.5, map.Get( x, y ) );
 
     } // events
 
@@ -435,24 +1491,200 @@ CMD_PROC(scancal) // scan Vcal
 		      IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
     TH1I hcal( Form( "cal_v%i", vcal ),
 	       Form( "cal Vcal %i;cal [ADC-ped];pixels", vcal ),
-	       100, -2000, 2000 );
+	       100, -100, 900 );
 
     for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
 
-      for( int x = 0; x < IMG_WIDTH; ++x ) {
-	double a = phxy.GetBinContent( x+1, y+1 ); // bins start at 1
+      for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
+
+	double a = adcxy.GetBinContent( x+1, y+1 ); // bins start at 1
 	double p = pedxy.GetBinContent( x+1, y+1 ); // bins start at 1
 	calxy.Fill( x+0.5, y+0.5, p-a );
-	hcal.Fill( p-a );
+	if( y < 160 && x < 155 )
+	  hcal.Fill( p-a ); // positive
 	if( x == 77 && y == 88 )
 	  phvscal.Fill( vcal, p-a );
       }
 
-    phxy.Write();
+    adcxy.Write();
     calxy.Write();
     hcal.Write();
 
+    if( vcal == 200 ) vstp = 20;
+    if( vcal == 800 ) vstp = 50;
+
   } // Vcal
+
+  cout << via.size() << " events" << endl;
+
+  TProfile iavsev( "iavsev",
+		   "analog current;events;<IA> [mA]",
+		   via.size(), 0, via.size(), 0, 500 );
+
+  for( unsigned i = 0; i < via.size(); ++i )
+    iavsev.Fill( i+0.5, via[i]*1E3 );
+
+  histoFile->Write();
+  histoFile->Close();
+  cout << histoFile->GetName() << endl;
+
+}
+
+//------------------------------------------------------------------------------
+CMD_PROC(scanhold) // scan Vcal
+{
+  int dummy; if( !PAR_IS_INT( dummy, 0, 1 ) ) dummy = 80;
+
+  TFile * histoFile = new TFile( "scanhold.root", "RECREATE" );
+
+  TProfile2D pedxy( "pedxy",
+		    "pedestal map;col;row;<ADC>",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+
+  TH2I hsuma( "suma",
+	      "suma map;col;row;sum ADC",
+	      IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
+
+  TH2I hsumaa( "sumaa",
+	       "sumaa map;col;row;sum ADC^2",
+	       IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
+
+  TProfile2D rmsxy( "rmsxy",
+		    "rms map;col;row;RMS [ADC]",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, 0, 2222 );
+
+  TH1I hrms( "rms",
+	     "rms;rms [ADC];pixels",
+	     100, 0, 20 );
+
+  // for pedestal:
+
+  R4sImg map;
+
+  //tb.r4s_SetPixCal( 159, 159 );
+  //tb.r4s_SetSeqReadout(roc.ext); // pedestal
+
+  tb.r4s_SetVcal(0); // baseline?
+  tb.r4s_SetSeqCalScan(); // Cal
+
+  line_wise = 1;
+  IMG_HEIGHT = 163; // FW 0.6
+
+  unsigned iev = 0;
+  vector <double> via;
+  via.reserve(999);
+
+  unsigned Np = 99;
+
+  for( unsigned i = 0; i < Np; ++i ) { // events
+
+    double ia = tb.GetIA();
+    via.push_back(ia);
+    ++iev;
+    cout << "event " << iev << ", ia " << ia*1E3 << " mA";
+
+    ReadImage( map );
+
+    for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
+
+      for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
+
+	int a = map.Get( x, y );
+	pedxy.Fill( x+0.5, y+0.5, a );
+	hsuma.Fill( x+0.5, y+0.5, a );
+	hsumaa.Fill( x+0.5, y+0.5, a*a );
+
+      }
+
+  } // events
+
+  for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
+
+    for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
+
+      double suma = hsuma.GetBinContent( x+1, y+1 ); // bins start at 1
+      double sumaa = hsumaa.GetBinContent( x+1, y+1 ); // bins start at 1
+      double rms = sqrt( sumaa/Np - suma/Np*suma/Np );
+      rmsxy.Fill( x+0.5, y+0.5, rms );
+      if( y < 160 && x < 155 )
+	hrms.Fill( rms );
+    }
+
+  cout << "mean rms " << hrms.GetMean() << endl;
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  tb.r4s_SetVcal(400);
+  tb.r4s_SetSeqCalScan(); // Cal
+
+  TProfile phvshld( "phvshld", "PH vs hold all pix;hold [ns];<PH-ped> [ADC]",
+		    256, -0.5, 255.5, -2222, 2222 );
+
+  int stp = 1; // [6 ns]
+
+  for( unsigned hld = 0; hld < 256; hld += stp ) {
+
+    cout << "hold " << hld << endl;
+
+    tb.r4s_SetHoldPos(hld);
+ 
+    TProfile2D adcxy( Form( "adcxy_hld%i", hld ),
+		      Form( "pulse height hold %i;col;row;<ADC>", hld ),
+		      IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+
+    unsigned Nc = 16;
+    for( unsigned i = 0; i < Nc; ++i ) { // events
+
+      double ia = tb.GetIA();
+      via.push_back(ia);
+      ++iev;
+      cout << "event " << iev << ", ia " << ia*1E3 << " mA";
+
+      ReadImage( map );
+
+      for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
+	for( unsigned x = 0; x < IMG_WIDTH; ++x )
+	  adcxy.Fill( x+0.5, y+0.5, map.Get( x, y ) );
+
+    } // events
+
+    TProfile2D calxy( Form( "calxy_hld%i", hld ),
+		      Form( "cal hold %i;col;row;<ADC> - ped", hld ),
+		      IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+    TH1I hcal( Form( "cal_hld%i", hld ),
+	       Form( "cal hold %i;cal [ADC-ped];pixels", hld ),
+	       100, -100, 900 );
+
+    for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
+
+      for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
+
+	double a = adcxy.GetBinContent( x+1, y+1 ); // bins start at 1
+	double p = pedxy.GetBinContent( x+1, y+1 ); // bins start at 1
+	calxy.Fill( x+0.5, y+0.5, p-a );
+	if( y < 160 && x < 155 ) {
+	  hcal.Fill( p-a ); // positive
+	  phvshld.Fill( hld, p-a );
+	}
+      }
+
+    //adcxy.Write();
+    calxy.Write();
+    hcal.Write();
+
+    if( hld ==  80 ) stp = 2;
+    if( hld == 120 ) stp = 5;
+
+  } // hold
+
+  cout << via.size() << " events" << endl;
+
+  TProfile iavsev( "iavsev",
+		   "analog current;events;<IA> [mA]",
+		   via.size(), 0, via.size(), 0, 500 );
+
+  for( unsigned i = 0; i < via.size(); ++i )
+    iavsev.Fill( i+0.5, via[i]*1E3 );
 
   histoFile->Write();
   histoFile->Close();
@@ -463,36 +1695,92 @@ CMD_PROC(scancal) // scan Vcal
 //------------------------------------------------------------------------------
 CMD_PROC(seqreadout)
 {
-  tb.r4s_SetSeqReadout();
+  int ext;
+  if( !PAR_IS_INT( ext, 0, 1 ) ) // external trigger flag
+    ext = 0; // default = internal
+
+  tb.r4s_SetSeqReadout(ext);
+  roc.ext = ext;
+  line_wise = 1;
+  IMG_HEIGHT = 163; // FW 0.6
+  cout << "line_wise " << line_wise << endl;
   DO_FLUSH;
 }
 
 //------------------------------------------------------------------------------
-CMD_PROC(seqreadcol)
+CMD_PROC(seqreadcol) // FW 0.7
 {
-  tb.r4s_SetSeqReadCol();
+  int ext;
+  if( !PAR_IS_INT( ext, 0, 1 ) ) // external trigger flag
+    ext = 0; // default = internal
+
+  tb.r4s_SetSeqReadCol(ext);
+  roc.ext = ext;
+  line_wise = 0;
+  IMG_HEIGHT = 162; // FW 0.7
+  cout << "line_wise " << line_wise << endl;
   DO_FLUSH;
 }
 
 //------------------------------------------------------------------------------
 CMD_PROC(seqcalscan)
 {
+  int dummy; if( !PAR_IS_INT( dummy, 0, 1 ) ) dummy = 80;
+
   tb.r4s_SetSeqCalScan();
+  line_wise = 1;
+  IMG_HEIGHT = 163; // FW 0.6
+  cout << "line_wise " << line_wise << endl;
   DO_FLUSH;
+}
+
+//------------------------------------------------------------------------------
+CMD_PROC(scanva) // IA vs VA
+{
+  int dummy; if( !PAR_IS_INT( dummy, 0, 1 ) ) dummy = 80;
+
+  TFile * histoFile = new TFile( "scanva.root", "RECREATE" );
+
+  TProfile iavsva( "iavsva",
+		   "analog current;VA [mV];<IA> [mA]",
+		   150, 1000, 2500, 0, 500 );
+
+  for( int va = 1005; va < 2502; va += 10 ) { // [mV]
+
+    tb._SetVA(va);
+
+    cout << "VA " << va;
+
+    for( int i = 0; i < 9; ++i ) {
+
+      tb.uDelay(10000);
+      double ia = tb.GetIA();
+      iavsva.Fill( va, ia*1E3 );
+      cout << " " << ia*1E3;
+    }
+
+    cout << ", VA " << tb.GetVA() << endl;
+
+  } // va
+
+  histoFile->Write();
+  histoFile->Close();
+  cout << histoFile->GetName() << endl;
+
 }
 
 /*
 //------------------------------------------------------------------------------
 CMD_PROC(gui)
 {
-  printf("Connect to GUI ...");
-  CDataLink link(1024, 65536);
-  //	ShellExecute(NULL, "open", "file.exe", NULL, NULL, SW_SHOWDEFAULT);
+printf("Connect to GUI ...");
+CDataLink link(1024, 65536);
+//	ShellExecute(NULL, "open", "file.exe", NULL, NULL, SW_SHOWDEFAULT);
 
-  system ("start roc4sens_view\\bin\\Release\\roc4sens_view.exe");
-  //	system ("start roc4sens_view.exe");
+system ("start roc4sens_view\\bin\\Release\\roc4sens_view.exe");
+//	system ("start roc4sens_view.exe");
 
-  link.Run();
-  printf("Connection to GUI closed.\n");
+link.Run();
+printf("Connection to GUI closed.\n");
 }
 */

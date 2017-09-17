@@ -1,10 +1,8 @@
 // usb.h
 //
-// Author: Beat Meier
+// Author: Beat Meier, PSI
 //
 // Class provides basic functionalities to use the USB interface
-//
-
 
 #ifndef USB_H
 #define USB_H
@@ -19,61 +17,62 @@
 #include "rpc_io.h"
 
 #define USBWRITEBUFFERSIZE  1024
-#define USBREADBUFFERSIZE   4096
+//#define USBREADBUFFERSIZE   4096
+#define USBREADBUFFERSIZE  65536 // not faster (3.9.2017)
 
 /*
-class CUsbLog
-{
-	FILE *f;
-	enum { IDLE, CMD_1, CMD_2, CMD_CNT, DAT_CNT1, DAT_CNT2, DAT_CNT3, DATA } state;
-	unsigned int count;
-	unsigned int cmd;
-public:
-	CUsbLog();
-	~CUsbLog();
-	void Add(unsigned int x);
-};
+  class CUsbLog
+  {
+  FILE *f;
+  enum { IDLE, CMD_1, CMD_2, CMD_CNT, DAT_CNT1, DAT_CNT2, DAT_CNT3, DATA } state;
+  unsigned int count;
+  unsigned int cmd;
+  public:
+  CUsbLog();
+  ~CUsbLog();
+  void Add(unsigned int x);
+  };
 */
 
 class CUSB : public CRpcIo
 {
-	bool isUSB_open;
-	FT_HANDLE ftHandle;
-	FT_STATUS ftStatus;
+  bool isUSB_open;
+  FT_HANDLE ftHandle;
+  FT_STATUS ftStatus;
 
-	DWORD enumPos, enumCount;
+  DWORD enumPos, enumCount;
 
-	DWORD m_posW;
-	unsigned char m_bufferW[USBWRITEBUFFERSIZE];
+  DWORD m_posW;
+  unsigned char m_bufferW[USBWRITEBUFFERSIZE];
 
-	DWORD m_posR, m_sizeR;
-	unsigned char m_bufferR[USBREADBUFFERSIZE];
+  DWORD m_posR, m_sizeR;
+  unsigned char m_bufferR[USBREADBUFFERSIZE];
 
-	bool FillBuffer(DWORD minBytesToRead);
+  bool FillBuffer(DWORD minBytesToRead);
 
-public:
-	CUSB()
-	{
-		m_posR = m_sizeR = m_posW = 0;
-		isUSB_open = false;
-		ftHandle = 0; ftStatus = 0;
-		enumPos = enumCount = 0;
-	}
-	~CUSB() { /* Close(); */ }
-	int GetLastError() { return ftStatus; }
-	static const char* GetErrorMsg(int error);
-	bool EnumFirst(unsigned int &nDevices);
-	bool EnumNext(char name[]);
-	bool Enum(char name[], unsigned int pos);
-	bool Open(char serialNumber[]);
-	void Close();
-	bool Connected() { return isUSB_open; };
+ public:
+  CUSB()
+    {
+      m_posR = m_sizeR = m_posW = 0;
+      isUSB_open = false;
+      ftHandle = 0; ftStatus = 0;
+      enumPos = enumCount = 0;
+    }
+  ~CUSB() { /* Close(); */ }
+  int GetLastError() { return ftStatus; }
+  static const char* GetErrorMsg(int error);
+  bool EnumFirst(unsigned int &nDevices);
+  bool EnumNext(char name[]);
+  bool Enum(char name[], unsigned int pos);
+  bool Open(char serialNumber[]);
+  void Close();
+  bool Connected() { return isUSB_open; };
 
 
-	void Write(const void *buffer, unsigned int size);
-	void Flush();
-	void Clear();
-	void Read(void *buffer, unsigned int size);
+  void Write(const void *buffer, unsigned int size);
+  void Flush();
+  void Clear();
+  void Read(void *buffer, unsigned int size);
 };
 
 #endif

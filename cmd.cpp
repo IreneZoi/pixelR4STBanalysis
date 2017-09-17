@@ -21,36 +21,35 @@
 
 void cmdHelp()
 {
-  if( settings.proberPort >= 0)
-    {
-      fputs("\n"
-	    "+-- control commands ------------------------------------------+\n"
-	    "| h                  display this text                         |\n"
-	    "| exit               exit commander                            |\n"
-	    "+-- wafer test ------------------------------------------------+\n"
-	    "| go                 start wafer test (press <cr> to stop)     |\n"
-	    "| test               run chip test                             |\n"
-	    "| pr <command>       send command to prober                    |\n"
-	    "| sep                prober z-axis separation                  |\n"
-	    "| contact            prober z-axis contact                     |\n"
-	    "| first              go to first die and clear wafer map       |\n"
-	    "| next               go to next die                            |\n"
-	    "| goto <x> <y>       go to specifed die                        |\n"
-	    "| chippos <ABCD>     move to chip A, B, C or D                 |\n"
-	    "+--------------------------------------------------------------+\n",
-	    stdout);
-    }
-  else
-    {
-      fputs("\n"
-	    "+-- control commands ------------------------------------------+\n"
-	    "| h                  display this text                         |\n"
-	    "| exit               exit commander                            |\n"
-	    "+-- chip test -------------------------------------------------+\n"
-	    "| test <chip id>     run chip test                             |\n"
-	    "+--------------------------------------------------------------+\n",
-	    stdout);
-    }
+  if( settings.proberPort >= 0)  {
+
+    fputs("\n"
+	  "+-- control commands ------------------------------------------+\n"
+	  "| h                  display this text                         |\n"
+	  "| exit               exit commander                            |\n"
+	  "+-- wafer test ------------------------------------------------+\n"
+	  "| go                 start wafer test (press <cr> to stop)     |\n"
+	  "| test               run chip test                             |\n"
+	  "| pr <command>       send command to prober                    |\n"
+	  "| sep                prober z-axis separation                  |\n"
+	  "| contact            prober z-axis contact                     |\n"
+	  "| first              go to first die and clear wafer map       |\n"
+	  "| next               go to next die                            |\n"
+	  "| goto <x> <y>       go to specifed die                        |\n"
+	  "| chippos <ABCD>     move to chip A, B, C or D                 |\n"
+	  "+--------------------------------------------------------------+\n",
+	  stdout);
+  }
+  else {
+    fputs("\n"
+	  "+-- control commands ------------------------------------------+\n"
+	  "| h                  display this text                         |\n"
+	  "| exit               exit commander                            |\n"
+	  "+-- chip test -------------------------------------------------+\n"
+	  "| test <chip id>     run chip test                             |\n"
+	  "+--------------------------------------------------------------+\n",
+	  stdout);
+  }
 }
 
 
