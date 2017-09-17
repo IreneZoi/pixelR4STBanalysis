@@ -165,15 +165,17 @@ bool CUSB::Open(char serialNumber[])
 #endif
 
 
-  ftStatus = FT_SetBitMode(ftHandle, 0xFF, 0x40);
-  if (ftStatus != FT_OK) return false;
-  //FT_SetLatencyTimer(ftHandle, 2);
+  ftStatus = FT_SetBitMode( ftHandle, 0xFF, 0x40 );
+  if( ftStatus != FT_OK )
+    return false;
 
-  FT_SetUSBParameters(ftHandle, 65536, 65536);
+  //	FT_SetUSBParameters(ftHandle, 8192, 8192);
   //	FT_SetBaudRate(ftHandle, 9600);
-	
-  FT_SetTimeouts(ftHandle,10000,8000);
+
+  FT_SetTimeouts( ftHandle, 64000, 8000 ); // [ms] read write
+
   isUSB_open = true;
+
   return true;
 }
 
@@ -227,10 +229,6 @@ bool CUSB::FillBuffer( DWORD minBytesToRead )
   if( ftStatus != FT_OK )
     return false;
 
-  if ( bytesAvailable < 1 ) {
-	 std::cout << "\n>>>> " << bytesAvailable << "bytesAvailable" << std::endl;
-  }  // if
-
   if( m_posR < m_sizeR )
     return false;
 
@@ -247,7 +245,6 @@ bool CUSB::FillBuffer( DWORD minBytesToRead )
 
   ftStatus = FT_Read( ftHandle, m_bufferR, bytesToRead, &m_sizeR );
   m_posR = 0;
-  std::cout << "\nm_sizeR = " << m_sizeR << std::endl;
 
   gettimeofday( &tv, NULL );
   long s9 = tv.tv_sec; // seconds since 1.1.1970
@@ -255,7 +252,6 @@ bool CUSB::FillBuffer( DWORD minBytesToRead )
   //std::cout << " takes " << s9 - s0 + ( u9 - u0 ) * 1e-6 << " s" << std::endl;
 
   if( ftStatus != FT_OK ) {
-	std::cout << "ftStatus != FT_OK" << std::endl;
     m_sizeR = 0;
     return false;
   }
@@ -265,48 +261,40 @@ bool CUSB::FillBuffer( DWORD minBytesToRead )
 
 void CUSB::Read( void *buffer,  unsigned int bytesToRead )
 {
-   if( !isUSB_open ) {
-	  std::cout << "!isUSB_open" << std::endl;
-	  throw CRpcError( CRpcError::READ_ERROR );
-   } // if
+  if( !isUSB_open )
+    throw CRpcError( CRpcError::READ_ERROR );
 
-   DWORD i;
+  DWORD i;
 
-   bool ldb = 1;
-   if( ldb )
-	  std::cout
-		 << "USB::Read bytesToRead " << bytesToRead
-		 << ", m_posR " << m_posR << ", m_sizeR " <<  m_sizeR
-		 << std::endl;
+  bool ldb = 0;
+  if( ldb )
+    std::cout
+      << "USB::Read bytesToRead " << bytesToRead
+      << ", m_posR " << m_posR << ", m_sizeR " <<  m_sizeR
+      << std::endl;
 
-   for( i = 0; i < bytesToRead; ++i ) {
+  for( i = 0; i < bytesToRead; ++i ) {
 
-	  if( m_posR < m_sizeR )
-		 ((unsigned char*)buffer)[i] = m_bufferR[m_posR++];
+    if( m_posR < m_sizeR )
+      ((unsigned char*)buffer)[i] = m_bufferR[m_posR++];
 
-	  else {
-		 DWORD n = bytesToRead-i;
-		 if( n > USBREADBUFFERSIZE )
-			n = USBREADBUFFERSIZE; // 4096
+    else {
+      DWORD n = bytesToRead-i;
+      if( n > USBREADBUFFERSIZE )
+	n = USBREADBUFFERSIZE; // 4096
 
-		 if( ldb )
-			std::cout << "  USB::Read bytes " << n << std::endl;
+      if( ldb )
+	std::cout << "  USB::Read bytes " << n << std::endl;
 
-		 if( !FillBuffer(n) ) {
-			std::cout << "!FillBuffer(n)" << std::endl;
-			throw CRpcError(CRpcError::READ_ERROR);
-		 } // if
-		 if( m_sizeR < n ) {
-			std::cout << "\nm_sizeR < n : " << m_sizeR << " < " << n << std::endl;
-			throw CRpcError(CRpcError::READ_ERROR);
-		 } // if
+      if( !FillBuffer(n) ) throw CRpcError(CRpcError::READ_ERROR);
+      if( m_sizeR < n ) throw CRpcError(CRpcError::READ_ERROR);
 
-		 if( m_posR < m_sizeR )
-			((unsigned char*)buffer)[i] = m_bufferR[m_posR++];
-		 else // timeout (bytesRead < bytesToRead)
-			throw CRpcError(CRpcError::READ_TIMEOUT);
-	  }
-   }
+      if( m_posR < m_sizeR )
+	((unsigned char*)buffer)[i] = m_bufferR[m_posR++];
+      else // timeout (bytesRead < bytesToRead)
+	throw CRpcError(CRpcError::READ_TIMEOUT);
+    }
+  }
 }
 
 

@@ -2,7 +2,9 @@
 
 #include "settings.h"
 #include <stdio.h>
+#include <iostream>
 
+using namespace std;
 
 CSettings::CSettings()
 {
@@ -122,37 +124,41 @@ void CSettings::ReadString(std::string &s)
 }
 
 
-
-
-bool CSettings::Read(const char filename[])
+bool CSettings::Read( const char filename[] )
 {
   bool ok = true;
-  try
-    {
-      f.Open(filename);
-      while (true)
-	{
-	  std::string s;
-	  ReadTag(s);
-	  if      (s == "DTB_ID")             dtbId = ReadInt(-1, 1000);
-	  else if (s == "SCRIPT_PATH")        ReadString(scriptPath);
-	  else if (s == "PROBER_PORT")        proberPort = ReadInt(-1, 99);
-	  else if (s == "ROC_TYPE")           rocType = ReadInt(0, 2);
-	  else if (s == "SENSOR")             sensor = ReadBool();
-	  else if (s == "TESTREP")            errorRep = ReadInt(0, 10);
-	  else if (s == "CABLE_LENGTH")       cableLength = ReadInt(0, 10000);
-	  else if (s == "DESER160_CLK_DELAY") deser160_clkDelay = ReadInt(0, 63);
-	  else if (s == "DESER160_TIN_DELAY") deser160_tinDelay = ReadInt(0, 63);
-	  else if (s == "ADC_TIN_DELAY")      adc_tinDelay  = ReadInt(0, 63);
-	  else if (s == "ADC_TOUT_DELAY")     adc_toutDelay = ReadInt(0, 63);
-	  else if (s == "ADC_CLK_DELAY")      adc_clkDelay = ReadInt(0, 320);
-	  else if (s == "WAFERLIST")          ReadString(waferList);
-	}
-    }
-  catch (int e)
-    {
-      if (e != ERROR_FILE_END_OF_FILE) ok = false;
-    }
+  try {
+
+    f.Open(filename);
+
+    while( true) {
+
+      std::string s;
+      ReadTag(s);
+      if      (s == "DTB_ID")             dtbId = ReadInt(-1, 1000);
+      else if (s == "SCRIPT")             ReadString( scriptPath );
+      else if (s == "PROBER_PORT")        proberPort = ReadInt(-1, 99);
+      else if (s == "ROC_TYPE")           rocType = ReadInt(0, 2);
+      else if (s == "SENSOR")             sensor = ReadBool();
+      else if (s == "TESTREP")            errorRep = ReadInt(0, 10);
+      else if (s == "CABLE_LENGTH")       cableLength = ReadInt(0, 10000);
+      else if (s == "DESER160_CLK_DELAY") deser160_clkDelay = ReadInt(0, 63);
+      else if (s == "DESER160_TIN_DELAY") deser160_tinDelay = ReadInt(0, 63);
+      else if (s == "ADC_TIN_DELAY")      adc_tinDelay  = ReadInt(0, 63);
+      else if (s == "ADC_TOUT_DELAY")     adc_toutDelay = ReadInt(0, 63);
+      else if (s == "ADC_CLK_DELAY")      adc_clkDelay = ReadInt(0, 320);
+      else if (s == "WAFERLIST")          ReadString(waferList);
+
+    } // while
+
+  cout << scriptPath << endl;
+
+  } // try
+
+  catch( int e ) {
+    if( e != ERROR_FILE_END_OF_FILE )
+      ok = false;
+  }
 
   return ok;
 }

@@ -62,7 +62,7 @@ CMD_PROC(chip)
       roc.haveGain = 1;
       cout << "gainFile: " << gainFileName << endl;
 
-      while( !gainFile.eof() ) {
+      while( ! gainFile.eof() ) {
 	int icol;
 	int irow;
 	gainFile >> icol;
@@ -357,6 +357,10 @@ CMD_PROC(takedata) // roi data
   if( ! PAR_IS_INT( ntrg, 1, 999 ) )
     ntrg = 1;
 
+  int planeNr = 3;    // colorize planes in different ways
+  if( ! PAR_IS_INT( planeNr, 1, 3 ) )
+    planeNr = 3;
+
   int col_to_print;
   if( ! PAR_IS_INT( col_to_print, 0, 156 ) )
     col_to_print = 0;
@@ -389,7 +393,6 @@ CMD_PROC(takedata) // roi data
   outfile.precision(1);
   outfile.open( fileName.c_str() ); // task: check integrity
 
-  int planeNr = 3;    // colorize planes in different ways
   int nPedAvg = 100;  // number of events to average for pedestal 
   double thr = -24;   // threshold for hit finding (negative!)
   int roiCol = 2;     // +-ROI in col
@@ -606,7 +609,7 @@ CMD_PROC(takedata) // roi data
     for( int itrg = 0; itrg < ntrg; ++itrg ) {
 
       ++iev; // triggered events
-      cout << "ev " << iev;
+      cout << " ev " << iev;
 
       tb.r4s_Start(); // R4S sequence
 
@@ -635,7 +638,7 @@ CMD_PROC(takedata) // roi data
     unsigned pos = 0;
 
     int ktrg  = vdata.size() / IMG_WIDTH /  IMG_HEIGHT;
-    cout << "  try  to unpack " << ktrg << " event blocks" << endl;
+    cout << "  try to unpack " << ktrg << " event blocks" << endl;
 
     for( int itrg = 0; itrg < ktrg; ++itrg ) {
 
@@ -797,8 +800,6 @@ CMD_PROC(takedata) // roi data
 		if( i >= 0 && i < 155 && j >= 0 && j < 160 ) {
 
 		  // write pixel to file (once):
-
-		  // FLAG SEED PIXELS with negative i, j ?
 
 		  if( ! stored[i][j] ) {
 		    outfile << i << " " << j << " " << -savePH[i][j] << " "; // invert PH

@@ -100,7 +100,9 @@ int main( int argc, char* argv[] )
 
     nEntry = 0;
 
+    printf( "r4stest main calls cmd\n" );
     cmd();
+
     tb.Close();
   }
   catch( CRpcError &e ) {

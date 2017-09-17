@@ -75,7 +75,9 @@ void cmd()
 
   cmdHelp();
 
-  cmd_intp.SetScriptPath(settings.scriptPath.c_str());
+  printf( "script path = %s\n", settings.scriptPath.c_str() );
+
+  cmd_intp.SetScriptPath( settings.scriptPath.c_str() );
 
   // command loop
   while (true)

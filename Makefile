@@ -76,6 +76,16 @@ edroi: edroi.cc
 	-Wall -O2 -o edroi $(ROOTGLIBS)
 	@echo 'done: edroi'
 
+drei: drei.cc
+	g++ $(ROOTCFLAGS) drei.cc \
+	-Wall -O2 -o drei $(ROOTGLIBS)
+	@echo 'done: drei'
+
+zwei: zwei.cc
+	g++ $(ROOTCFLAGS) zwei.cc \
+	-Wall -O2 -o zwei $(ROOTGLIBS)
+	@echo 'done: zwei'
+
 drawRun: drawRun.cc
 	g++ $(ROOTCFLAGS) drawRun.cc \
 	-Wall -O2 -o drawRun $(ROOTLIBS)
