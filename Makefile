@@ -81,10 +81,15 @@ drei: drei.cc
 	-Wall -O2 -o drei $(ROOTGLIBS)
 	@echo 'done: drei'
 
-zwei: zwei.cc
-	g++ $(ROOTCFLAGS) zwei.cc \
-	-Wall -O2 -o zwei $(ROOTGLIBS)
-	@echo 'done: zwei'
+zweiAB: zweiAB.cc
+	g++ $(ROOTCFLAGS) zweiAB.cc \
+	-Wall -O2 -o zweiAB $(ROOTGLIBS)
+	@echo 'done: zweiAB'
+
+zweiBC: zweiBC.cc
+	g++ $(ROOTCFLAGS) zweiBC.cc \
+	-Wall -O2 -o zweiBC $(ROOTGLIBS)
+	@echo 'done: zweiBC'
 
 drawRun: drawRun.cc
 	g++ $(ROOTCFLAGS) drawRun.cc \

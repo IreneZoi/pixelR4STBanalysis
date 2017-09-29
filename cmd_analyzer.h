@@ -9,7 +9,7 @@
 CMD_REG( chip, "<id>", "define chip, load gain")
 CMD_REG( getimg, "<Nev> <Npx> <prnt>", "Read an image")
 CMD_REG( takeraw, "<prnt>", "take raw data, write to file")
-CMD_REG( takedata, "<prnt>", "take roi data, write to file")
+CMD_REG( td, "<prnt>", "take roi data, write to file")
 CMD_REG( getped, "", "pedestal image")
 CMD_REG( getcal, "", "pulse height image")
 CMD_REG( scancal, "", "scan Vcal")

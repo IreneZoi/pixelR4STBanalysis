@@ -351,13 +351,17 @@ CMD_PROC(getimg) // getimg  1240 2 (take raw data, pulse 2 pix, write to file)
 } // getimg
 
 //------------------------------------------------------------------------------
-CMD_PROC(takedata) // roi data
+CMD_PROC(td) // roi data
 {
   int ntrg;
-  if( ! PAR_IS_INT( ntrg, 1, 999 ) )
-    ntrg = 1;
+  if( ! PAR_IS_INT( ntrg, 1, 160 ) ) // 160 = 8 MB block size limit
+    ntrg = 100;
 
-  int planeNr = 3;    // colorize planes in different ways
+  int Nev;
+  if( ! PAR_IS_INT( Nev, 1, 100*1000*1000 ) )
+    Nev = 10100;
+
+  int planeNr;    // colorize planes in different ways
   if( ! PAR_IS_INT( planeNr, 1, 3 ) )
     planeNr = 3;
 
@@ -598,7 +602,10 @@ CMD_PROC(takedata) // roi data
   long s0 = tv.tv_sec; // seconds since 1.1.1970
   long u0 = tv.tv_usec; // microseconds
 
-  while( !keypressed() ) {
+  //bool dorun = 1;
+  //while( dorun ) {
+  //while( !keypressed() ) {
+  while( iev < Nev ) {
 
     gettimeofday( &tv, NULL );
     long s1 = tv.tv_sec; // seconds since 1.1.1970
@@ -606,10 +613,12 @@ CMD_PROC(takedata) // roi data
 
     tb.Daq_Start(); // ADC -> RAM
 
+    cout << "Start" << flush;
+
     for( int itrg = 0; itrg < ntrg; ++itrg ) {
 
       ++iev; // triggered events
-      cout << " ev " << iev;
+      cout << " ev " << iev << flush;
 
       tb.r4s_Start(); // R4S sequence
 
@@ -617,7 +626,9 @@ CMD_PROC(takedata) // roi data
 
     }
 
-    if( roc.ext ) tb.uDelay( 64*1000 ); // uint16 goes to 64 ms
+    cout << endl << flush;
+
+    if( roc.ext ) tb.uDelay( 64*1000 ); // uint16 goes to 64*1024-1
 
     tb.Daq_Stop();
 
@@ -637,12 +648,42 @@ CMD_PROC(takedata) // roi data
 
     unsigned pos = 0;
 
-    int ktrg  = vdata.size() / IMG_WIDTH /  IMG_HEIGHT;
-    cout << "  try to unpack " << ktrg << " event blocks" << endl;
+    int ktrg = vdata.size() / IMG_WIDTH /  IMG_HEIGHT;
+    cout << " unpack " << ktrg << " event blocks" << flush;
+
+    for( int itrg = ktrg; itrg < ntrg; ++itrg )
+      outfile << endl
+	      << ++wev << " A "
+	      << iev; // no endl here!
+
+    cout << endl << "  timestamps:";
 
     for( int itrg = 0; itrg < ktrg; ++itrg ) {
 
       gSystem->ProcessEvents(); // ROOT
+
+      unsigned long timestamp = 0;
+
+      if( tb.GetFWVersion() > 256 ) { // 256 = 1.0
+
+	unsigned long ts1  = 0;
+	unsigned long ts2  = 0;
+	int trgid[4] = {0};
+	for( size_t i = 0; i < 4; ++i ) {
+	  trgid[i] = vdata.at(pos);
+	  //std::cout << std::hex << trgid[i] << std::endl;
+	  trgid[i] = trgid[i] & ~0xf000;
+	  //timestamp = (timestamp & ~0xf000) | ((a & 0x300) >> 6);
+	  ++pos;
+	} // for i
+	//std::cout << "End times tamps>>>>>>>>>>>>>>" << std::endl;
+
+	ts1 =  ( trgid[1] << 12 ) + (trgid[0]);
+	ts2 =  ( trgid[3] << 12 ) + (trgid[2]);
+	timestamp =  ( ts2 << 24 ) + ts1;
+	cout << " " << timestamp;
+
+      } // FW 1.1
 
       ++wev;
 
@@ -669,7 +710,8 @@ CMD_PROC(takedata) // roi data
 
 	  // suppress fake pixels:
 
-	  if( col < 155 && row < 160 ) {
+	  //if( col < 155 && row < 160 ) {
+	  if( col < 155 && row < 159 && row > 0 ) { // 110 top and bot row a little noisy
 
 	    // Collect pedestal from the first nPedAvg events. CAUTION ASSUMES NO HITS IN THESE
 
@@ -735,6 +777,8 @@ CMD_PROC(takedata) // roi data
 
 	      } // !overThr
 
+	      //else cout << "  seed " << col << " " << row << " " << diffPH << endl << flush;
+
 	      if( wev%fupd == 0 ) { // update plots
 
 		if( col==0 && row == 0 ) { //reset ONCE before fill
@@ -781,8 +825,10 @@ CMD_PROC(takedata) // roi data
 	  if( hit[col][row] == 1 ) { // seed
 
 	    if( hitFlag == 0 ) { // only once per event
-	      outfile << endl
-		      << wev << " F"
+	      outfile << endl // end revious event line
+		      << wev << " F "
+		      << iev
+		      << " " << timestamp
 		      << endl;
 	      hitFlag = 1;
 	    }
@@ -818,9 +864,13 @@ CMD_PROC(takedata) // roi data
 
       } // seed_col
 
-      if( ! hitFlag ) // write empty line
+      if( ! hitFlag ) { // write empty line
 	outfile << endl
-		<< wev << " E no hits"; // no endl here!
+		<< wev << " E "
+		<< iev
+		<< " " << timestamp; // no endl here !
+	//cout << "  no seed" << endl << flush;
+      }
 
       if( wev%fupd == 0 ) {
 
@@ -855,17 +905,38 @@ CMD_PROC(takedata) // roi data
 	d1->Modified();
 	d1->Update();
 
+	if( wev > 999 )
+	  fupd = 500;
+	if( wev > 999 )
+	  fupd = 1000;
+
       } // update
 
-    } // unpack trg
+    } // ktrg
 
-    if( ktrg == 0 ) {
+    cout << endl; // timestamps
+
+    if( ktrg < ntrg ) {
       //outfile << endl << iev << " E incomplete"; // no endl here!
       cout << "  incomplete" << endl;
       Log.printf( "  trigger %i data size %i incomplete \n", iev, vdata.size() );
     }
 
-  } // run while not keypressed
+    gettimeofday( &tv, NULL );
+    long s3 = tv.tv_sec; // seconds since 1.1.1970
+    long u3 = tv.tv_usec; // microseconds
+    cout << " in " << s3 - s2 + ( u3 - u2 ) * 1e-6 << " s";
+    cout << endl;
+
+    /*
+    string any;
+    cout << "enter any key to continue, q to stop" << endl;
+    cin >> any;
+    string Q {"q"};
+    if( any == Q )
+      dorun = 0;
+    */
+  } // run
 
   tb.Daq_Close();
 
