@@ -3,6 +3,9 @@
 // read region-of-interest data
 
 // rdroi -n 2500 roi000102.txt
+// rdroi A/roi000476.txt  # shallow copy from cmshannonb
+// rdroi A/roi000477.txt  # shallow copy
+// rdroi A/roi000480.txt  # shallow
 
 #include <stdlib.h> // atoi
 #include <iostream> // cout
@@ -169,16 +172,19 @@ int main( int argc, char* argv[] )
   // book histos:
 
   TH1I hph( "ph", "PH;ADC-PED [ADC];pixels", 1000, -100, 900 );
-  TH1I hnpx( "npx", "PH pixels per event;PH pixels;events", 50, 0.5, 50.5 );
-  TH2I * hpxmap = new TH2I( "pxmap", "pixel map, PH > 30;col;row;PH pixels",
-			    155, -0.5, 154.5, 160, -0.5, 159.5 );
   TH1I hdph( "dph", "dPH;#DeltaPH [ADC];pixel", 1000, -100, 900 );
+  TH2I * hpxmap = new TH2I( "pxmap", "pixel map, dph > cut;col;row;pixels above cut",
+			    155, -0.5, 154.5, 160, -0.5, 159.5 );
+  TH1I hnpx( "npx", "PH pixels per event;PH pixels;events", 80, 0.5, 80.5 );
 
   TH1D hncl( "ncl", "cluster per event;cluster;events", 20, 0.5,  20.5 );
   TH2I * hclmap = new TH2I( "clmap", "cluster map;col;row;clusters",
 			    155, -0.5, 154.5, 160, -0.5, 159.5 );
-  TH1I hclsz( "clsz", "cluster size;cluster size [pixels];clusters", 20, 0.5, 20.5 );
+  TH1I hclsz( "clsz", "cluster size;cluster size [pixels];clusters", 80, 0.5, 80.5 );
   TH1I hclph( "clph", "cluster PH;cluster ph [ADC];clusters", 200, 0, 1000 );
+  TH1I hpxph( "pxph", "pixel PH;pixel ph [ADC];pixels in clusters", 200, 0, 400 );
+  TH1I hpxph35( "pxph35", "pixel PH, long clusters;pixel ph [ADC];pixels in long clusters", 200, 0, 400 );
+  TH1I hnrow( "nrow", "cluster rows;cluster size [rows];clusters", 80, 0.5, 80.5 );
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // Read file by lines:
@@ -233,9 +239,6 @@ int main( int argc, char* argv[] )
 
 	++npx;
 
-	if( ph > 30 )
-	  hpxmap->Fill( col, row );
-
       } // roi px
 
       // columns-wise common mode correction:
@@ -283,10 +286,14 @@ int main( int argc, char* argv[] )
 	hdph.Fill( dph );
 
 	if( dph > 24 ) {
+
 	  pb[mpx].col = col4;
 	  pb[mpx].row = row4;
 	  pb[mpx].ph = dph;
 	  ++mpx;
+
+	  hpxmap->Fill( col4, row4 );
+
 	}
 
       } // ipx
@@ -308,35 +315,44 @@ int main( int argc, char* argv[] )
 
     hncl.Fill( vcl.size() );
     if( vcl.size() )
-      cout << "  clusters " << vcl.size() << endl;
+      cout << "  clusters " << vcl.size();
 
     for( unsigned icl = 0; icl < vcl.size(); ++ icl ) {
 
       hclmap->Fill( vcl[icl].col, vcl[icl].row );
 
-      if( vcl[icl].row > 3.5 && vcl[icl].row < 155.5 ) { // Wed 13.9. runs 163-169
+      cout << " size " << vcl[icl].size;
 
-	if( vcl[icl].size < 6 )
-	  hclph.Fill( vcl[icl].sum );
+      if( vcl[icl].size < 6 )
+	hclph.Fill( vcl[icl].sum );
 
-	if( vcl[icl].sum > 55 )
-	  hclsz.Fill( vcl[icl].size );
+      if( vcl[icl].sum > 55 )
+	hclsz.Fill( vcl[icl].size );
 
-      }
+      // cluster pixel s:
 
-      // debug:
+      int rowmin = 999;
+      int rowmax = 0;
 
-      if( vcl[icl].row > 155.5 ) {
-	cout << "cl " << icl << " at col " <<  vcl[icl].col << ", row " << vcl[icl].row << endl;
-	for( int ipx = 0; ipx < vcl[icl].size; ++ipx )
-	  cout << "  " << vcl[icl].vpix[ipx].col
-	       << ", " << vcl[icl].vpix[ipx].row
-	       << ": " << vcl[icl].vpix[ipx].ph
-	    ;
+      for ( int ipx = 0; ipx < vcl[icl].size; ++ipx ) {
+
+	int row = vcl[icl].vpix[ipx].row;
+	if( row < rowmin ) rowmin = row;
+	if( row > rowmax ) rowmax = row;
+
+	hpxph.Fill( vcl[icl].vpix[ipx].ph );
+	if( vcl[icl].size > 31 && vcl[icl].size < 39 )
+	  hpxph35.Fill( vcl[icl].vpix[ipx].ph );
+
+      } // px
+
+      int nrow = rowmax - rowmin + 1;
+      hnrow.Fill( nrow );
+
+      if( vcl.size() )
 	cout << endl;
-      }
 
-    } // icl
+    } // cl
 
     ++nev;
 

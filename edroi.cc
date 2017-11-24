@@ -2,6 +2,8 @@
 // Daniel Pitzl (DESY) Sep 2017
 // read region-of-interest data: event display
 
+// edroi A/roi000480.txt # 50x50 shallow
+
 // edroi A/roi000530.txt # 50x50 tilt 0
 // edroi A/roi000531.txt # 50x50 tilt 0
 // edroi A/roi000540.txt # 50x50 tilt 0
@@ -164,6 +166,17 @@ int main( int argc, char* argv[] )
   cout << " : succeed " << endl;
   // set styles:
 
+  // further arguments:
+
+  bool fifty = 0;
+
+  for( int i = 1; i < argc; i++ ) {
+
+    if( !strcmp( argv[i], "-f" ) )
+      fifty = 1;
+
+  } // argc
+
   gStyle->SetTextFont(62); // 62 = Helvetica bold
   gStyle->SetTextAlign(11);
 
@@ -273,9 +286,15 @@ int main( int argc, char* argv[] )
       int mpx = 0;
       double sumph = 0;
 
+      int nbx =  78;
+      int nby = 320;
+      if( fifty ) {
+	nbx = 155;
+	nby = 160;
+      }
       TH2I hpxmap( "pxmap",
 		   Form( "pixel map %i;col;row;PH [ADC]", iev ),
-		   155, -0.5, 154.5, 160, -0.5, 159.5 );
+		   nbx, -0.5, nbx-0.5, nby, -0.5, nby-0.5 );
       hpxmap.SetMinimum(-20);
       hpxmap.SetMaximum(300);
 
@@ -320,17 +339,30 @@ int main( int argc, char* argv[] )
 	else
 	  dph = ph4 - ph7;
 
-	hpxmap.Fill( col4, row4, dph );
-
 	//cout << " " << col << " " << row << " " << ph;
 
 	if( dph > 12 ) {
-	  pb[mpx].col = col4;
-	  pb[mpx].row = row4;
+
+	  if( fifty ) {
+	    pb[mpx].col = col4;
+	    pb[mpx].row = row4;
+	  }
+	  else{
+	    pb[mpx].col = (col4+1)/2; // 100 um
+	    if( col4%2 ) 
+	      pb[mpx].row = 2*row4 + 0;
+	    else
+	      pb[mpx].row = 2*row4 + 1;
+	  }
+
+	  hpxmap.Fill( pb[mpx].col, pb[mpx].row, dph );
+
 	  pb[mpx].ph = dph;
+
 	  ++mpx;
 	  sumph += dph;
-	}
+
+	} // dph
 
       } // roi px
 
@@ -338,6 +370,29 @@ int main( int argc, char* argv[] )
 	   << ", hits " << mpx
 	   << ", sumdph " << sumph
 	   << endl;
+
+      if( mpx > 11 ) { // delta-rays
+      //if( sumph > 555 ) { // delta-rays
+      //if( vcl[icl].size > 11 ) { // delta-rays
+      //if( vcl[icl].size > 4 ) { // delta-rays
+      //if( vcl[icl].size > 20 ) { // delta-rays
+      //if( vcl[icl].size > 30 ) { // shallow
+	//if( vcl[icl].sum > 888 ) { // delta-rays
+
+	hpxmap.Draw( "colz" );
+	c1.Update();
+
+	cout << "enter any key, q to stop" << endl;
+
+	while( !kbhit() )
+	  gSystem->ProcessEvents(); // ROOT
+
+	string any;
+	cin >> any;
+	if( any == q )
+	  more = 0;
+
+      } // show
 
       // clustering:
 
@@ -354,28 +409,6 @@ int main( int argc, char* argv[] )
 	     << " at " << vcl[icl].col
 	     << ", " << vcl[icl].row
 	     << endl;
-
-	//if( mpx > 11 ) { // delta-rays
-	//if( sumph > 555 ) { // delta-rays
-	//if( vcl[icl].size > 11 ) { // delta-rays
-	//if( vcl[icl].size > 4 ) { // delta-rays
-	if( vcl[icl].size > 20 ) { // delta-rays
-	  //if( vcl[icl].sum > 888 ) { // delta-rays
-
-	  hpxmap.Draw( "colz" );
-	  c1.Update();
-
-	  cout << "enter any key, q to stop" << endl;
-
-	  while( !kbhit() )
-	    gSystem->ProcessEvents(); // ROOT
-
-	  string any;
-	  cin >> any;
-	  if( any == q )
-	    more = 0;
-
-	} // show
 
       } // icl
 

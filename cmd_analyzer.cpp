@@ -251,7 +251,7 @@ void ReadImage( R4sImg &map, bool slow = 1 )
   tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
   //	tb.r4s_AdcDelay(0);
 
-  tb.uDelay(100);
+  tb.uDelay(500); // [us] Beat 23/11/2017: must be larger 400
 
   // take data:
 
@@ -354,7 +354,7 @@ CMD_PROC(getimg) // getimg  1240 2 (take raw data, pulse 2 pix, write to file)
 CMD_PROC(td) // roi data
 {
   int ntrg;
-  if( ! PAR_IS_INT( ntrg, 1, 160 ) ) // 160 = 8 MB block size limit
+  if( ! PAR_IS_INT( ntrg, 1, 999 ) )
     ntrg = 100;
 
   int Nev;
@@ -363,7 +363,7 @@ CMD_PROC(td) // roi data
 
   int planeNr;    // colorize planes in different ways
   if( ! PAR_IS_INT( planeNr, 1, 3 ) )
-    planeNr = 3;
+    planeNr = 2;
 
   int col_to_print;
   if( ! PAR_IS_INT( col_to_print, 0, 156 ) )
@@ -371,7 +371,7 @@ CMD_PROC(td) // roi data
 
   int fupd;     // every fupd events the plots are updated
   if( ! PAR_IS_INT( fupd, 10, 5001 ) )
-    fupd = 200;
+    fupd = 100;
 
   // run number from file:
 
@@ -444,9 +444,9 @@ CMD_PROC(td) // roi data
   TH1D hadcNoCoMo( "hadcNoCoMo", name, 4097, -2048.5, 2048.5 );
 
   sprintf( name,"P%i - Pixel over Threshold; N Pixel; entries",planeNr);
-  TH1D pixelOverThr("pixelOverThr", name, 51, -0.5, 50.5);
+  TH1D pixelOverThr("pixelOverThr", name, 161, -0.5, 160.5);
   
-  //profiles:
+  // profiles:
 
   sprintf( name,"P%i - Running Pedestal Map;col;row;<ADC>",planeNr);
   TProfile2D pedxy( "pedxy", name, 155, 0, 155, 160, 0, 160, -2222, 2222 );
@@ -484,7 +484,7 @@ CMD_PROC(td) // roi data
   sprintf(name,"P%i - Hitmap;col;row;[entries]",planeNr);
   TH2D hitmap( "hitmap", name, 155, 0, 155, 160, 0, 160 );
 
-  //canvas for live draw
+  // canvas for live draw
 
   TCanvas * h1 = new TCanvas( "h1", "h1", 600, 400 );
   h1->SetLogy();
@@ -582,7 +582,7 @@ CMD_PROC(td) // roi data
   tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
   //	tb.r4s_AdcDelay(0);
 
-  tb.uDelay(100);
+  tb.uDelay(500); // [us] Beat 23/11/2017: must be larger 400
 
   int iev = 0;
   int wev = 0; // write event
@@ -602,8 +602,6 @@ CMD_PROC(td) // roi data
   long s0 = tv.tv_sec; // seconds since 1.1.1970
   long u0 = tv.tv_usec; // microseconds
 
-  //bool dorun = 1;
-  //while( dorun ) {
   //while( !keypressed() ) {
   while( iev < Nev ) {
 
@@ -613,12 +611,10 @@ CMD_PROC(td) // roi data
 
     tb.Daq_Start(); // ADC -> RAM
 
-    cout << "Start" << flush;
-
     for( int itrg = 0; itrg < ntrg; ++itrg ) {
 
       ++iev; // triggered events
-      cout << " ev " << iev << flush;
+      cout << " ev " << iev;
 
       tb.r4s_Start(); // R4S sequence
 
@@ -626,9 +622,7 @@ CMD_PROC(td) // roi data
 
     }
 
-    cout << endl << flush;
-
-    if( roc.ext ) tb.uDelay( 64*1000 ); // uint16 goes to 64*1024-1
+    if( roc.ext ) tb.uDelay( 64*1000 ); // uint16 goes to 64 ms
 
     tb.Daq_Stop();
 
@@ -648,15 +642,16 @@ CMD_PROC(td) // roi data
 
     unsigned pos = 0;
 
-    int ktrg = vdata.size() / IMG_WIDTH /  IMG_HEIGHT;
-    cout << " unpack " << ktrg << " event blocks" << flush;
+    int ktrg  = vdata.size() / IMG_WIDTH /  IMG_HEIGHT;
+    cout << "  unpack " << ktrg << " event blocks";
 
     for( int itrg = ktrg; itrg < ntrg; ++itrg )
       outfile << endl
 	      << ++wev << " A "
 	      << iev; // no endl here!
 
-    cout << endl << "  timestamps:";
+    //cout << endl << "  timestamps:";
+    cout << endl << "  hits:";
 
     for( int itrg = 0; itrg < ktrg; ++itrg ) {
 
@@ -681,7 +676,7 @@ CMD_PROC(td) // roi data
 	ts1 =  ( trgid[1] << 12 ) + (trgid[0]);
 	ts2 =  ( trgid[3] << 12 ) + (trgid[2]);
 	timestamp =  ( ts2 << 24 ) + ts1;
-	cout << " " << timestamp;
+	//cout << " " << timestamp;
 
       } // FW 1.1
 
@@ -711,7 +706,7 @@ CMD_PROC(td) // roi data
 	  // suppress fake pixels:
 
 	  //if( col < 155 && row < 160 ) {
-	  if( col < 155 && row < 159 && row > 0 ) { // 110 top and bot row a little noisy
+	  if( col < 155 && row < 159 && row > 0 ) { // 108 has noisy top and bot row
 
 	    // Collect pedestal from the first nPedAvg events. CAUTION ASSUMES NO HITS IN THESE
 
@@ -777,8 +772,6 @@ CMD_PROC(td) // roi data
 
 	      } // !overThr
 
-	      //else cout << "  seed " << col << " " << row << " " << diffPH << endl << flush;
-
 	      if( wev%fupd == 0 ) { // update plots
 
 		if( col==0 && row == 0 ) { //reset ONCE before fill
@@ -800,7 +793,7 @@ CMD_PROC(td) // roi data
 
 		pedAvg += runPed[col][row];
 
-            } // update plots
+	      } // update plots
 
 	    } // hit finding
 
@@ -809,6 +802,8 @@ CMD_PROC(td) // roi data
 	} // px rows
 
       } // col
+
+      cout << " " << nHit;
 
       hitAvg += nHit;
 
@@ -825,7 +820,7 @@ CMD_PROC(td) // roi data
 	  if( hit[col][row] == 1 ) { // seed
 
 	    if( hitFlag == 0 ) { // only once per event
-	      outfile << endl // end revious event line
+	      outfile << endl // end previous event line
 		      << wev << " F "
 		      << iev
 		      << " " << timestamp
@@ -864,13 +859,11 @@ CMD_PROC(td) // roi data
 
       } // seed_col
 
-      if( ! hitFlag ) { // write empty line
+      if( ! hitFlag ) // write empty line
 	outfile << endl
 		<< wev << " E "
 		<< iev
 		<< " " << timestamp; // no endl here !
-	//cout << "  no seed" << endl << flush;
-      }
 
       if( wev%fupd == 0 ) {
 
@@ -905,16 +898,18 @@ CMD_PROC(td) // roi data
 	d1->Modified();
 	d1->Update();
 
-	if( wev > 999 )
-	  fupd = 500;
-	if( wev > 999 )
-	  fupd = 1000;
+        if( wev > 1101 )
+	  fupd = 200;
+	if( wev > 2101 )
+	  fupd =  500;
+	if( wev > 9999 )
+	  fupd =  1000;
 
       } // update
 
     } // ktrg
 
-    cout << endl; // timestamps
+    cout << endl; // timestamps or hits
 
     if( ktrg < ntrg ) {
       //outfile << endl << iev << " E incomplete"; // no endl here!
@@ -928,19 +923,15 @@ CMD_PROC(td) // roi data
     cout << " in " << s3 - s2 + ( u3 - u2 ) * 1e-6 << " s";
     cout << endl;
 
-    /*
-    string any;
-    cout << "enter any key to continue, q to stop" << endl;
-    cin >> any;
-    string Q {"q"};
-    if( any == Q )
-      dorun = 0;
-    */
-  } // run
+  } // run while not keypressed
 
   tb.Daq_Close();
 
   outfile.close();
+
+  cout << hitmap.GetEntries() << " hits"
+       << " => yield " << 1E2*hitmap.GetEntries()/(wev-100) << "%"
+       << endl;
 
   cout << wev << " events written to " << fileName << endl;
 
@@ -1057,7 +1048,7 @@ CMD_PROC(takeraw)
   tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
   //	tb.r4s_AdcDelay(0);
 
-  tb.uDelay(100);
+  tb.uDelay(500); // [us] Beat 23/11/2017: must be larger 400
 
   int iev = 0;
   int wev = 0; // write event
@@ -1689,7 +1680,8 @@ CMD_PROC(scanhold) // scan Vcal
   tb.r4s_SetVcal(400);
   tb.r4s_SetSeqCalScan(); // Cal
 
-  TProfile phvshld( "phvshld", "PH vs hold all pix;hold [ns];<PH-ped> [ADC]",
+  TProfile phvshld( "phvshld",
+		    "PH vs hold all pix;hold [6.25 ns];<PH-ped> [ADC]",
 		    256, -0.5, 255.5, -2222, 2222 );
 
   int stp = 1; // [6 ns]
