@@ -11,6 +11,9 @@
 #include <iostream> // cout
 #include <sys/time.h> // gettimeofday, timeval
 
+#include <ftdi.h>
+#include <unistd.h> // sleep
+
 const char* CUSB::GetErrorMsg(int error)
 {
   switch (error)
@@ -41,23 +44,27 @@ const char* CUSB::GetErrorMsg(int error)
 
 bool CUSB::EnumFirst(unsigned int &nDevices)
 {
-  ftStatus = FT_ListDevices(&enumCount,
-			    NULL,FT_LIST_NUMBER_ONLY|FT_OPEN_BY_SERIAL_NUMBER);
-  if (ftStatus != FT_OK)
-    {
-      nDevices = enumCount = enumPos = 0;
-      return false;
-    }
 
-  nDevices = enumCount;
-  enumPos = 0;
-  return true;
-}
+  //ftStatus = FT_ListDevices(&enumCount,
+  //			    NULL,FT_LIST_NUMBER_ONLY|FT_OPEN_BY_SERIAL_NUMBER);
+
+   enumCount = ftdi_usb_find_all(ftdi, &ftdiDevices, 0x0403, 0x6014);
+   if ( 0 >= enumCount )
+   {
+	  nDevices = enumCount = enumPos = 0;
+	  return false;
+   }
+
+   nDevices = enumCount;
+   enumPos = 0;
+   return true;
+} // EnumFirst
 
 
 bool CUSB::EnumNext(char name[])
 {
   if (enumPos >= enumCount) return false;
+
   ftStatus = FT_ListDevices((PVOID)enumPos, name, FT_LIST_BY_INDEX);
   if (ftStatus != FT_OK)
     {
@@ -90,92 +97,85 @@ bool CUSB::Open(char serialNumber[])
 
   m_posR = m_sizeR = m_posW = 0;
 
-  ftStatus = FT_OpenEx(serialNumber, FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
-
-  if (ftStatus != FT_OK)
-#ifdef _WIN32
-    return false;
-#else
-  {
-    /* maybe the ftdi_sio and usbserial kernel modules are attached to the device */
-    /* try to detach them using the libusb library directly */
-
-    /* prepare libusb structures */
-    libusb_device ** list;
-    libusb_device_handle *handle;
-    struct libusb_device_descriptor descriptor;
-
-    /* initialise libusb and get device list*/
-    libusb_init(NULL);
-    ssize_t ndevices = libusb_get_device_list(NULL, &list);
-    if( ndevices < 0)
-      return false;
-
-    char serial [20];
-
-    bool found = false;
-
-    /* loop over all USB devices */
-    for( int dev = 0; dev < ndevices; dev++) {
-      /* get the device descriptor */
-      int ok = libusb_get_device_descriptor(list[dev], &descriptor);
-      if( ok != 0)
-	continue;
-      /* we're only interested in devices with one vendor and two possible product ID */
-      if( descriptor.idVendor != 0x0403 && (descriptor.idProduct != 0x6001 || descriptor.idProduct != 0x6014))
-	continue;
-
-      /* open the device */
-      ok = libusb_open(list[dev], &handle);
-      if( ok != 0)
-	continue;
-      /* Read the serial number from the device */
-      ok = libusb_get_string_descriptor_ascii(handle, descriptor.iSerialNumber, (unsigned char *) serial, 20);
-      if( ok < 0)
-	continue;
-
-      /* Check the device serial number */
-      if( strcmp(serialNumber, serial) == 0) {
-	/* that's our device */
-	found = true;
-
-	/* Detach the kernel module from the device */
-	ok = libusb_detach_kernel_driver(handle, 0);
-	if( ok == 0)
-	  printf("Detached kernel driver from selected testboard.\n");
-	else
-	  printf("Unable to detach kernel driver from selected testboard.\n");
-	break;
-      }
-
-      libusb_close(handle);
-    }
-
-    libusb_free_device_list(list, 1);
-
-    /* if the device was not found in the previous loop, don't try again */
-    if( !found)
-      return false;
-
-    /* try to re-open with the detached device */
-    ftStatus = FT_OpenEx(serialNumber, FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
-    if( ftStatus != FT_OK)
-      return false;
+  //Open the first device with given vendor and product IDs
+  ftStatus = ftdi_usb_open(ftdi, 0x0403, 0x6014);
+  if (ftStatus != 0) {
+	 printf("could not open the specified FTDI device\n");
+	 return EXIT_FAILURE;
   }
-#endif
 
+  //Reset the FTDI chip
+  ftStatus = ftdi_usb_reset(ftdi);
+  if (ftStatus != 0) {
+	 ftdi_usb_close(ftdi);
+	 printf("unable to RESET the the chip\n");
+	 return EXIT_FAILURE;
+  } // if
 
-  ftStatus = FT_SetBitMode( ftHandle, 0xFF, 0x40 );
-  if( ftStatus != FT_OK )
-    return false;
+  //Bitmode Reset
+  ftStatus = ftdi_set_bitmode(ftdi, 0xFF, BITMODE_RESET);
+  if (ftStatus != 0) {
+	 ftdi_usb_close(ftdi);
+	 printf("unable to RESET the FTDI bitmode\n");
+	 return EXIT_FAILURE;
+  }
+  usleep(5000);
 
-  //	FT_SetUSBParameters(ftHandle, 8192, 8192);
-  //	FT_SetBaudRate(ftHandle, 9600);
+  //Set the FTDI chip to 245 Synchronous FIFO mode
+  ftStatus = ftdi_set_bitmode(ftdi, 0xFF, BITMODE_SYNCFF);
+  if (ftStatus != 0) {
+	 ftdi_usb_close(ftdi);
+	 printf("unable to set the FTDI chip to synchronous FIFO mode\n");
+	 return EXIT_FAILURE;
+  }
 
-  FT_SetTimeouts( ftHandle, 64000, 8000 ); // [ms] read write
+  //Set Latency Timer
+  //Time that the FTDI chip keeps data in the internal buffer if buffer is not full yet
+  ftStatus = ftdi_set_latency_timer(ftdi, 2);
+  if (ftStatus != 0) {
+	 ftdi_usb_close(ftdi);
+	 printf("unable to set FTDI Latency Timer\n");
+	 return EXIT_FAILURE;
+  }
+
+  //Set USB read buffer chunk size. Default is 4096
+  //libftdi limits the read buffer chunksize to 16384 if a higher value is set
+  ftStatus = ftdi_read_data_set_chunksize(ftdi, USBREADBUFFERSIZE);
+  if (ftStatus != 0) {
+	 ftdi_usb_close(ftdi);
+	 printf("unable to set FTDI read chunk size \n");
+	 return EXIT_FAILURE;
+  }
+  ftStatus |= ftdi_write_data_set_chunksize(ftdi, USBWRITEBUFFERSIZE);
+  if (ftStatus != 0) {
+	 ftdi_usb_close(ftdi);
+	 printf("unable to set FTDI write chunk size \n");
+	 return EXIT_FAILURE;
+  }
+
+  //Set FTDI Flow Control
+  ftStatus = ftdi_setflowctrl(ftdi, SIO_RTS_CTS_HS);
+  if (ftStatus != 0) {
+	 ftdi_usb_close(ftdi);
+	 printf("unable to set FTDI Flow Control\n");
+	 return EXIT_FAILURE;
+  }
+
+  //Clear read and write buffers on the chip and interal read buffer
+  ftStatus = ftdi_usb_purge_buffers(ftdi);
+  if (ftStatus != 0) {
+	 printf("could not purge FTDI buffers\n");
+	 return EXIT_FAILURE;
+  }
+
+  //Set FTDI timeouts
+  //These settings are passsed to the underlying libusb.
+  //However, at least READ timeout is not respected. I believe the reason is
+  //the the FTDI chip sends 2 status bytes every 40 ms, even in the absense of data.
+  ftdi->usb_read_timeout = 4000;
+  ftdi->usb_write_timeout = 1000;
 
   isUSB_open = true;
-
   return true;
 }
 
@@ -183,7 +183,7 @@ bool CUSB::Open(char serialNumber[])
 void CUSB::Close()
 {
   if (!isUSB_open) return;
-  FT_Close(ftHandle);
+  ftdi_usb_close(ftdi);
   isUSB_open = 0;
 }
 
@@ -203,7 +203,7 @@ void CUSB::Write(const void *buffer, unsigned int bytesToWrite)
 
 void CUSB::Flush()
 { PROFILING
-    DWORD bytesWritten;
+  DWORD bytesWritten;
   DWORD bytesToWrite = m_posW;
   m_posW = 0;
 
@@ -211,161 +211,52 @@ void CUSB::Flush()
 
   if (!bytesToWrite) return;
 
-  ftStatus = FT_Write(ftHandle, m_bufferW, bytesToWrite, &bytesWritten);
+  bytesWritten = ftdi_write_data(ftdi, m_bufferW, bytesToWrite);
 
-  if (ftStatus != FT_OK) throw CRpcError(CRpcError::WRITE_ERROR);
+  if (bytesWritten <= 0) throw CRpcError(CRpcError::WRITE_ERROR);
   if (bytesWritten != bytesToWrite) { ftStatus = FT_IO_ERROR; throw CRpcError(CRpcError::WRITE_ERROR); }
 }
 
 
-bool CUSB::FillBuffer( DWORD minBytesToRead )
-{
-  if( !isUSB_open )
-    return false;
+void CUSB::Read( void *buffer,  unsigned int bytesToRead ) {
+  m_sizeR = 0;
+  DWORD n = bytesToRead;
 
-  DWORD bytesAvailable, bytesToRead;
-
-  ftStatus = FT_GetQueueStatus(ftHandle, &bytesAvailable);
-  if( ftStatus != FT_OK )
-    return false;
-
-  if( m_posR < m_sizeR )
-    return false;
-
-  bytesToRead = ( bytesAvailable > minBytesToRead ) ? bytesAvailable : minBytesToRead;
-  if( bytesToRead > USBREADBUFFERSIZE )
-    bytesToRead = USBREADBUFFERSIZE;
-
-  timeval tv;
-  gettimeofday( &tv, NULL );
-  long s0 = tv.tv_sec; // seconds since 1.1.1970
-  long u0 = tv.tv_usec; // microseconds
-
-  //std::cout << "  USB::FillBuffer bytesToRead " << bytesToRead;
-
-  ftStatus = FT_Read( ftHandle, m_bufferR, bytesToRead, &m_sizeR );
-  m_posR = 0;
-
-  gettimeofday( &tv, NULL );
-  long s9 = tv.tv_sec; // seconds since 1.1.1970
-  long u9 = tv.tv_usec; // microseconds
-  //std::cout << " takes " << s9 - s0 + ( u9 - u0 ) * 1e-6 << " s" << std::endl;
-
-  if( ftStatus != FT_OK ) {
-    m_sizeR = 0;
-    return false;
-  }
-  return true;
-}
-
-
-void CUSB::Read( void *buffer,  unsigned int bytesToRead )
-{
-  if( !isUSB_open )
-    throw CRpcError( CRpcError::READ_ERROR );
-
-  DWORD i;
-
-  bool ldb = 0;
-  if( ldb )
-    std::cout
-      << "USB::Read bytesToRead " << bytesToRead
-      << ", m_posR " << m_posR << ", m_sizeR " <<  m_sizeR
-      << std::endl;
-
-  for( i = 0; i < bytesToRead; ++i ) {
-
-    if( m_posR < m_sizeR )
-      ((unsigned char*)buffer)[i] = m_bufferR[m_posR++];
-
-    else {
-      DWORD n = bytesToRead-i;
-      if( n > USBREADBUFFERSIZE )
+  if( n > USBREADBUFFERSIZE )
 	n = USBREADBUFFERSIZE; // 4096
 
-      if( ldb )
-	std::cout << "  USB::Read bytes " << n << std::endl;
+timeval tv;
+gettimeofday( &tv, NULL );
+long s0 = tv.tv_sec;
+long u0 = tv.tv_usec;
+  while(m_sizeR < bytesToRead) {
+    m_posR = 0;
 
-      if( !FillBuffer(n) ) throw CRpcError(CRpcError::READ_ERROR);
-      if( m_sizeR < n ) throw CRpcError(CRpcError::READ_ERROR);
+    DWORD bytesRead = ftdi_read_data(ftdi, m_bufferR, n); 
 
-      if( m_posR < m_sizeR )
-	((unsigned char*)buffer)[i] = m_bufferR[m_posR++];
-      else // timeout (bytesRead < bytesToRead)
-	throw CRpcError(CRpcError::READ_TIMEOUT);
-    }
-  }
+     for( DWORD i = m_sizeR; i < bytesRead; ++i ) {
+	   ((unsigned char*)buffer)[i] = m_bufferR[m_posR++];
+     } // for i
+    m_sizeR += bytesRead;
+  }// end while
+gettimeofday( &tv, NULL );
+long s1 = tv.tv_sec;
+long u1 = tv.tv_usec;
+//gettimeofday( &tv, NULL );
+//long s2 = tv.tv_sec;
+//long u2 = tv.tv_usec;
+std::cout << "read " << m_sizeR << " in " << s1 - s0 + ( u1 - u0 ) * 1e-6 << " s" << std::endl;
+//std::cout << "copied " << bytesRead << " in " << s2 - s1 + ( u2 - u1 ) * 1e-6 << " s" << std::endl;
+
 }
-
 
 void CUSB::Clear()
 { PROFILING
     if (!isUSB_open) return;
 
-  ftStatus = FT_Purge(ftHandle, FT_PURGE_RX|FT_PURGE_TX);
+  ftdi_usb_purge_buffers(ftdi);
   m_posR = m_sizeR = 0;
   m_posW = 0;
 }
 
 
-/*
-  CUsbLog::CUsbLog()
-  {
-  f = fopen("usb_log.txt", "wt");
-  state = IDLE;
-  }
-
-
-  CUsbLog::~CUsbLog()
-  {
-  fclose(f);
-  }
-
-
-  void CUsbLog::Add(unsigned int x)
-  {
-  return;
-  switch (state)
-  {
-  case IDLE:
-  if (x == 0xc0) state = CMD_1;
-  else if (x == 0xc2)	state = DAT_CNT1;
-  else fprintf(f, "WRONG HEADER: %02X\n", x);
-  break;
-  case CMD_1:
-  cmd = x;
-  state = CMD_2;
-  break;
-  case CMD_2:
-  cmd += x << 8;
-  state = CMD_CNT;
-  break;
-  case CMD_CNT:
-  count = x;
-  fprintf(f, "CMD(%u, %u)\n", cmd, count);
-  state = count ? DATA : IDLE;
-  break;
-  case DAT_CNT1:
-  count = x;
-  state = DAT_CNT2;
-  return;
-  case DAT_CNT2:
-  count += x << 8;
-  state = DAT_CNT3;
-  return;
-  case DAT_CNT3:
-  count += x << 16;
-  fprintf(f, "DAT(%u)\n", count);
-  state = count ? DATA : IDLE;
-  return;
-  case DATA:
-  fprintf(f, " %02X", x);
-  count--;
-  if (count == 0)
-  {
-  fprintf(f, "\n");
-  state = IDLE;
-  }
-  }
-  }
-*/

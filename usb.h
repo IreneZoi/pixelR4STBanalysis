@@ -1,8 +1,8 @@
 // usb.h
 //
-// Author: Beat Meier, PSI
+// Author: Aliakbar Ebrahimi, UHH
 //
-// Class provides basic functionalities to use the USB interface
+// Class provides basic functionalities for the USB interface using libFTDI1
 
 #ifndef USB_H
 #define USB_H
@@ -16,26 +16,17 @@
 
 #include "rpc_io.h"
 
-#define USBWRITEBUFFERSIZE  1024
-//#define USBREADBUFFERSIZE   4096
-#define USBREADBUFFERSIZE  65536 // not faster (3.9.2017)
+#include <ftdi.h>
 
-/*
-  class CUsbLog
-  {
-  FILE *f;
-  enum { IDLE, CMD_1, CMD_2, CMD_CNT, DAT_CNT1, DAT_CNT2, DAT_CNT3, DATA } state;
-  unsigned int count;
-  unsigned int cmd;
-  public:
-  CUsbLog();
-  ~CUsbLog();
-  void Add(unsigned int x);
-  };
-*/
+#define USBWRITEBUFFERSIZE  65536
+#define USBREADBUFFERSIZE  200*65536 
 
 class CUSB : public CRpcIo
 {
+  // libftdi1 stuff
+  struct ftdi_context *ftdi;
+  struct ftdi_device_list *ftdiDevices;
+
   bool isUSB_open;
   FT_HANDLE ftHandle;
   FT_STATUS ftStatus;
@@ -48,8 +39,6 @@ class CUSB : public CRpcIo
   DWORD m_posR, m_sizeR;
   unsigned char m_bufferR[USBREADBUFFERSIZE];
 
-  bool FillBuffer(DWORD minBytesToRead);
-
  public:
   CUSB()
     {
@@ -57,6 +46,8 @@ class CUSB : public CRpcIo
       isUSB_open = false;
       ftHandle = 0; ftStatus = 0;
       enumPos = enumCount = 0;
+      // libFTDI stuff
+      ftdi = ftdi_new();
     }
   ~CUSB() { /* Close(); */ }
   int GetLastError() { return ftStatus; }
