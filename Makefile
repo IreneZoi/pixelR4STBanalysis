@@ -16,10 +16,10 @@ endif
 ifeq ($(UNAME), Linux)
 
 #CXXFLAGS = -g -Os -Wall -I/usr/local/include -I/usr/X11/include -pthread
-CXXFLAGS = -g -pg -O2 -Wall -Wextra $(ROOTCFLAGS) -I/usr/local/include -I/usr/X11/include -pthread
+CXXFLAGS = -g -pg -O2 -Wall -Wextra $(ROOTCFLAGS) -I/usr/local/include -I/usr/X11/include -I/usr/include/libftdi1 -pthread
 
 #LDFLAGS = -lftd2xx -lreadline -L/usr/local/lib -L/usr/X11/lib -lX11 -pthread -lrt
-LDFLAGS = -lftd2xx -lreadline -L/usr/local/lib -pthread -lrt $(ROOTGLIBS) -L/usr/X11/lib -lX11
+LDFLAGS = -lftd2xx -lftdi1 -lreadline -L/usr/local/lib -pthread -lrt $(ROOTGLIBS) -L/usr/X11/lib -lX11
 
 endif
 
