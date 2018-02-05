@@ -605,10 +605,6 @@ CMD_PROC(td) // roi data
   //while( !keypressed() ) {
   while( iev < Nev ) {
 
-    gettimeofday( &tv, NULL );
-    long s1 = tv.tv_sec; // seconds since 1.1.1970
-    long u1 = tv.tv_usec; // microseconds
-
     tb.Daq_Start(); // ADC -> RAM
 
     for( int itrg = 0; itrg < ntrg; ++itrg ) {
@@ -618,7 +614,7 @@ CMD_PROC(td) // roi data
 
       tb.r4s_Start(); // R4S sequence
 
-      tb.uDelay(800); // 157*163*25 ns = 640 us R4S readout
+      //tb.uDelay(800); // 157*163*25 ns = 640 us R4S readout
 
     }
 
@@ -628,15 +624,17 @@ CMD_PROC(td) // roi data
 
     // read DTB memory:
 
+    gettimeofday( &tv, NULL );
+    long s1 = tv.tv_sec; // seconds since 1.1.1970
+    long u1 = tv.tv_usec; // microseconds
     vector<uint16_t> vdata;
 
     unsigned int ret = tb.Daq_Read( vdata, Blocksize );
 
-    cout << "  status " << ret << " read " << vdata.size() << " words";
-
     gettimeofday( &tv, NULL );
     long s2 = tv.tv_sec; // seconds since 1.1.1970
     long u2 = tv.tv_usec; // microseconds
+    cout << "  status " << ret << " read " << vdata.size() << " words";
     cout << " in " << s2 - s1 + ( u2 - u1 ) * 1e-6 << " s";
     cout << endl;
 
@@ -659,26 +657,28 @@ CMD_PROC(td) // roi data
 
       unsigned long timestamp = 0;
 
-      if( tb.GetFWVersion() > 256 ) { // 256 = 1.0
+      if( roc.ext ) {
+	if( tb.GetFWVersion() > 256 ) { // 256 = 1.0
 
-	unsigned long ts1  = 0;
-	unsigned long ts2  = 0;
-	int trgid[4] = {0};
-	for( size_t i = 0; i < 4; ++i ) {
-	  trgid[i] = vdata.at(pos);
-	  //std::cout << std::hex << trgid[i] << std::endl;
-	  trgid[i] = trgid[i] & ~0xf000;
-	  //timestamp = (timestamp & ~0xf000) | ((a & 0x300) >> 6);
-	  ++pos;
-	} // for i
-	//std::cout << "End times tamps>>>>>>>>>>>>>>" << std::endl;
+	  unsigned long ts1  = 0;
+	  unsigned long ts2  = 0;
+	  int trgid[4] = {0};
+	  for( size_t i = 0; i < 4; ++i ) {
+	    trgid[i] = vdata.at(pos);
+	    //std::cout << std::hex << trgid[i] << std::endl;
+	    trgid[i] = trgid[i] & ~0xf000;
+	    //timestamp = (timestamp & ~0xf000) | ((a & 0x300) >> 6);
+	    ++pos;
+	  } // for i
+	  //std::cout << "End times tamps>>>>>>>>>>>>>>" << std::endl;
 
-	ts1 =  ( trgid[1] << 12 ) + (trgid[0]);
-	ts2 =  ( trgid[3] << 12 ) + (trgid[2]);
-	timestamp =  ( ts2 << 24 ) + ts1;
-	//cout << " " << timestamp;
+	  ts1 =  ( trgid[1] << 12 ) + (trgid[0]);
+	  ts2 =  ( trgid[3] << 12 ) + (trgid[2]);
+	  timestamp =  ( ts2 << 24 ) + ts1;
+	  //cout << " " << timestamp;
 
-      } // FW 1.1
+	} // FW 1.1
+      }
 
       ++wev;
 
