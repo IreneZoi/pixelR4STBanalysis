@@ -260,7 +260,10 @@ CMD_PROC(ver)
   tb.GetHWVersion(hw);
   int fw = tb.GetFWVersion();
   int sw = tb.GetSWVersion();
-  printf("%s: FW=%i.%02i SW=%i.%02i\n", hw.c_str(), fw/256, fw%256, sw/256, sw%256);
+  printf( "%s: FW = %i = %i.%02i,  SW = %i = %i.%02i\n",
+	  hw.c_str(),
+	  fw, fw/256, fw%256,
+	  sw, sw/256, sw%256 );
 }
 
 CMD_PROC(version)
@@ -414,7 +417,7 @@ CMD_PROC(poff)
 CMD_PROC(va)
 {
   int value;
-  PAR_INT(value, 0, 2500);
+  PAR_INT(value, 0, 3000);
   tb._SetVA(value);
   roc.VA = value;
   DO_FLUSH;
@@ -423,7 +426,7 @@ CMD_PROC(va)
 CMD_PROC(vd)
 {
   int value;
-  PAR_INT(value, 0, 3000);
+  PAR_INT(value, 0, 3300);
   tb._SetVD(value);
   roc.VD = value;
   DO_FLUSH;
@@ -467,7 +470,7 @@ CMD_PROC(getia)
   int dummy; if( !PAR_IS_INT( dummy, 0, 1 ) ) dummy = 80;
 
   double i = tb.GetIA();
-  printf("\n IA = %1.1f mA\n", i*1000.0);
+  printf( "\n IA = %1.1f mA\n", i*1E3 );
 }
 
 CMD_PROC(getid)
@@ -475,7 +478,7 @@ CMD_PROC(getid)
   int dummy; if( !PAR_IS_INT( dummy, 0, 1 ) ) dummy = 80;
 
   double i = tb.GetID();
-  printf("\n ID = %1.1f mA\n", i*1000.0);
+  printf( "\n ID = %1.1f mA\n", i*1E3 );
 }
 
 
@@ -543,7 +546,15 @@ CMD_PROC(probeadc)
 {
   int sig;
   PAR_INT(sig, 0, 7);
-  tb.SignalProbeADC(sig);
+  tb.SignalProbeADC(sig,GAIN_1);
+  DO_FLUSH;
+}
+
+CMD_PROC(probeadc2)
+{
+  int sig;
+  PAR_INT(sig, 0, 7);
+  tb.SignalProbeADC(sig,GAIN_2);
   DO_FLUSH;
 }
 
@@ -682,10 +693,10 @@ CMD_PROC(go)
 
   tb.r4s_Start();
   bool running = tb.r4s_Running();
-  if( running)
-    printf("running\n");
+  if( running )
+    printf( "SEQ running (once)\n" );
   else
-    printf("not running\n");
+    printf( "not running\n" );
   DO_FLUSH;
 }
 
@@ -713,16 +724,18 @@ CMD_PROC(running)
 CMD_PROC(vdig)
 {
   int mV;
-  PAR_INT(mV, 0, 2500);
+  PAR_INT(mV, 0, 2800);
   tb.r4s_SetVdig(mV);
+  roc.Vdig = mV;
   DO_FLUSH;
 }
 
 CMD_PROC(vana)
 {
   int mV;
-  PAR_INT(mV, 0, 2500);
+  PAR_INT(mV, 0, 2600);
   tb.r4s_SetVana(mV);
+  roc.Vana = mV;
   DO_FLUSH;
 }
 

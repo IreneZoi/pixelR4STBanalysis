@@ -248,8 +248,8 @@ void ReadImage( R4sImg &map, bool slow = 1 )
 
   // prepare ADC:
 
-  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
-  //	tb.r4s_AdcDelay(0);
+  //tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
+  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_2 );
 
   tb.uDelay(500); // [us] Beat 23/11/2017: must be larger 400
 
@@ -353,17 +353,17 @@ CMD_PROC(getimg) // getimg  1240 2 (take raw data, pulse 2 pix, write to file)
 //------------------------------------------------------------------------------
 CMD_PROC(td) // roi data
 {
-  int ntrg;
-  if( ! PAR_IS_INT( ntrg, 1, 999 ) )
-    ntrg = 100;
-
   int Nev;
   if( ! PAR_IS_INT( Nev, 1, 100*1000*1000 ) )
     Nev = 10100;
 
+  int ntrg;
+  if( ! PAR_IS_INT( ntrg, 1, 200 ) )
+    ntrg = 200;
+
   int planeNr;    // colorize planes in different ways
   if( ! PAR_IS_INT( planeNr, 1, 3 ) )
-    planeNr = 2;
+    planeNr = 1;
 
   int col_to_print;
   if( ! PAR_IS_INT( col_to_print, 0, 156 ) )
@@ -383,7 +383,6 @@ CMD_PROC(td) // roi data
 
   ++run;
   cout << "Run " << run << endl;
-  Log.printf( "Run %i takedata %i\n", run, ntrg );
 
   ofstream orunFile( "runNumber.dat" );
   orunFile << run;
@@ -398,7 +397,9 @@ CMD_PROC(td) // roi data
   outfile.open( fileName.c_str() ); // task: check integrity
 
   int nPedAvg = 100;  // number of events to average for pedestal 
-  double thr = -24;   // threshold for hit finding (negative!)
+  //double thr = -24;   // [ADC] threshold for hit finding (negative!) GAIN_1
+  //double thr = -48;   // [ADC] threshold for hit finding (negative!) GAIN_2
+  double thr = -6; // [noise significance]
   int roiCol = 2;     // +-ROI in col
   int roiRow = 3;     // +-ROI in row
   bool fiftyfifty = 1;// 1 = 50x50 sensor, 0 = 100x25
@@ -414,6 +415,20 @@ CMD_PROC(td) // roi data
           << endl << "roi_row " << roiRow*2 + 1
           << endl << "START"
     ;
+
+  roc.print(1); // ROC settings to Log
+  Log.printf( "  IA      %5.1f mA\n", tb.GetIA()*1E3 );
+  Log.printf( "  ID      %5.1f mA\n", tb.GetID()*1E3 );
+
+  Log.printf( "[Run %i takedata %i]\n", run, ntrg );
+  Log.printf( "  pedestal block %i events\n", nPedAvg );
+  Log.printf( "  seed threshold %3.1f ADC\n", thr );
+  if( line_wise )
+    Log.printf( "  readout mode is row-wise\n" );
+  else
+    Log.printf( "  readout mode is column-wise\n" );
+  Log.printf( "  ROI window +-%i columns\n", roiCol );
+  Log.printf( "  ROI window +-%i rows\n", roiRow );
 
   TFile * histoFile = new TFile( Form( "roi%06i.root", run ), "RECREATE" );
 
@@ -442,6 +457,9 @@ CMD_PROC(td) // roi data
 
   sprintf( name,"P%i - Pulse Heights Differences (incl. Pedestal Correction);PH [ADC];N pixels",planeNr);
   TH1D hadcNoCoMo( "hadcNoCoMo", name, 4097, -2048.5, 2048.5 );
+
+  sprintf( name,"P%i - dPH/noise;significance;N pixels", planeNr );
+  TH1D hsigni( "significance", name, 1000, -100, 100 );
 
   sprintf( name,"P%i - Pixel over Threshold; N Pixel; entries",planeNr);
   TH1D pixelOverThr("pixelOverThr", name, 161, -0.5, 160.5);
@@ -500,6 +518,10 @@ CMD_PROC(td) // roi data
 
   TCanvas * h4 = new TCanvas( "h4", "h4", 600, 400 );
   h4->SetLogy();
+  hsigni.Draw();
+
+  TCanvas * h5 = new TCanvas( "h5", "h5", 600, 400 );
+  h5->SetLogy();
   pixelOverThr.Draw();
 
   TCanvas * p1 = new TCanvas( "p1", "p1", 900, 800 );
@@ -530,6 +552,7 @@ CMD_PROC(td) // roi data
     h2->SetFillColor( kRed-10 );
     h3->SetFillColor( kRed-10 );
     h4->SetFillColor( kRed-10 );
+    h5->SetFillColor( kRed-10 );
     p1->SetFillColor( kRed-10 );
     p2->SetFillColor( kRed-10 );
     p3->SetFillColor( kRed-10 );
@@ -545,6 +568,7 @@ CMD_PROC(td) // roi data
     h2->SetFillColor( kYellow-10 );
     h3->SetFillColor( kYellow-10 );
     h4->SetFillColor( kYellow-10 );
+    h5->SetFillColor( kYellow-10 );
     p1->SetFillColor( kYellow-10 );
     p2->SetFillColor( kYellow-10 );
     p3->SetFillColor( kYellow-10 );
@@ -560,6 +584,7 @@ CMD_PROC(td) // roi data
     h2->SetFillColor( kGreen-10 );
     h3->SetFillColor( kGreen-10 );
     h4->SetFillColor( kGreen-10 );
+    h5->SetFillColor( kGreen-10 );
     p1->SetFillColor( kGreen-10 );
     p2->SetFillColor( kGreen-10 );
     p3->SetFillColor( kGreen-10 );
@@ -575,14 +600,15 @@ CMD_PROC(td) // roi data
 
   tb.Daq_Open( 48*1024*1024 ); // [words] max 64*1024*1024
 
-  const uint32_t Blocksize = 4 * 1024 * 1024;
+  const uint32_t Blocksize = 48 * 1024 * 1024;
 
   // prepare ADC:
 
   tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
-  //	tb.r4s_AdcDelay(0);
 
   tb.uDelay(500); // [us] Beat 23/11/2017: must be larger 400
+
+  const int iFWVersion = tb.GetFWVersion();
 
   int iev = 0;
   int wev = 0; // write event
@@ -592,10 +618,14 @@ CMD_PROC(td) // roi data
 
   double savePH[155][160] = {0};
   double runPed[155][160] = {0};
-  double mPhRMS[155][160] = {0};
-  double mPhCRMS[155][160] = {0};
+  double sumPHsq[155][160] = {0};
+  double sumdPHsq[155][160] = {0};
+  double noise[155][160] = {7}; // [ADC] safety, not zero
   double notHitPH[155][160] = {0};
   double notHitPHC[155][160] = {0};
+  for( int col = 0; col < 155; ++col )
+    for( unsigned row = 0; row < 160; ++row )
+      noise[col][row] = 7;
 
   timeval tv;
   gettimeofday( &tv, NULL );
@@ -605,12 +635,16 @@ CMD_PROC(td) // roi data
   //while( !keypressed() ) {
   while( iev < Nev ) {
 
+    gettimeofday( &tv, NULL );
+    long s1 = tv.tv_sec; // seconds since 1.1.1970
+    long u1 = tv.tv_usec; // microseconds
+
     tb.Daq_Start(); // ADC -> RAM
 
     for( int itrg = 0; itrg < ntrg; ++itrg ) {
 
       ++iev; // triggered events
-      cout << " ev " << iev;
+      cout << " ev " << iev << flush;
 
       tb.r4s_Start(); // R4S sequence
 
@@ -618,30 +652,33 @@ CMD_PROC(td) // roi data
 
     }
 
-    if( roc.ext ) tb.uDelay( 64*1000 ); // uint16 goes to 64 ms
+    if( roc.ext ) tb.uDelay( 64*1000 ); // uint16 goes to 64*1024-1
 
     tb.Daq_Stop();
 
     // read DTB memory:
 
-    gettimeofday( &tv, NULL );
-    long s1 = tv.tv_sec; // seconds since 1.1.1970
-    long u1 = tv.tv_usec; // microseconds
     vector<uint16_t> vdata;
+    vdata.reserve( ( IMG_WIDTH *  IMG_HEIGHT + 4 ) * ntrg );
 
     unsigned int ret = tb.Daq_Read( vdata, Blocksize );
+
+    cout << "  status " << ret << " read " << vdata.size() << " words";
 
     gettimeofday( &tv, NULL );
     long s2 = tv.tv_sec; // seconds since 1.1.1970
     long u2 = tv.tv_usec; // microseconds
-    cout << "  status " << ret << " read " << vdata.size() << " words";
     cout << " in " << s2 - s1 + ( u2 - u1 ) * 1e-6 << " s";
     cout << endl;
 
-    unsigned pos = 0;
-
-    int ktrg  = vdata.size() / IMG_WIDTH /  IMG_HEIGHT;
+    int ktrg = vdata.size() / IMG_WIDTH / IMG_HEIGHT;
     cout << "  unpack " << ktrg << " event blocks";
+
+    if( ktrg < ntrg ) {
+      //outfile << endl << iev << " E incomplete"; // no endl here!
+      cout << "  missing " << ntrg-ktrg << endl;
+      Log.printf( "  trigger %i data size %i incomplete \n", iev, vdata.size() );
+    }
 
     for( int itrg = ktrg; itrg < ntrg; ++itrg )
       outfile << endl
@@ -651,34 +688,34 @@ CMD_PROC(td) // roi data
     //cout << endl << "  timestamps:";
     cout << endl << "  hits:";
 
+    unsigned pos = 0;
+
     for( int itrg = 0; itrg < ktrg; ++itrg ) {
 
       gSystem->ProcessEvents(); // ROOT
 
       unsigned long timestamp = 0;
 
-      if( roc.ext ) {
-	if( tb.GetFWVersion() > 256 ) { // 256 = 1.0
+      if( roc.ext && iFWVersion > 256 ) { // 256 = 1.0
 
-	  unsigned long ts1  = 0;
-	  unsigned long ts2  = 0;
-	  int trgid[4] = {0};
-	  for( size_t i = 0; i < 4; ++i ) {
-	    trgid[i] = vdata.at(pos);
-	    //std::cout << std::hex << trgid[i] << std::endl;
-	    trgid[i] = trgid[i] & ~0xf000;
-	    //timestamp = (timestamp & ~0xf000) | ((a & 0x300) >> 6);
-	    ++pos;
-	  } // for i
-	  //std::cout << "End times tamps>>>>>>>>>>>>>>" << std::endl;
+	unsigned long ts1  = 0;
+	unsigned long ts2  = 0;
+	int trgid[4] = {0};
+	for( size_t i = 0; i < 4; ++i ) {
+	  trgid[i] = vdata.at(pos);
+	  //std::cout << std::hex << trgid[i] << std::endl;
+	  trgid[i] = trgid[i] & ~0xf000;
+	  //timestamp = (timestamp & ~0xf000) | ((a & 0x300) >> 6);
+	  ++pos;
+	} // for i
+	//std::cout << "End times tamps>>>>>>>>>>>>>>" << std::endl;
 
-	  ts1 =  ( trgid[1] << 12 ) + (trgid[0]);
-	  ts2 =  ( trgid[3] << 12 ) + (trgid[2]);
-	  timestamp =  ( ts2 << 24 ) + ts1;
-	  //cout << " " << timestamp;
+	ts1 =  ( trgid[1] << 12 ) + (trgid[0]);
+	ts2 =  ( trgid[3] << 12 ) + (trgid[2]);
+	timestamp =  ( ts2 << 24 ) + ts1; // 48 bits
+	//cout << " " << timestamp;
 
-	} // FW 1.1
-      }
+      } // FW 1.1
 
       ++wev;
 
@@ -705,8 +742,8 @@ CMD_PROC(td) // roi data
 
 	  // suppress fake pixels:
 
-	  //if( col < 155 && row < 160 ) {
-	  if( col < 155 && row < 159 && row > 0 ) { // 108 has noisy top and bot row
+	  //if( col < 155 && row < 160 ) { // take all
+	  if( col < 155 && row < 159 && row > 0 ) { // against noisy top and bot row
 
 	    // Collect pedestal from the first nPedAvg events. CAUTION ASSUMES NO HITS IN THESE
 
@@ -729,11 +766,15 @@ CMD_PROC(td) // roi data
 	      hadcSubPed.Fill( thisPH );
 	      hadcNoCoMo.Fill( diffPH );
 
+	      double signi = diffPH / noise[col][row];
+	      hsigni.Fill( signi );
+
 	      // seed finding using forward difference:
 
 	      bool overThr = 0;
 
-	      if( diffPH <  thr ) { // thr is negative, leading edge of clus
+	      //if( diffPH <  thr ) { // thr is negative, leading edge of clus
+	      if( signi <  thr ) { // thr is negative, leading edge of clus
 
 		hit[col][row] = 1;
 		++nHit;
@@ -742,7 +783,8 @@ CMD_PROC(td) // roi data
 
 	      }
 
-	      else if( diffPH > -thr  && row > 0 ) { // thr is negative, trailing edge of clus
+	      //else if( diffPH > -thr  && row > 0 ) { // thr is negative, trailing edge of clus
+	      else if( signi > -thr  && row > 0 ) { // thr is negative, trailing edge of clus
 
 		hit[col][row-1] = 1; // assign to previous
 		++nHit;
@@ -752,8 +794,9 @@ CMD_PROC(td) // roi data
 
 	      if( ! overThr ) { // update pedestal and RMS 
 
-		if( !( thisPH < thr ) &&
-		    !( thisPH > -thr ) ) { // excludes hits inside clusters as well
+		//if( !( thisPH < thr ) && !( thisPH > -thr ) ) { // excludes hits inside clusters as well
+		if( !( thisPH < thr*noise[col][row] ) &&
+		    !( thisPH > -thr*noise[col][row] ) ) { // excludes hits inside clusters as well
 
 		  // Running Pedestal update:
 
@@ -761,13 +804,13 @@ CMD_PROC(td) // roi data
 		    runPed[col][row] * (nPedAvg - 1.0) / nPedAvg;
 
 		  // for RMS:
-		  mPhRMS[col][row] += thisPH * thisPH;
+		  sumPHsq[col][row] += thisPH * thisPH;
 
 		  notHitPH[col][row] += 1;
 
 		}
 
-		mPhCRMS[col][row] += diffPH  *diffPH;
+		sumdPHsq[col][row] += diffPH  *diffPH;
 		notHitPHC[col][row] += 1;
 
 	      } // !overThr
@@ -781,13 +824,15 @@ CMD_PROC(td) // roi data
 		}
 
 		pedxy.Fill( col+0.5, row+0.5, runPed[col][row] );
-		phRMS.Fill( col+0.5, row+0.5, sqrt( mPhRMS[col][row] / notHitPH[col][row] ) );
-		phCRMS.Fill( col+0.5, row+0.5, sqrt( mPhCRMS[col][row] / notHitPHC[col][row] ) );
+		phRMS.Fill( col+0.5, row+0.5, sqrt( sumPHsq[col][row] / notHitPH[col][row] ) );
+		phCRMS.Fill( col+0.5, row+0.5, sqrt( sumdPHsq[col][row] / notHitPHC[col][row] ) );
+
+		noise[col][row] = sqrt( sumdPHsq[col][row] / notHitPHC[col][row] );
 
 		// so they can be refilled
-
-		mPhRMS[col][row] = 0;
-		mPhCRMS[col][row] = 0;
+ 
+		sumPHsq[col][row] = 0;
+		sumdPHsq[col][row] = 0;
 		notHitPH[col][row] = 0;
 		notHitPHC[col][row] = 0;
 
@@ -880,6 +925,8 @@ CMD_PROC(td) // roi data
 	h3->Update();
 	h4->Modified();
 	h4->Update();
+	h5->Modified();
+	h5->Update();
 
 	p1->Modified();
 	p1->Update();
@@ -898,12 +945,12 @@ CMD_PROC(td) // roi data
 	d1->Modified();
 	d1->Update();
 
-        if( wev > 1101 )
+	if( wev > 1101 )
 	  fupd = 200;
 	if( wev > 2101 )
-	  fupd =  500;
+	  fupd = 500;
 	if( wev > 9999 )
-	  fupd =  1000;
+	  fupd = 2000;
 
       } // update
 
@@ -911,19 +958,13 @@ CMD_PROC(td) // roi data
 
     cout << endl; // timestamps or hits
 
-    if( ktrg < ntrg ) {
-      //outfile << endl << iev << " E incomplete"; // no endl here!
-      cout << "  incomplete" << endl;
-      Log.printf( "  trigger %i data size %i incomplete \n", iev, vdata.size() );
-    }
-
     gettimeofday( &tv, NULL );
     long s3 = tv.tv_sec; // seconds since 1.1.1970
     long u3 = tv.tv_usec; // microseconds
     cout << " in " << s3 - s2 + ( u3 - u2 ) * 1e-6 << " s";
     cout << endl;
 
-  } // run while not keypressed
+  } // run
 
   tb.Daq_Close();
 
@@ -948,6 +989,8 @@ CMD_PROC(td) // roi data
   h3->Update();
   h4->Modified();
   h4->Update();
+  h5->Modified();
+  h5->Update();
 
   p1->Modified();
   p1->Update();
@@ -983,6 +1026,7 @@ CMD_PROC(td) // roi data
   delete h2;
   delete h3;
   delete h4;
+  delete h5;
   delete p1;
   delete p2;
   delete p3;
@@ -1046,7 +1090,6 @@ CMD_PROC(takeraw)
   // prepare ADC:
 
   tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
-  //	tb.r4s_AdcDelay(0);
 
   tb.uDelay(500); // [us] Beat 23/11/2017: must be larger 400
 
@@ -1073,7 +1116,7 @@ CMD_PROC(takeraw)
 
       tb.r4s_Start(); // R4S sequence
 
-      tb.uDelay(800); // 157*163*25 ns = 640 us R4S readout
+      //tb.uDelay(800); // 157*163*25 ns = 640 us R4S readout
 
     }
 
@@ -1100,7 +1143,7 @@ CMD_PROC(takeraw)
     unsigned pos = 0;
 
     int ktrg  = vdata.size() / IMG_WIDTH /  IMG_HEIGHT;
-    cout << "try  to unpack " << ktrg << " event blocks" << endl;
+    cout << "  unpack " << ktrg << " event blocks" << endl;
 
     for( int itrg = 0; itrg < ktrg; ++itrg ) {
 
@@ -1343,7 +1386,7 @@ CMD_PROC(getcal) // ph-ped map
 
   TH1I hrms( "rms",
 	     "rms;rms [ADC];pixels",
-	     100, 0, 20 );
+	     100, 0, 100 );
 
   for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
 
@@ -1431,6 +1474,13 @@ CMD_PROC(getcal) // ph-ped map
   histoFile->Close();
   cout << histoFile->GetName() << endl;
 
+  // restore:
+
+  if( line_wise )
+    tb.r4s_SetSeqReadout( roc.ext ); // pedestal
+  else
+    tb.r4s_SetSeqReadCol( roc.ext );
+
 }
 
 //------------------------------------------------------------------------------
@@ -1477,7 +1527,7 @@ CMD_PROC(scancal) // scan Vcal
   vector <double> via;
   via.reserve(999);
 
-  unsigned Np = 99;
+  unsigned Np = 99; // pedestals
 
   for( unsigned i = 0; i < Np; ++i ) { // events
 
@@ -1519,7 +1569,8 @@ CMD_PROC(scancal) // scan Vcal
 
   tb.r4s_SetSeqCalScan(); // Cal
 
-  TProfile phvscal( "phvscal", "PH vs Vcal pix 77 88;Vcal [mV];PH-ped [ADC]", 48, 25, 2425 );
+  TProfile phvscal( "phvscal", "PH vs Vcal pix 77 88;Vcal [mV];PH-ped [ADC]",
+		    240, 0, 2400 );
 
   int vstp = 10; // [mV]
 
@@ -1591,7 +1642,17 @@ CMD_PROC(scancal) // scan Vcal
   histoFile->Close();
   cout << histoFile->GetName() << endl;
 
-}
+  // restore:
+
+  cout << "Vcal back to " << roc.Vcal << endl;
+  tb.r4s_SetVcal(roc.Vcal);
+
+  if( line_wise )
+    tb.r4s_SetSeqReadout( roc.ext ); // pedestal
+  else
+    tb.r4s_SetSeqReadCol( roc.ext );
+
+} // scancal
 
 //------------------------------------------------------------------------------
 CMD_PROC(scanhold) // scan Vcal
@@ -1750,11 +1811,21 @@ CMD_PROC(scanhold) // scan Vcal
   for( unsigned i = 0; i < via.size(); ++i )
     iavsev.Fill( i+0.5, via[i]*1E3 );
 
+  cout << "hold back to " << roc.Hold << endl;
+  tb.r4s_SetHoldPos(roc.Hold);
+
   histoFile->Write();
   histoFile->Close();
   cout << histoFile->GetName() << endl;
 
-}
+  // restore:
+
+  if( line_wise )
+    tb.r4s_SetSeqReadout( roc.ext ); // pedestal
+  else
+    tb.r4s_SetSeqReadCol( roc.ext );
+
+} // scanhold
 
 //------------------------------------------------------------------------------
 CMD_PROC(seqreadout)
@@ -1831,7 +1902,7 @@ CMD_PROC(scanva) // IA vs VA
   histoFile->Close();
   cout << histoFile->GetName() << endl;
 
-}
+} // scanva
 
 /*
 //------------------------------------------------------------------------------

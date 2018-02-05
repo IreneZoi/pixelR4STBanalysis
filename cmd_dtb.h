@@ -77,7 +77,7 @@ CMD_REG(d2, "<signal>", "assign signal to D2 outout")
 CMD_REG(a1, "<signal>", "assign analog signal to A1 output")
 CMD_REG(a2, "<signal>", "assign analog signal to A2 outout")
 CMD_REG(probeadc, "<signal>", "assign analog signal to ADC")
-
+CMD_REG(probeadc2, "<signal>", "assign analog signal to ADC gain 2")
 
 // === DAQ ==================================================================
 

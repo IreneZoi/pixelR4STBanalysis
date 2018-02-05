@@ -65,7 +65,7 @@ void CProtocol::timestamp(const char s[])
 }
 
 
-void CProtocol::section(const char s[], bool crlf)
+void CProtocol::section( const char s[], bool crlf )
 {
   if (f == NULL) return;
   if (crlf) fprintf(f, "[%s]\n", s);
@@ -76,7 +76,7 @@ void CProtocol::section(const char s[], bool crlf)
 void CProtocol::section(const char s[], const char par[])
 {
   if (f == NULL) return;
-  fprintf(f, "[%s] %s\n", s, par);
+  fprintf( f, "[%s] %s\n", s, par );
 }
 
 
