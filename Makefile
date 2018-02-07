@@ -54,7 +54,7 @@ rpc_calls.cpp:
 	$(RPCGEN) pixel_dtb.h -hrpc_calls.cpp > rpcgen.log
 
 bin/r4stest: $(addprefix obj/,$(OBJS)) bin rpc_calls.cpp
-	$(CXX) -o $@ $(addprefix obj/,$(OBJS)) $(LDFLAGS)
+	$(CXX) -o $@ $(addprefix obj/,$(OBJS)) -fopenmp $(LDFLAGS)
 
 r2r: r2r.cc
 	g++ $(ROOTCFLAGS) r2r.cc \

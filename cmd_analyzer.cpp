@@ -17,6 +17,11 @@
 #include <string>
 #include <fstream> // files
 #include <sys/time.h> // gettimeofday, timeval
+  
+  // parallel for parallel
+#include <omp.h>
+#include <chrono>
+#include <thread>
 
 #include <TFile.h>
 #include <TH1I.h>
@@ -1049,6 +1054,57 @@ CMD_PROC(td) // roi data
 } // takedata
 
 //------------------------------------------------------------------------------
+
+CMD_PROC(tdp) // roi datataking - tryouts for parallelisation -- finn
+{
+  omp_set_num_threads(2); // want 2 prongs
+  
+  timeval tv; // initialize container for time measurement
+  
+  gettimeofday( &tv, NULL ); // measure time
+  long s0 = tv.tv_sec; // seconds since 1.1.1970
+  long u0 = tv.tv_usec; // microseconds
+  
+  cout << s0 << " " << u0 << endl;
+  
+  #pragma omp parallel sections // fork
+  {
+    #pragma omp section // 1st prong
+    {
+      printf ("id = %d, \n", omp_get_thread_num());
+      
+      for( int i = 0; i < 1000; ++i){
+        
+        //printf("thread 1 %i \n", i); // print statements appear sequentially
+        
+        this_thread::sleep_for(chrono::microseconds(1000));
+      
+      }
+    }
+    #pragma omp section // 2nd prong
+    {
+      printf ("id = %d, \n", omp_get_thread_num());
+      
+      for( int i = 1000; i < 2000; ++i){
+        
+        //printf("thread 2 %i \n", i);
+        
+        this_thread::sleep_for(chrono::microseconds(1000));
+      
+      }
+    }
+  }
+  
+  gettimeofday( &tv, NULL );
+  long s1 = tv.tv_sec; // seconds since 1.1.1970
+  long u1 = tv.tv_usec; // microseconds
+  
+  cout << s1 << " " << u1 << endl; 
+  cout << s1-s0 << " " << u1-u0 << endl;
+} // takedata - tryouts
+
+//------------------------------------------------------------------------------
+
 CMD_PROC(takeraw)
 {
   int ntrg;
@@ -1828,6 +1884,204 @@ CMD_PROC(scanhold) // scan Vcal
 } // scanhold
 
 //------------------------------------------------------------------------------
+CMD_PROC(scanhold2d) // scan hold for various VgPr and VgSh -- finn
+{
+  // scanhold, with additional loops over vgpr and vgsh 
+  // and without the map and histogram at every delay to save some disk space
+  
+  int dummy; if( !PAR_IS_INT( dummy, 0, 1 ) ) dummy = 80;
+  
+    //get current settings to restore after scan
+  int svVgPr = roc.VgPr;
+  int svVgSh = roc.VgSh;
+  
+  for( int vpr = 400; vpr < 801; vpr += 100 ){   // for real
+    for( int vsh = 400; vsh < 901; vsh += 100 ){
+  //for( int vpr = 700; vpr < 801; vpr += 100 ){  // for testing
+  //  for( int vsh = 700; vsh < 801; vsh += 100 ){
+      
+      tb.r4s_SetRgpr(vpr);
+      roc.VgPr = vpr;
+      tb.r4s_SetRgsh(vsh);
+      roc.VgSh = vsh;
+
+      TFile * histoFile = new TFile( Form( "schld2d/c%i_scanhold_pr%i_sh%i.root" , roc.chip, vpr, vsh ), "RECREATE" );
+
+      TProfile2D pedxy( "pedxy",
+            "pedestal map;col;row;<ADC>",
+            IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+
+      TH2I hsuma( "suma",
+            "suma map;col;row;sum ADC",
+            IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
+
+      TH2I hsumaa( "sumaa",
+            "sumaa map;col;row;sum ADC^2",
+            IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
+
+      TProfile2D rmsxy( "rmsxy",
+            "rms map;col;row;RMS [ADC]",
+            IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, 0, 2222 );
+
+      TH1I hrms( "rms",
+          "rms;rms [ADC];pixels",
+          100, 0, 20 );
+
+      // for pedestal:
+
+      R4sImg map;
+
+      tb.r4s_SetVcal(0); // baseline?
+      tb.r4s_SetSeqCalScan(); // Cal
+
+      line_wise = 1;
+      IMG_HEIGHT = 163; // FW 0.6
+
+      unsigned iev = 0;
+      vector <double> via;
+      via.reserve(999);
+
+      unsigned Np = 99;
+
+      for( unsigned i = 0; i < Np; ++i ) { // events
+
+        double ia = tb.GetIA();
+        via.push_back(ia);
+        ++iev;
+        cout << "event " << iev << ", ia " << ia*1E3 << " mA";
+
+        ReadImage( map );
+
+        for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
+
+          for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
+
+            int a = map.Get( x, y );
+            pedxy.Fill( x+0.5, y+0.5, a );
+            hsuma.Fill( x+0.5, y+0.5, a );
+            hsumaa.Fill( x+0.5, y+0.5, a*a );
+
+          }
+
+      } // events
+
+      for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
+
+        for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
+
+          double suma = hsuma.GetBinContent( x+1, y+1 ); // bins start at 1
+          double sumaa = hsumaa.GetBinContent( x+1, y+1 ); // bins start at 1
+          double rms = sqrt( sumaa/Np - suma/Np*suma/Np );
+          rmsxy.Fill( x+0.5, y+0.5, rms );
+          if( y < 160 && x < 155 )
+            hrms.Fill( rms );
+        
+        }
+
+      cout << "mean rms " << hrms.GetMean() << endl;
+
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      tb.r4s_SetVcal(400);
+      tb.r4s_SetSeqCalScan(); // Cal
+
+      TProfile phvshld( "phvshld",
+            "PH vs hold all pix;hold [6.25 ns];<PH-ped> [ADC]",
+            256, -0.5, 255.5, -2222, 2222 );
+
+      int stp = 2; // [12.5 ns]
+
+      for( unsigned hld = 0; hld < 256; hld += stp ) {
+
+        cout << "hold " << hld << endl;
+
+        tb.r4s_SetHoldPos(hld);
+    
+        TProfile2D adcxy( Form( "adcxy_hld%i", hld ),
+              Form( "pulse height hold %i;col;row;<ADC>", hld ),
+              IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+
+        unsigned Nc = 16;
+        for( unsigned i = 0; i < Nc; ++i ) { // events
+
+          double ia = tb.GetIA();
+          via.push_back(ia);
+          ++iev;
+          cout << "event " << iev << ", ia " << ia*1E3 << " mA";
+
+          ReadImage( map );
+
+          for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
+            for( unsigned x = 0; x < IMG_WIDTH; ++x )
+              adcxy.Fill( x+0.5, y+0.5, map.Get( x, y ) );
+
+        } // events
+      
+          // save some disc space
+        //TProfile2D calxy( Form( "calxy_hld%i", hld ),
+        //      Form( "cal hold %i;col;row;<ADC> - ped", hld ),
+        //      IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+        //TH1I hcal( Form( "cal_hld%i", hld ),
+        //    Form( "cal hold %i;cal [ADC-ped];pixels", hld ),
+        //    100, -100, 900 );
+
+        for( int y = IMG_HEIGHT-1; y >= 0; --y ) // start top row
+
+          for( unsigned x = 0; x < IMG_WIDTH; ++x ) {
+
+            double a = adcxy.GetBinContent( x+1, y+1 ); // bins start at 1
+            double p = pedxy.GetBinContent( x+1, y+1 ); // bins start at 1
+            //calxy.Fill( x+0.5, y+0.5, p-a );
+            if( y < 160 && x < 155 ) {
+              //hcal.Fill( p-a ); // positive
+              phvshld.Fill( hld, p-a );
+            }
+          }
+
+        //adcxy.Write();
+        //calxy.Write();
+        //hcal.Write();
+
+        if( hld ==  80 ) stp =  4;
+        if( hld == 120 ) stp = 10;
+
+      } // hold
+
+      cout << via.size() << " events" << endl;
+
+      TProfile iavsev( "iavsev",
+          "analog current;events;<IA> [mA]",
+          via.size(), 0, via.size(), 0, 500 );
+
+      for( unsigned i = 0; i < via.size(); ++i )
+        iavsev.Fill( i+0.5, via[i]*1E3 );
+
+      cout << "hold back to " << roc.Hold << endl;
+      tb.r4s_SetHoldPos(roc.Hold);
+
+      histoFile->Write();
+      histoFile->Close();
+      cout << histoFile->GetName() << endl;
+
+      // restore:
+
+      if( line_wise )
+        tb.r4s_SetSeqReadout( roc.ext ); // pedestal
+      else
+        tb.r4s_SetSeqReadCol( roc.ext );
+
+    }
+  } // VgPr and VgSh
+
+    // restore VgPr and VgSh settings
+  tb.r4s_SetRgpr( svVgPr );
+  roc.VgPr = svVgPr;
+  tb.r4s_SetRgsh( svVgSh );
+  roc.VgSh = svVgSh;
+  
+} // scanhold2d
+
+//------------------------------------------------------------------------------
 CMD_PROC(seqreadout)
 {
   int ext;
@@ -1903,6 +2157,54 @@ CMD_PROC(scanva) // IA vs VA
   cout << histoFile->GetName() << endl;
 
 } // scanva
+//------------------------------------------------------------------------------
+CMD_PROC(asetvana) // auto set vana -- finn
+{
+  int iath; if( !PAR_IS_INT( iath, 0, 200 ) ) iath = 124;
+  double iath_d = (double)iath;
+  
+  cout << "target Iana: " << iath_d << endl;
+  
+  int good = 0;
+  for( int va = 1900; va < 2300; va += 5 ) { // [mV]
+
+    tb.r4s_SetVana(va);
+    roc.Vana = va;
+    
+    cout << "VA " << va << " - ";
+    
+    double iavg = 0;
+    
+    for( int i = 0; i < 5; ++i ) {
+
+      tb.uDelay(10000);
+      double ia = tb.GetIA();
+      iavg += ia*1E3/5;
+      cout << " " << ia*1E3;
+      
+    }
+    
+    cout << " - avg. Iana " << iavg << " mA" << endl;
+    
+    if( iavg > iath_d ){
+      good = 1;
+    }
+    if( iavg > iath_d + 10){
+      good = 2;
+    }
+    if( good ) 
+      break;
+    
+  } // va
+  
+  if( good == 0 )
+    cout << "FAIL: Target Iana not reached! Set vana manually!" << endl;
+  if( good == 1 )
+    cout << "Reached target Iana!" << endl;
+  if( good == 2 )
+    cout << "FAIL: Iana above target! Set vana manually!" << endl;
+   
+} // asetvana
 
 /*
 //------------------------------------------------------------------------------
