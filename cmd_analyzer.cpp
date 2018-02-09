@@ -16,10 +16,9 @@
 #include <iostream> // cout
 #include <string>
 #include <fstream> // files
-#include <sys/time.h> // gettimeofday, timeval
-  
-  // parallel for parallel
-#include <omp.h>
+#include <time.h> // clock_gettime
+
+#include <omp.h>// openMP
 #include <chrono>
 #include <thread>
 
@@ -360,7 +359,7 @@ CMD_PROC(td) // roi data
 {
   int Nev;
   if( ! PAR_IS_INT( Nev, 1, 100*1000*1000 ) )
-    Nev = 10100;
+    Nev = 10200;
 
   int ntrg;
   if( ! PAR_IS_INT( ntrg, 1, 200 ) )
@@ -368,7 +367,7 @@ CMD_PROC(td) // roi data
 
   int planeNr;    // colorize planes in different ways
   if( ! PAR_IS_INT( planeNr, 1, 3 ) )
-    planeNr = 1;
+    planeNr = 2;
 
   int col_to_print;
   if( ! PAR_IS_INT( col_to_print, 0, 156 ) )
@@ -376,7 +375,7 @@ CMD_PROC(td) // roi data
 
   int fupd;     // every fupd events the plots are updated
   if( ! PAR_IS_INT( fupd, 10, 5001 ) )
-    fupd = 100;
+    fupd = 200;
 
   // run number from file:
 
@@ -401,7 +400,7 @@ CMD_PROC(td) // roi data
   outfile.precision(1);
   outfile.open( fileName.c_str() ); // task: check integrity
 
-  int nPedAvg = 100;  // number of events to average for pedestal 
+  int nPedAvg = 200;  // number of events to average for pedestal and noise = initial fupd
   //double thr = -24;   // [ADC] threshold for hit finding (negative!) GAIN_1
   //double thr = -48;   // [ADC] threshold for hit finding (negative!) GAIN_2
   double thr = -6; // [noise significance]
@@ -436,8 +435,6 @@ CMD_PROC(td) // roi data
   Log.printf( "  ROI window +-%i rows\n", roiRow );
 
   TFile * histoFile = new TFile( Form( "roi%06i.root", run ), "RECREATE" );
-
-  //TApplication app( "app", 0, 0 );
 
   int argc = 0;
   char* argv[1];
@@ -632,24 +629,27 @@ CMD_PROC(td) // roi data
     for( unsigned row = 0; row < 160; ++row )
       noise[col][row] = 7;
 
-  timeval tv;
-  gettimeofday( &tv, NULL );
-  long s0 = tv.tv_sec; // seconds since 1.1.1970
-  long u0 = tv.tv_usec; // microseconds
+  timespec ts;
+  clock_gettime( CLOCK_REALTIME, &ts );
+  time_t s0 = ts.tv_sec; // seconds since 1.1.1970
+  long f0 = ts.tv_nsec; // nanoseconds
+
+  double zeit1 = 0;
+  double zeit2 = 0;
 
   //while( !keypressed() ) {
   while( iev < Nev ) {
 
-    gettimeofday( &tv, NULL );
-    long s1 = tv.tv_sec; // seconds since 1.1.1970
-    long u1 = tv.tv_usec; // microseconds
+    clock_gettime( CLOCK_REALTIME, &ts );
+    time_t s1 = ts.tv_sec; // seconds since 1.1.1970
+    long f1 = ts.tv_nsec; // nanoseconds
 
     tb.Daq_Start(); // ADC -> RAM
 
     for( int itrg = 0; itrg < ntrg; ++itrg ) {
 
       ++iev; // triggered events
-      cout << " ev " << iev << flush;
+      cout << " ev " << iev;
 
       tb.r4s_Start(); // R4S sequence
 
@@ -670,10 +670,12 @@ CMD_PROC(td) // roi data
 
     cout << "  status " << ret << " read " << vdata.size() << " words";
 
-    gettimeofday( &tv, NULL );
-    long s2 = tv.tv_sec; // seconds since 1.1.1970
-    long u2 = tv.tv_usec; // microseconds
-    cout << " in " << s2 - s1 + ( u2 - u1 ) * 1e-6 << " s";
+    clock_gettime( CLOCK_REALTIME, &ts );
+    time_t s2 = ts.tv_sec; // seconds since 1.1.1970
+    long f2 = ts.tv_nsec; // nanoseconds
+    zeit1 += s2 - s1 + ( f2 - f1 ) * 1e-9; // read and cluster
+    cout << " (in " << s2 - s1 + ( f2 - f1 ) * 1e-9 << " s)";
+
     cout << endl;
 
     int ktrg = vdata.size() / IMG_WIDTH / IMG_HEIGHT;
@@ -923,16 +925,16 @@ CMD_PROC(td) // roi data
 	hitAvg = 0;
 
 	h1->Modified();
-	h1->Update();
+	h1->Update(); // hadc
 	h2->Modified();
-	h2->Update();
-	h3->Modified();
-	h3->Update();
+	//h2->Update(); // hadcSubPed
+	//h3->Modified();
+	h3->Update(); // hadcNoCoMo
 	h4->Modified();
-	h4->Update();
-	h5->Modified();
-	h5->Update();
-
+	h4->Update(); // hsigni
+	//h5->Modified();
+	//h5->Update();
+	/* slow 2D
 	p1->Modified();
 	p1->Update();
 	p2->Modified();
@@ -941,18 +943,16 @@ CMD_PROC(td) // roi data
 	p3->Update();
 	p4->Modified();
 	p4->Update();
-
-	g1->Modified();
+	*/
+	g1->Modified(); // ped vs time
 	g1->Update();
-	g2->Modified();
+	g2->Modified(); // hits vs tiem
 	g2->Update();
 
-	d1->Modified();
+	d1->Modified(); // hitmap
 	d1->Update();
 
-	if( wev > 1101 )
-	  fupd = 200;
-	if( wev > 2101 )
+	if( wev > 1999 )
 	  fupd = 500;
 	if( wev > 9999 )
 	  fupd = 2000;
@@ -963,10 +963,11 @@ CMD_PROC(td) // roi data
 
     cout << endl; // timestamps or hits
 
-    gettimeofday( &tv, NULL );
-    long s3 = tv.tv_sec; // seconds since 1.1.1970
-    long u3 = tv.tv_usec; // microseconds
-    cout << " in " << s3 - s2 + ( u3 - u2 ) * 1e-6 << " s";
+    clock_gettime( CLOCK_REALTIME, &ts );
+    time_t s3 = ts.tv_sec; // seconds since 1.1.1970
+    long f3 = ts.tv_nsec; // nanoseconds
+    zeit2 += s3 - s2 + ( f3 - f2 ) * 1e-9; // read and cluster
+    cout << " (in " << s3 - s2 + ( f3 - f2 ) * 1e-9 << " s)";
     cout << endl;
 
   } // run
@@ -1046,10 +1047,14 @@ CMD_PROC(td) // roi data
 
   //app.Run(true); // want to display plots after running program?
 
-  gettimeofday( &tv, NULL );
-  long s9 = tv.tv_sec; // seconds since 1.1.1970
-  long u9 = tv.tv_usec; // microseconds
-  cout << "  test duration " << s9 - s0 + ( u9 - u0 ) * 1e-6 << " s" << endl;
+  clock_gettime( CLOCK_REALTIME, &ts );
+  time_t s9 = ts.tv_sec; // seconds since 1.1.1970
+  long f9 = ts.tv_nsec; // nanoseconds
+  double zeit = s9 - s0 + ( f9 - f0 ) * 1e-9; // total
+  cout << "  test duration " << zeit << " s"
+       << " (read " << zeit1 << ", process " << zeit2 << " s)"
+       << " = " << wev / zeit << " Hz"
+       << endl;
 
 } // takedata
 
@@ -1057,6 +1062,8 @@ CMD_PROC(td) // roi data
 
 CMD_PROC(tdp) // roi datataking - tryouts for parallelisation -- finn
 {
+  int dummy; if( !PAR_IS_INT( dummy, 0, 1 ) ) dummy = 80;
+
   omp_set_num_threads(2); // want 2 prongs
   
   timeval tv; // initialize container for time measurement
