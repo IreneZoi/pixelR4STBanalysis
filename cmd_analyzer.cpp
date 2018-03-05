@@ -403,7 +403,7 @@ CMD_PROC(td) // roi data
   int nPedAvg = 200;  // number of events to average for pedestal and noise = initial fupd
   //double thr = -24;   // [ADC] threshold for hit finding (negative!) GAIN_1
   //double thr = -48;   // [ADC] threshold for hit finding (negative!) GAIN_2
-  double thr = -6; // [noise significance]
+  double thr = -4; // [noise significance]
   int roiCol = 2;     // +-ROI in col
   int roiRow = 3;     // +-ROI in row
   bool fiftyfifty = 1;// 1 = 50x50 sensor, 0 = 100x25
@@ -466,6 +466,9 @@ CMD_PROC(td) // roi data
   sprintf( name,"P%i - Pixel over Threshold; N Pixel; entries",planeNr);
   TH1D pixelOverThr("pixelOverThr", name, 161, -0.5, 160.5);
   
+  sprintf( name,"P%i - RMS distribution of #DeltaPH; RMS [ADC]; entries",planeNr);
+  TH1D hdphrms( "hdphrms", name, 200, 0, 50 );
+
   // profiles:
 
   sprintf( name,"P%i - Running Pedestal Map;col;row;<ADC>",planeNr);
@@ -499,6 +502,14 @@ CMD_PROC(td) // roi data
   gHitAvg->GetYaxis()->SetTitle( "N pixels" );
   gHitAvg->SetPoint( 0, 0, 1 );
 
+  TGraph* grmsdph= new TGraph();
+  grmsdph->SetName( "grmsdph" );
+  sprintf( name, "P%i - Average RMS of #DeltaPH", planeNr );
+  grmsdph->SetTitle( name );
+  grmsdph->GetXaxis()->SetTitle( "Event Number" );
+  grmsdph->GetYaxis()->SetTitle( "RMS [ADC]" );
+  grmsdph->SetPoint( 0, 0, 11 );
+  
   // hitmap:
 
   sprintf(name,"P%i - Hitmap;col;row;[entries]",planeNr);
@@ -526,6 +537,10 @@ CMD_PROC(td) // roi data
   h5->SetLogy();
   pixelOverThr.Draw();
 
+  TCanvas * h6 = new TCanvas( "h6", "h6", 600, 400 );
+  //h6->SetLogy();
+  hdphrms.Draw();
+
   TCanvas * p1 = new TCanvas( "p1", "p1", 900, 800 );
   pedxy.Draw( "colz" );
 
@@ -544,6 +559,9 @@ CMD_PROC(td) // roi data
   TCanvas * g2 = new TCanvas( "g2", "g2", 200, 10, 600, 400 );
   gHitAvg->Draw( "AC*" );
 
+  TCanvas * g3 = new TCanvas( "g3", "g3", 200, 10, 600, 400 );
+  grmsdph->Draw( "AC*" );
+
   TCanvas * d1 = new TCanvas( "d1", "d1", 900, 800 ); // square
   d1->SetLogz();
   hitmap.Draw( "colz" );
@@ -555,12 +573,14 @@ CMD_PROC(td) // roi data
     h3->SetFillColor( kRed-10 );
     h4->SetFillColor( kRed-10 );
     h5->SetFillColor( kRed-10 );
+    h6->SetFillColor( kRed-10 );
     p1->SetFillColor( kRed-10 );
     p2->SetFillColor( kRed-10 );
     p3->SetFillColor( kRed-10 );
     p4->SetFillColor( kRed-10 );
     g1->SetFillColor( kRed-10 );
     g2->SetFillColor( kRed-10 );
+    g3->SetFillColor( kRed-10 );
     d1->SetFillColor( kRed-10 );
   }
 
@@ -571,12 +591,14 @@ CMD_PROC(td) // roi data
     h3->SetFillColor( kYellow-10 );
     h4->SetFillColor( kYellow-10 );
     h5->SetFillColor( kYellow-10 );
+    h6->SetFillColor( kYellow-10 );
     p1->SetFillColor( kYellow-10 );
     p2->SetFillColor( kYellow-10 );
     p3->SetFillColor( kYellow-10 );
     p4->SetFillColor( kYellow-10 );
     g1->SetFillColor( kYellow-10 );
     g2->SetFillColor( kYellow-10 );
+    g3->SetFillColor( kYellow-10 );
     d1->SetFillColor( kYellow-10 );
   }
 
@@ -587,12 +609,14 @@ CMD_PROC(td) // roi data
     h3->SetFillColor( kGreen-10 );
     h4->SetFillColor( kGreen-10 );
     h5->SetFillColor( kGreen-10 );
+    h6->SetFillColor( kGreen-10 );
     p1->SetFillColor( kGreen-10 );
     p2->SetFillColor( kGreen-10 );
     p3->SetFillColor( kGreen-10 );
     p4->SetFillColor( kGreen-10 );
     g1->SetFillColor( kGreen-10 );
     g2->SetFillColor( kGreen-10 );
+    g3->SetFillColor( kGreen-10 );
     d1->SetFillColor( kGreen-10 );
   }
 
@@ -606,7 +630,7 @@ CMD_PROC(td) // roi data
 
   // prepare ADC:
 
-  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
+  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_2 );
 
   tb.uDelay(500); // [us] Beat 23/11/2017: must be larger 400
 
@@ -615,6 +639,7 @@ CMD_PROC(td) // roi data
   int iev = 0;
   int wev = 0; // write event
   double hitAvg = 0;
+  double dphrmsAvg  = 0;
 
   // Define matrices to store e.g. pedestal information on the run:
 
@@ -622,12 +647,12 @@ CMD_PROC(td) // roi data
   double runPed[155][160] = {0};
   double sumPHsq[155][160] = {0};
   double sumdPHsq[155][160] = {0};
-  double noise[155][160] = {7}; // [ADC] safety, not zero
+  double noise[155][160];
   double notHitPH[155][160] = {0};
   double notHitPHC[155][160] = {0};
   for( int col = 0; col < 155; ++col )
     for( unsigned row = 0; row < 160; ++row )
-      noise[col][row] = 7;
+      noise[col][row] = 14; // safety irrad gain_2
 
   timespec ts;
   clock_gettime( CLOCK_REALTIME, &ts );
@@ -832,9 +857,11 @@ CMD_PROC(td) // roi data
 
 		pedxy.Fill( col+0.5, row+0.5, runPed[col][row] );
 		phRMS.Fill( col+0.5, row+0.5, sqrt( sumPHsq[col][row] / notHitPH[col][row] ) );
-		phCRMS.Fill( col+0.5, row+0.5, sqrt( sumdPHsq[col][row] / notHitPHC[col][row] ) );
 
-		noise[col][row] = sqrt( sumdPHsq[col][row] / notHitPHC[col][row] );
+		double dphrms = sqrt( sumdPHsq[col][row] / notHitPHC[col][row] );
+		phCRMS.Fill( col+0.5, row+0.5, dphrms );
+		hdphrms.Fill( dphrms );
+		noise[col][row] = dphrms;
 
 		// so they can be refilled
  
@@ -844,6 +871,7 @@ CMD_PROC(td) // roi data
 		notHitPHC[col][row] = 0;
 
 		pedAvg += runPed[col][row];
+		dphrmsAvg += dphrms;
 
 	      } // update plots
 
@@ -922,18 +950,22 @@ CMD_PROC(td) // roi data
 	int pntnr = wev/fupd;
 	gPedAvg->SetPoint( pntnr, wev, pedAvg/160/155 );
 	gHitAvg->SetPoint( pntnr, wev, hitAvg/fupd );
+	grmsdph->SetPoint( pntnr, wev, dphrmsAvg/160/155 );
 	hitAvg = 0;
+	dphrmsAvg = 0;
 
 	h1->Modified();
 	h1->Update(); // hadc
-	h2->Modified();
+	//h2->Modified();
 	//h2->Update(); // hadcSubPed
-	//h3->Modified();
+	h3->Modified();
 	h3->Update(); // hadcNoCoMo
 	h4->Modified();
 	h4->Update(); // hsigni
 	//h5->Modified();
 	//h5->Update();
+	h6->Modified();
+	h6->Update();
 	/* slow 2D
 	p1->Modified();
 	p1->Update();
@@ -946,8 +978,10 @@ CMD_PROC(td) // roi data
 	*/
 	g1->Modified(); // ped vs time
 	g1->Update();
-	g2->Modified(); // hits vs tiem
+	g2->Modified(); // hits vs time
 	g2->Update();
+	g3->Modified(); // noise vs time
+	g3->Update();
 
 	d1->Modified(); // hitmap
 	d1->Update();
@@ -997,6 +1031,8 @@ CMD_PROC(td) // roi data
   h4->Update();
   h5->Modified();
   h5->Update();
+  h6->Modified();
+  h6->Update();
 
   p1->Modified();
   p1->Update();
@@ -1011,6 +1047,8 @@ CMD_PROC(td) // roi data
   g1->Update();
   g2->Modified();
   g2->Update();
+  g3->Modified();
+  g3->Update();
 
   d1->Modified();
   d1->Update();
@@ -1019,6 +1057,7 @@ CMD_PROC(td) // roi data
 
   gPedAvg->Write();
   gHitAvg->Write();
+  grmsdph->Write();
 
   // store all histograms to root file:
 
@@ -1033,12 +1072,14 @@ CMD_PROC(td) // roi data
   delete h3;
   delete h4;
   delete h5;
+  delete h6;
   delete p1;
   delete p2;
   delete p3;
   delete p4;
   delete g1;
   delete g2;
+  delete g3;
   delete d1;
 
   //app->Terminate(); // ends R4Stest
@@ -1152,7 +1193,7 @@ CMD_PROC(takeraw)
 
   // prepare ADC:
 
-  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
+  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_2 );
 
   tb.uDelay(500); // [us] Beat 23/11/2017: must be larger 400
 
@@ -1751,6 +1792,7 @@ CMD_PROC(scanhold) // scan Vcal
   //tb.r4s_SetPixCal( 159, 159 );
   //tb.r4s_SetSeqReadout(roc.ext); // pedestal
 
+  int Vcal = roc.Vcal;
   tb.r4s_SetVcal(0); // baseline?
   tb.r4s_SetSeqCalScan(); // Cal
 
@@ -1801,7 +1843,7 @@ CMD_PROC(scanhold) // scan Vcal
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  tb.r4s_SetVcal(400);
+  tb.r4s_SetVcal(Vcal);
   tb.r4s_SetSeqCalScan(); // Cal
 
   TProfile phvshld( "phvshld",

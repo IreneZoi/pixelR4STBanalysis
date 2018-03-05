@@ -245,7 +245,7 @@ long u1 = tv.tv_usec;
 //gettimeofday( &tv, NULL );
 //long s2 = tv.tv_sec;
 //long u2 = tv.tv_usec;
-std::cout << "read " << m_sizeR << " in " << s1 - s0 + ( u1 - u0 ) * 1e-6 << " s" << std::endl;
+//std::cout << "read " << m_sizeR << " in " << s1 - s0 + ( u1 - u0 ) * 1e-6 << " s" << std::endl;
 //std::cout << "copied " << bytesRead << " in " << s2 - s1 + ( u2 - u1 ) * 1e-6 << " s" << std::endl;
 
 }

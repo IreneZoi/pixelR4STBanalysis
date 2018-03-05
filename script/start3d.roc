@@ -1,18 +1,17 @@
 
-chip 109
+chip 352  # 3D irradiated
 
-id   200  mA # current limit
 vd   2800 mV # DTB
 vdig 2400 mV # Reg
+id   200  mA # current limit
 
+va   2800 mV # DTB supply: 350 mV above Vana
+vana 2400 mV # 125 mA
 ia   300  mA # current limit
-va   2600 mV # DTB
-vana 2100 mV # 125 mA
 
 vref 250 mV
-rgpr 900 mV # PSI: 600
-rgsh 670 mV # PSI: 600
-#rgsh 600 mV # test
+rgpr 800 mV # PSI: 600
+rgsh 500 mV # PSI: 600
 vcal 400 mV
 
 vaux1 0 mV
@@ -24,7 +23,7 @@ daqena 1 # 1 = 40 MHz
 
 cal 7 2
 
-hold 20
+hold 18
 
  d1 3 # RBI = SEQ_START
 #d1 4 # RBO = SEQ_END
