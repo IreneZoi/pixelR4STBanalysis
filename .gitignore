@@ -1,3 +1,6 @@
+
 *.root
 *.txt
 *.flash
+runNumber.dat
+obj/*

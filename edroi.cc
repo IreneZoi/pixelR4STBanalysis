@@ -2,13 +2,25 @@
 // Daniel Pitzl (DESY) Sep 2017
 // read region-of-interest data: event display
 
-// edroi A/roi000480.txt # 50x50 shallow
+// edroi -f A/roi000480.txt # 50x50 shallow
 
-// edroi A/roi000530.txt # 50x50 tilt 0
-// edroi A/roi000531.txt # 50x50 tilt 0
-// edroi A/roi000540.txt # 50x50 tilt 0
+// edroi -f A/roi000530.txt # 50x50 tilt 0
+// edroi -f A/roi000531.txt # 50x50 tilt 0
+// edroi -f A/roi000540.txt # 50x50 tilt 0
 
-// edroi A/roi000534.txt # til 20
+// edroi B/roi000621.txt # edge-on 25x100
+
+// edroi -f B/roi000661.txt # edge-on 50x50 rot 0
+// edroi -f B/roi000664.txt # edge-on 50x50 rot 45
+// edroi -f B/roi000695.txt # edge-on 50x50 3D
+
+// edroi -f B/roi000802.txt # edge-on 50x50
+
+// edroi -f B/roi000822.txt # shallow
+
+// edroi -f B/roi001347.txt # shallow
+
+// edroi B/roi001445.txt # edge-on 25x100
 
 #include <stdlib.h> // atoi
 #include <iostream> // cout
@@ -32,50 +44,31 @@ struct pixel {
   int col;
   int row;
   double ph;
+  double q;
 };
 
 struct cluster {
   vector <pixel> vpix;
   int size;
   double sum;
+  double q;
   double col,row;
 };
 
-// globals:
-
-pixel pb[155*160]; // pixel block for clustering
-int fNHit; // for clustering
-
-// ----------------------------------------------------------------------
-bool kbhit()
-{
-  int byteswaiting;
-  ioctl(0, FIONREAD, &byteswaiting);
-  return byteswaiting > 0;
-}
-
-// ----------------------------------------------------------------------
-vector<cluster> getClus()
+//------------------------------------------------------------------------------
+vector<cluster> getClus( vector <pixel> pb, int fCluCut = 1 ) // 1 = no gap
 {
   // returns clusters with local coordinates
-  // decodePixels should have been called before to fill pixel buffer pb 
-  // simple clusterization
-  // cluster search radius fCluCut ( allows fCluCut-1 empty pixels)
-
-  const int fCluCut = 1; // clustering: 1 = no gap (15.7.2012)
-  //const int fCluCut = 2;
+  // next-neighbour topological clustering (allows fCluCut-1 empty pixels)
 
   vector <cluster> v;
-  if( fNHit == 0 ) return v;
+  if( pb.size() == 0 ) return v;
 
-  int * gone = new int[fNHit];
+  int * gone = new int[pb.size()] {0};
 
-  for( int i = 0; i < fNHit; ++i )
-    gone[i] = 0;
+  unsigned seed = 0;
 
-  int seed = 0;
-
-  while( seed < fNHit ) {
+  while( seed < pb.size() ) {
 
     // start a new cluster
 
@@ -88,7 +81,7 @@ vector<cluster> getClus()
     int growing;
     do{
       growing = 0;
-      for( int i = 0; i < fNHit; ++i ) {
+      for( unsigned i = 0; i < pb.size(); ++i ) {
         if( !gone[i] ){ // unused pixel
           for( unsigned int p = 0; p < c.vpix.size(); ++p ) { // vpix in cluster so far
             int dr = c.vpix.at(p).row - pb[i].row;
@@ -109,29 +102,36 @@ vector<cluster> getClus()
     // added all I could. determine position and append it to the list of clusters:
 
     c.sum = 0;
+    c.q = 0;
     c.size = 0;
     c.col = 0;
     c.row = 0;
 
     for( vector<pixel>::iterator p = c.vpix.begin();  p != c.vpix.end();  ++p ) {
-      double PH = p->ph;
-      c.sum += PH;
-      c.col += (*p).col*PH;
-      c.row += (*p).row*PH;
+      double ph = p->ph;
+      c.sum += ph;
+      double q = p->q;
+      c.q += q;
+      //c.col += (*p).col*ph;
+      //c.row += (*p).row*ph;
+      c.col += (*p).col*q;
+      c.row += (*p).row*q;
     }
 
     c.size = c.vpix.size();
 
     //cout << "(cluster with " << c.vpix.size() << " pixels)" << endl;
 
-    c.col /= c.sum;
-    c.row /= c.sum;
+    //c.col /= c.sum;
+    //c.row /= c.sum;
+    c.col /= c.q;
+    c.row /= c.q;
 
     v.push_back(c); // add cluster to vector
 
     // look for a new seed = used pixel:
 
-    while( (++seed < fNHit) && gone[seed] );
+    while( ( ++seed < pb.size() ) && gone[seed] );
 
   } // while over seeds
 
@@ -139,6 +139,14 @@ vector<cluster> getClus()
 
   delete gone;
   return v;
+}
+
+//------------------------------------------------------------------------------
+bool kbhit()
+{
+  int byteswaiting;
+  ioctl( 0, FIONREAD, &byteswaiting );
+  return byteswaiting > 0;
 }
 
 //------------------------------------------------------------------------------
@@ -245,7 +253,7 @@ int main( int argc, char* argv[] )
   bool more = 1;
   string q{"q"};
 
-  while( evFile.good() && ! evFile.eof() && more ) {
+  while( evFile.good() && ! evFile.eof() && more ) { // events
 
     istringstream iss( evseed ); // tokenize string
     int iev;
@@ -267,7 +275,7 @@ int main( int argc, char* argv[] )
 
       cout << " px";
 
-      while( ! css.eof() ) {
+      while( ! css.eof() ) { // pixels
 
 	int col;
 	int row;
@@ -278,13 +286,10 @@ int main( int argc, char* argv[] )
 
 	++npx;
 
-	pixel px { col, row, ph };
+	pixel px { col, row, ph, ph };
 	vpx.push_back(px);
 
       } // roi px
-
-      int mpx = 0;
-      double sumph = 0;
 
       int nbx =  78;
       int nby = 320;
@@ -295,8 +300,13 @@ int main( int argc, char* argv[] )
       TH2I hpxmap( "pxmap",
 		   Form( "pixel map %i;col;row;PH [ADC]", iev ),
 		   nbx, -0.5, nbx-0.5, nby, -0.5, nby-0.5 );
-      hpxmap.SetMinimum(-20);
-      hpxmap.SetMaximum(300);
+      //hpxmap.SetMinimum(-20);
+      //hpxmap.SetMaximum(300);
+
+      vector <pixel> pb; // for clustering
+      double sumph = 0;
+
+      bool draw{0};
 
       // columns-wise common mode correction:
 
@@ -341,67 +351,52 @@ int main( int argc, char* argv[] )
 
 	//cout << " " << col << " " << row << " " << ph;
 
-	if( dph > 12 ) {
+	pixel px;
 
-	  if( fifty ) {
-	    pb[mpx].col = col4;
-	    pb[mpx].row = row4;
-	  }
-	  else{
-	    pb[mpx].col = (col4+1)/2; // 100 um
-	    if( col4%2 ) 
-	      pb[mpx].row = 2*row4 + 0;
-	    else
-	      pb[mpx].row = 2*row4 + 1;
-	  }
+	if( fifty ) {
+	  px.col = col4;
+	  px.row = row4;
+	}
+	else{
+	  px.col = (col4+1)/2; // 100 um
+	  if( col4%2 ) 
+	    px.row = 2*row4 + 0;
+	  else
+	    px.row = 2*row4 + 1;
+	}
 
-	  hpxmap.Fill( pb[mpx].col, pb[mpx].row, dph );
+	hpxmap.Fill( px.col, px.row, dph ); // ROI
 
-	  pb[mpx].ph = dph;
+	//if( dph > 12 ) {
+	if( dph > 33 ) { // gain_2 irrad
 
-	  ++mpx;
+	  px.ph = dph;
+	  px.q = dph;
+	  pb.push_back(px);
+
 	  sumph += dph;
+
+	  //hpxmap.Fill( px.col, px.row, dph ); // hits
+
+	  //if( dph > 600 ) draw = 1;
 
 	} // dph
 
       } // roi px
 
       cout << ", roi size " << npx
-	   << ", hits " << mpx
+	   << ", hits " << pb.size()
 	   << ", sumdph " << sumph
 	   << endl;
 
-      if( mpx > 11 ) { // delta-rays
-      //if( sumph > 555 ) { // delta-rays
-      //if( vcl[icl].size > 11 ) { // delta-rays
-      //if( vcl[icl].size > 4 ) { // delta-rays
-      //if( vcl[icl].size > 20 ) { // delta-rays
-      //if( vcl[icl].size > 30 ) { // shallow
-	//if( vcl[icl].sum > 888 ) { // delta-rays
-
-	hpxmap.Draw( "colz" );
-	c1.Update();
-
-	cout << "enter any key, q to stop" << endl;
-
-	while( !kbhit() )
-	  gSystem->ProcessEvents(); // ROOT
-
-	string any;
-	cin >> any;
-	if( any == q )
-	  more = 0;
-
-      } // show
-
       // clustering:
 
-      fNHit = mpx; // for cluster search
-
-      vector <cluster> vcl = getClus();	    
+      vector <cluster> vcl = getClus(pb);
 
       if( vcl.size() )
 	cout << "  clusters " << vcl.size() << endl;
+
+      //if( vcl.size() > 1 ) draw = 1;
 
       for( unsigned icl = 0; icl < vcl.size(); ++ icl ) {
 
@@ -410,7 +405,36 @@ int main( int argc, char* argv[] )
 	     << ", " << vcl[icl].row
 	     << endl;
 
+	//if( vcl[icl].size > 11 ) draw = 1; // delta-rays
+	//if( vcl[icl].size >  4 ) draw = 1; // delta-rays
+	//if( vcl[icl].size > 20 ) draw = 1; // delta-rays
+	//if( vcl[icl].size > 30 ) draw = 1; // shallow
+	if( vcl[icl].size > 8 ) draw = 1; // shallow
+	//if( vcl[icl].size > 60 ) draw = 1; // edge-on
+	//if( vcl[icl].sum > 888 ) draw = 1; // delta-rays
+
       } // icl
+
+      //if( pb.size() > 11 ) { // delta-rays
+      //if( pb.size() > 11 ) { // shallow
+      //if( pb.size() > 55 ) { // edge
+      //if( pb.size() > 199 ) { // edge
+      //if( sumph > 555 ) { // delta-rays
+      if( draw && nev > 400 ) {
+
+	hpxmap.Draw( "colz" );
+	c1.Update();
+
+	cout << "enter any key, q to stop" << endl;
+
+	while( !kbhit() ) gSystem->ProcessEvents(); // ROOT
+
+	string any;
+	cin >> any;
+	if( any == q )
+	  more = 0;
+
+      } // show
 
     } // filled
 
