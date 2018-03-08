@@ -5,6 +5,7 @@
 // edges4 -c 1092 B/roi000689.txt  rot 3.4 = atan(25/400) = 4-col
 // edges4 -f -c 118 B/roi000808.txt  50x50
 // edges4 -c 124 B/roi001427.txt
+// edges4 -c 136 B/roi001672.txt
 
 #include <cstdlib> // atoi
 #include <iostream> // cout
@@ -219,6 +220,11 @@ int main( int argc, char* argv[] )
     ke = 0.035; // default
   }
 
+  if( chip == 136 ) {
+    gain = "B/scm136i-scancal2-tb21-icy-pr800-sh600-ia125-2018-03-08-hold20.dat";
+    ke = 0.035; // default
+  }
+
   ifstream gainFile( gain );
 
   if( ! gainFile ) {
@@ -403,7 +409,7 @@ int main( int argc, char* argv[] )
 
   double qmn = 22; // cut
   double qmx = 40; // cut
-  if( chip == 124 ) {
+  if( chip == 124 || chip == 136 ) {
     qmn =  6;
     qmx = 20;
   }
@@ -519,9 +525,9 @@ int main( int argc, char* argv[] )
 
 	  //double dphcut = 12; // 648 dyc 1.90
 	  double dphcut = 10; // 648 duc 1.84
-	  if( chip == 124 )
+	  if( chip == 124 || chip == 136 )
 	    dphcut = 30; // gain_2 noisy irrad
-	    //dphcut = 40; // gain_2 noisy irrad
+	  //dphcut = 40; // gain_2 noisy irrad 2.23
 
 	  if( dph > dphcut ) {
 	    //if( q > 1.0 ) {
