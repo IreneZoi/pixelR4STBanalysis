@@ -497,7 +497,7 @@ int main( int argc, char* argv[] )
 
   double qmn =  5; // cut
   double qmx = 11; // cut
-  if( chip == 124 ) {
+  if( chip == 124 || chip == 136 ) {
     qmn = 1;
     qmx = 6;
   }
@@ -651,7 +651,7 @@ int main( int argc, char* argv[] )
 
 	  //double dphcut = 12; // 648 dyc 1.90
 	  double dphcut = 10; // 648 duc 1.84
-	  if( chip == 124 )
+	  if( chip == 124 || chip == 136 )
 	    dphcut = 30; // gain_2 noisy irrad
 	    //dphcut = 40; // gain_2 noisy irrad
 	  if( dph > dphcut ) {
