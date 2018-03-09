@@ -270,9 +270,9 @@ int main( int argc, char* argv[] )
   if( fifty )
     pitch = 50;
 
-  double leng = 1; // 100 um
+  double norm = 1; // 100 um
   if( fifty )
-    leng = 0.5; // 50 um
+    norm = 0.5; // 50 um
 
   TH2I * hpxmap = new TH2I( "pxmap", "pixel map, dph > cut;col;row;pixels above cut",
 			    nbx, -0.5, nbx-0.5, nby, -0.5, nby-0.5 );
@@ -308,35 +308,21 @@ int main( int argc, char* argv[] )
 
   TH1I hdy( "dy", "4-column triplet residual;triplet residual [#mum];4-column triplets",
 	    200, -50, 50 );
+
   TH1I hdyc( "dyc", "4-column triplet residual;triplet residual [#mum];4-column triplets",
-	    200, -50, 50 );
+	     200, -50, 50 );
   TH1I hduc( "duc", "4-column triplet Moyal residual;triplet Moyal residual [#mum];4-column triplets",
-	    200, -50, 50 );
+	     200, -50, 50 );
   TH1I hdvc( "dvc",
 	     "4-column triplet truncated residual;triplet truncated residual [#mum];4-column triplets",
-	    200, -50, 50 );
-  TH1I hdyc2( "dyc2",
-	      "4-column triplet residual, 1-2-rows;triplet residual [#mum];1-2-row 4-column triplets",
-	      200, -50, 50 );
+	     200, -50, 50 );
 
-  TProfile nrowvsym( "nrowvsym", "rows vs ymod;y mod 25 [#mum];<rows>",
-		     50, 0, pitch, 0, 10 );
   TProfile nrowvsq( "nrowvsq", "rows vs q;4-column charge [ke];<rows>",
 		    100, 0, 100, 0, 50 );
   TProfile qvsym( "qvsym", "charge vs ymod;y mod 25 [#mum];<charge> [ke]",
 		     50, 0, pitch, 0, 99 );
   TProfile madyvsn( "madyvsn", "MAD y vs nrow;4-column size [rows];MAD y [#mum]",
 		    20, 0.5, 20.5, 0, 100 );
-
-  TProfile madyvsx( "madyvsx", "MAD y vs x;x [columns];MAD y [#mum]",
-		    nbx, -0.5, nbx-0.5, 0, 100 );
-  TProfile madyvsy( "madyvsy", "MAD y vs y;y [rows];MAD y [#mum]",
-		    nby, -0.5, nby-0.5, 0, 100 );
-
-  TProfile dyvsym( "dyvsym", "dy vs ymod;y mod 25 [#mum];<#Deltay> [#mum]",
-		   50, 0, pitch, -50, 50 );
-  TProfile madyvsym( "madyvsym", "MAD y vs ymod;y mod 25 [#mum];MAD #Deltay [#mum]",
-		     50, 0, pitch, 0, 100 );
 
   TProfile madyvsq( "madyvsq", "MAD y vs q;4-column charge [ke];MAD #Deltay [#mum]",
 		    100, 0, 100, 0, 100 );
@@ -345,13 +331,19 @@ int main( int argc, char* argv[] )
   TProfile madvvsq( "madvvsq", "MAD truncated #Deltay vs q;4-column charge [ke];MAD truncated #Deltay [#mum]",
 		    100, 0, 100, 0, 100 );
 
-  TH1I hdycq2( "dycq2", "triplet residual;triplet residual [#mum];Q peak triplets",
-	       200, -50, 50 );
+  TH1I hdycq( "dycq", "4-column triplet residual;triplet residual [#mum];4-column Q peak triplets",
+	      200, -50, 50 );
+  TProfile nrowvsym( "nrowvsym", "rows vs ymod;y mod 25 [#mum];<rows>",
+		     50, 0, pitch, 0, 10 );
+  TProfile madyvsx( "madyvsx", "MAD y vs x;x [columns];MAD y [#mum]",
+		    nbx, -0.5, nbx-0.5, 0, 100 );
+  TProfile madyvsy( "madyvsy", "MAD y vs y;y [rows];MAD y [#mum]",
+		    nby, -0.5, nby-0.5, 0, 100 );
+  TProfile dyvsym( "dyvsym", "dy vs ymod;y mod 25 [#mum];<#Deltay> [#mum]",
+		   50, 0, pitch, -50, 50 );
+  TProfile madyvsym( "madyvsym", "MAD y vs ymod;y mod 25 [#mum];MAD #Deltay [#mum]",
+		     50, 0, pitch, 0, 100 );
 
-  TH1I hdycq3( "dycq3", "triplet residual;triplet residual [#mum];Q peak triplets",
-	       200, -50, 50 );
-  TH1I hdycq4( "dycq4", "triplet residual;triplet residual [#mum];Q peak triplets",
-	       200, -50, 50 );
   TH1I hdycq22( "dycq22", "triplet residual;triplet residual [#mum];Q < 22 ke",
 	       200, -50, 50 );
   TH1I hdycq32( "dycq32", "triplet residual;triplet residual [#mum];22 < Q < 32 ke",
@@ -395,6 +387,18 @@ int main( int argc, char* argv[] )
   TH1D hdyc2eta3( "dyc2eta3", "triplet residual;triplet residual [#mum];high eta triplets",
 	      200, -50, 50 );
 
+  TH1I hdyq2( "dyq2", "4-column triplet residual;triplet residual [#mum];4-column Q peak triplets",
+	       200, -50, 50 );
+  TH1I hdyq3( "dyq3", "4-column triplet residual;triplet residual [#mum];4-column Q peak triplets",
+	       200, -50, 50 );
+
+  TH1I hdy2( "dy2",
+	     "4-column triplet residual, 1-2-rows;triplet residual [#mum];1-2-row 4-column triplets",
+	     200, -50, 50 );
+  TH1I hdy22( "dy22",
+	      "4-column triplet residual, 1-2-rows;triplet residual [#mum];1-2-row 4-column triplets",
+	      200, -50, 50 );
+
   TH1I hslp( "slp", "track slope;track angle [pixels];tracks", 400, -2, 2 );
   TProfile slpvsncol( "slpvsncol", "slope vs track length;track length [columns];<slope> [pixels]",
 		    nbx, 0.5, nbx+0.5, -2, 2 );
@@ -407,11 +411,11 @@ int main( int argc, char* argv[] )
 
   //const double qwid = 1.0; // Moyal width in 100 um
 
-  double qmn = 22; // cut
-  double qmx = 40; // cut
-  if( chip == 124 || chip == 136 ) {
-    qmn =  6;
-    qmx = 20;
+  double qL = 22; // cut
+  double qR = 40; // cut
+  if( chip == 124 || chip == 136 ) { // irrad, see colq, madyvsq
+    qL =  8;
+    qR = 20;
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -525,9 +529,14 @@ int main( int argc, char* argv[] )
 
 	  //double dphcut = 12; // 648 dyc 1.90
 	  double dphcut = 10; // 648 duc 1.84
-	  if( chip == 124 || chip == 136 )
-	    dphcut = 30; // gain_2 noisy irrad
-	  //dphcut = 40; // gain_2 noisy irrad 2.23
+	  if( chip == 124 )
+	    dphcut = 30; // gain_2 noisy irrad 2.20
+	  if( chip == 136 )
+	    //dphcut = 30; // 1672 dycq 2.45
+	    //dphcut = 35; // 1672 dycq 2.31
+	    dphcut = 40; // 1672 dycq 2.22
+	  //dphcut = 45; // 1672 dycq 2.2.26
+	  //dphcut = 50; // 1672 dycq 2.29
 
 	  if( dph > dphcut ) {
 	    //if( q > 1.0 ) {
@@ -625,14 +634,14 @@ int main( int argc, char* argv[] )
 	double aspect = (double)nrow / (double)ncol;
 	haspect.Fill( aspect ); // should be 0.25
 
-	double x0 = colmin+2;
-	double x9 = colmax-2;
-	double y0 = rowmax; // negative slp
+	double x0 = colmin+2.5;
+	double x9 = colmax-2.5;
+	double y0 = rowmax;
 	double y9 = rowmin;
 
 	// 4-col triplets:
 
-	for( int col = colmin+1; col < colmax-11; col += 4 ) { // 0 1+2+3+4 5+6+7+8 9+10+11+12 13
+	for( int col = colmin+1; col < colmax-11; col += 4 ) { // 0 (1+2+3+4) (5+6+7+8) (9+10+11+12) 13
 
 	  if( colvec[col+0].size() == 0 ) continue; // gap in cluster ?
 	  if( colvec[col+1].size() == 0 ) continue; // gap in cluster ?
@@ -738,12 +747,12 @@ int main( int argc, char* argv[] )
 	      qB += q;
 	      qyB += q * row;
 
-	      if( colvec[col+ic].size() < 3 ) {
+	      if( colvec[col+ic].size() < 3 ) { // suppress delta rays
 		qxB += q;
 		qxyB += q * row;
 	      }
 
-	      if( qvec[col+ic] < 16 ) {
+	      if( qvec[col+ic] < 16 ) { // [ke] suppress delta rays
 		qtB += q;
 		qtyB += q * row;
 	      }
@@ -836,7 +845,7 @@ int main( int argc, char* argv[] )
 	  qvscol.Fill( col+11, qC );
 	  double yC = qyC / qC;
 	  if( col+11 == colmax-1 || col+11 == colmax-2 || col+11 == colmax-3 || col+11 == colmax-4 ) {
-	    x9 = col+10;
+	    x9 = col+9.5;
 	    y9 = yC;
 	  }
 
@@ -857,71 +866,58 @@ int main( int argc, char* argv[] )
 
 	  hdy.Fill( dy*pitch ); // [um]
 
-	  if( nrowA <= 2 && // suppress delta rays
-	      nrowC <= 2 ) {
+	  //if( nrowA <= 2 && nrowC <= 2 ) { // size cut against delta rays (bias at non-ideal angles)
+
+	  if( qA > qL*norm && qA < qR*norm && // charge cuts against delta rays also work at non-ideal angles
+	      qC > qL*norm && qC < qR*norm ) {
 
 	    hdyc.Fill( dy*pitch ); // [um] 687: 1.37  688: 1.31  689: 1.30
 	    hduc.Fill( du*pitch ); // [um] 687: 1.37  688: 1.31  689: 1.30
 	    hdvc.Fill( dv*pitch ); // [um] 687: 1.37  688: 1.31  689: 1.30
 
-	    nrowvsym.Fill( ymod, nrowB );
 	    nrowvsq.Fill( qB, nrowB );
 	    qvsym.Fill( ymod, qB ); // flat
 	    madyvsn.Fill( nrowB, abs(dy)*pitch );
-
-	    if( nrowB <= 2 ) {
-
-	      hdyc2.Fill( dy*pitch ); // [um] 687: 1.33  688: 1.33  689: 1.31
-
-	      madyvsx.Fill( col+6, abs(dy)*pitch );
-	      madyvsy.Fill( ay, abs(dy)*pitch );
-	      dyvsym.Fill( ymod, dy*pitch );
-	      madyvsym.Fill( ymod, abs(dy)*pitch );
-
-	    } // 2-row B
 
 	    madyvsq.Fill( qB, abs(dy)*pitch );
 	    maduvsq.Fill( qB, abs(du)*pitch );
 	    madvvsq.Fill( qB, abs(dv)*pitch );
 
-	    if( qA > qmn*leng && qA < qmx*leng &&
-		qB > qmn*leng && qB < qmx*leng &&
-		qC > qmn*leng && qC < qmx*leng )
-	      hdycq2.Fill( dy*pitch ); // [um] 687: 1.23  688: 1.25  689: 1.15
+	    //if( nrowB <= 2 ) {
+	    if( qB > qL*norm && qB < qR*norm ) {
 
-	    if( qA > qmn*leng && qA < 36*leng &&
-		qB > qmn*leng && qB < 36*leng &&
-		qC > qmn*leng && qC < 36*leng )
-	      hdycq3.Fill( dy*pitch ); // [um] 687: 1.12  688: 1.16  689: 1.08
+	      hdycq.Fill( dy*pitch ); // [um] 687: 1.23  688: 1.25  689: 1.15
+	      nrowvsym.Fill( ymod, nrowB );
+	      madyvsx.Fill( col+6, abs(dy)*pitch );
+	      madyvsy.Fill( ay, abs(dy)*pitch );
+	      dyvsym.Fill( ymod, dy*pitch );
+	      madyvsym.Fill( ymod, abs(dy)*pitch );
 
-	    if( qA > qmn*leng && qA < 32*leng && // peak at 32 ke
-		qB > qmn*leng && qB < 32*leng &&
-		qC > qmn*leng && qC < 32*leng )
-	      hdycq4.Fill( dy*pitch ); // [um] 687: 1.02  688: 1.08  689: 0.99
+	    } // B cuts
 
-	    if(      qB*leng < 22 )
+	    if(      qB*norm < 22 )
 	      hdycq22.Fill( dy*pitch );
-	    else if( qB*leng < 32 ) {
+	    else if( qB*norm < 32 ) {
 	      hdycq32.Fill( dy*pitch );
 	      hducq32.Fill( du*pitch );
 	    }
-	    else if( qB*leng < 36 ) {
+	    else if( qB*norm < 36 ) {
 	      hdycq36.Fill( dy*pitch );
 	      hducq36.Fill( du*pitch );
 	    }
-	    else if( qB*leng < 40 ) {
+	    else if( qB*norm < 40 ) {
 	      hdycq40.Fill( dy*pitch );
 	      hducq40.Fill( du*pitch );
 	    }
-	    else if( qB*leng < 50 ) {
+	    else if( qB*norm < 50 ) {
 	      hdycq50.Fill( dy*pitch );
 	      hducq50.Fill( du*pitch );
 	    }
-	    else if( qB*leng < 60 ) {
+	    else if( qB*norm < 60 ) {
 	      hdycq60.Fill( dy*pitch );
 	      hducq60.Fill( du*pitch );
 	    }
-	    else if( qB*leng < 80 ) {
+	    else if( qB*norm < 80 ) {
 	      hdycq80.Fill( dy*pitch );
 	      hducq80.Fill( du*pitch );
 	    }
@@ -942,9 +938,29 @@ int main( int argc, char* argv[] )
 	      if( abs(etaA) > 0.6 && abs(etaB) > 0.6 && abs(etaC) > 0.6 )
 		hdyc2eta3.Fill( dy*pitch ); // [um] 0.90 um
 
-	    } // 2-rows
+	    } // 2-rows B
 
 	  } // cuts A,C
+
+	  if( qA > qL*norm && qA < 36*norm &&
+	      qB > qL*norm && qB < 36*norm &&
+	      qC > qL*norm && qC < 36*norm )
+	    hdyq2.Fill( dy*pitch ); // [um] 687: 1.12  688: 1.16  689: 1.08
+
+	  if( qA > qL*norm && qA < 32*norm && // peak at 32 ke
+	      qB > qL*norm && qB < 32*norm &&
+	      qC > qL*norm && qC < 32*norm )
+	    hdyq3.Fill( dy*pitch ); // [um] 687: 1.02  688: 1.08  689: 0.99
+
+	  if( nrowA <= 2 &&
+	      nrowC <= 2 ) { // size cut against delta rays (bias at non-ideal angles)
+
+	    hdy2.Fill( dy*pitch ); // [um] 687: 1.33  688: 1.33  689: 1.31
+
+	    if( nrowB <= 2 )
+	      hdy22.Fill( dy*pitch ); // [um] 687: 1.33  688: 1.33  689: 1.31
+
+	  }
 
 	} // col
 
