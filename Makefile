@@ -107,7 +107,7 @@ edroi: edroi.cc
 	@echo 'done: edroi'
 
 drei: drei.cc
-	g++ $(ROOTCFLAGS) drei.cc \
+	g++ drei.cc -fopenmp $(ROOTCFLAGS) \
 	-Wall -O2 -o drei $(ROOTGLIBS)
 	@echo 'done: drei'
 
