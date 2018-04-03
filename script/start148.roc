@@ -1,6 +1,5 @@
 
-#chip 108
-chip 146
+chip 148
 
 id   200  mA # current limit
 vd   2800 mV # DTB
@@ -8,23 +7,23 @@ vdig 2400 mV # Reg
 
 ia   300  mA # current limit
 va   2600 mV # DTB
-#vana 2160 mV # 125 mA for 108
-vana 2120 mV # 125 mA for 146
+vana 2110 mV # 125 mA 148
 
 vref 250 mV
-rgpr 900 mV # PSI: 600
-rgsh 670 mV # PSI: 600
-vcal 400 mV
+rgpr 650 mV # PSI: 600
+rgsh 630 mV # PSI: 600
+vcal 200 mV
 
 vaux1 0 mV
 vaux2 0 mV
 
 adcdel 10
 daqena 1 # 1 = 40 MHz
+#daqena 3 # 3 = 20 MHz
 
 cal 7 2
 
-hold 20
+hold 17
 
  d1 3 # RBI = SEQ_START
 #d1 4 # RBO = SEQ_END

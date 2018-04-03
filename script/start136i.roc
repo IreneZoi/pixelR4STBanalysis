@@ -1,26 +1,25 @@
 
-#chip 108
-chip 146
+chip 136 # new adapter, irradiated, chilled
 
 id   200  mA # current limit
 vd   2800 mV # DTB
 vdig 2400 mV # Reg
 
 ia   300  mA # current limit
-va   2600 mV # DTB
-#vana 2160 mV # 125 mA for 108
-vana 2120 mV # 125 mA for 146
+va   2800 mV # DTB
+vana 2370 mV # 125 mA
 
 vref 250 mV
-rgpr 900 mV # PSI: 600
-rgsh 670 mV # PSI: 600
-vcal 400 mV
+rgpr 800 mV # PSI: 600  James: 900
+rgsh 600 mV # PSI: 600  James: 670
+vcal 200 mV
 
 vaux1 0 mV
 vaux2 0 mV
 
 adcdel 10
 daqena 1 # 1 = 40 MHz
+#daqena 3 # 3 = 20 MHz
 
 cal 7 2
 
@@ -38,16 +37,15 @@ a2 6
 
 #seqreadout 0 # row-wise, int trg
 seqreadcol 0 # column-wise, int trg
-#seqcalscan # test pulse
 
 pon
+flush
 mdelay 500
 getvd
 getva
 
 hvon
-mdelay 500
-getid
 getia
+getid
 
 go

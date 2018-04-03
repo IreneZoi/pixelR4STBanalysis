@@ -1,5 +1,4 @@
 
-#chip 108
 chip 146
 
 id   200  mA # current limit
@@ -8,13 +7,15 @@ vdig 2400 mV # Reg
 
 ia   300  mA # current limit
 va   2600 mV # DTB
-#vana 2160 mV # 125 mA for 108
 vana 2120 mV # 125 mA for 146
 
 vref 250 mV
-rgpr 900 mV # PSI: 600
-rgsh 670 mV # PSI: 600
-vcal 400 mV
+#rgpr 600 mV # peak 220 at 16
+#rgsh 600 mV # underswing
+rgsh 630 mV # small underswing
+#rgpr 700 mV # peak 50+220 at 20
+rgpr 650 mV # peak 30+210 at 17
+vcal 200 mV
 
 vaux1 0 mV
 vaux2 0 mV
