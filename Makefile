@@ -71,43 +71,13 @@ rdroi: rdroi.cc
 	-Wall -O2 -o rdroi $(ROOTLIBS)
 	@echo 'done: rdroi'
 
-edges: edges.cc
-	g++ $(ROOTCFLAGS) edges.cc \
-	-Wall -Wextra -O2 -o edges $(ROOTLIBS)
-	@echo 'done: edges'
-
-edges2: edges2.cc
-	g++ $(ROOTCFLAGS) edges2.cc \
-	-Wall -Wextra -O2 -o edges2 $(ROOTLIBS)
-	@echo 'done: edges2'
-
-edges3: edges3.cc
-	g++ $(ROOTCFLAGS) edges3.cc \
-	-Wall -Wextra -O2 -o edges3 $(ROOTLIBS)
-	@echo 'done: edges3'
-
-edges4: edges4.cc
-	g++ $(ROOTCFLAGS) edges4.cc \
-	-Wall -Wextra -O2 -o edges4 $(ROOTLIBS)
-	@echo 'done: edges4'
-
-edges6: edges6.cc
-	g++ $(ROOTCFLAGS) edges6.cc \
-	-Wall -Wextra -O2 -o edges6 $(ROOTLIBS)
-	@echo 'done: edges6'
-
-edges8: edges8.cc
-	g++ $(ROOTCFLAGS) edges8.cc \
-	-Wall -Wextra -O2 -o edges8 $(ROOTLIBS)
-	@echo 'done: edges8'
-
 edroi: edroi.cc
 	g++ $(ROOTCFLAGS) edroi.cc \
 	-Wall -O2 -o edroi $(ROOTGLIBS)
 	@echo 'done: edroi'
 
 drei: drei.cc
-	g++ drei.cc -fopenmp $(ROOTCFLAGS) \
+	g++ $(ROOTCFLAGS) drei.cc \
 	-Wall -O2 -o drei $(ROOTGLIBS)
 	@echo 'done: drei'
 

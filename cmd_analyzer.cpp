@@ -367,7 +367,7 @@ CMD_PROC(td) // roi data
 
   int planeNr;    // colorize planes in different ways
   if( ! PAR_IS_INT( planeNr, 1, 3 ) )
-    planeNr = 2;
+    planeNr = 3;
 
   int col_to_print;
   if( ! PAR_IS_INT( col_to_print, 0, 156 ) )
@@ -517,13 +517,13 @@ CMD_PROC(td) // roi data
 
   // canvas for live draw
 
-  TCanvas * h1 = new TCanvas( "h1", "h1", 600, 400 );
-  h1->SetLogy();
-  hadc.Draw();
+  //TCanvas * h1 = new TCanvas( "h1", "h1", 600, 400 );
+  //h1->SetLogy();
+  //hadc.Draw();
 
-  TCanvas * h2 = new TCanvas( "h2", "h2", 600, 400 );
-  h2->SetLogy();
-  hadcSubPed.Draw();
+  //TCanvas * h2 = new TCanvas( "h2", "h2", 600, 400 );
+  //h2->SetLogy();
+  //hadcSubPed.Draw();
 
   TCanvas * h3 = new TCanvas( "h3", "h3", 600, 400 );
   h3->SetLogy();
@@ -533,26 +533,26 @@ CMD_PROC(td) // roi data
   h4->SetLogy();
   hsigni.Draw();
 
-  TCanvas * h5 = new TCanvas( "h5", "h5", 600, 400 );
-  h5->SetLogy();
-  pixelOverThr.Draw();
+  //TCanvas * h5 = new TCanvas( "h5", "h5", 600, 400 );
+  //h5->SetLogy();
+  //pixelOverThr.Draw();
 
   TCanvas * h6 = new TCanvas( "h6", "h6", 600, 400 );
   //h6->SetLogy();
   hdphrms.Draw();
-
+  /*
   TCanvas * p1 = new TCanvas( "p1", "p1", 900, 800 );
-  pedxy.Draw( "colz" );
+  //pedxy.Draw( "colz" );
 
   TCanvas * p2 = new TCanvas( "p2", "p2", 900, 800 );
-  phRMS.Draw( "colz" );
+  //phRMS.Draw( "colz" );
 
   TCanvas * p3 = new TCanvas( "p3", "p3", 900, 800 );
-  phCRMS.Draw( "colz" );
+  //phCRMS.Draw( "colz" );
 
   TCanvas * p4 = new TCanvas( "p4", "p4", 900, 800 );
-  hitAmplAvg.Draw("colz");
-
+  //hitAmplAvg.Draw("colz");
+  */
   TCanvas * g1 = new TCanvas( "g1", "g1", 200, 10, 600, 400 );
   gPedAvg->Draw( "AC*" );
 
@@ -568,16 +568,18 @@ CMD_PROC(td) // roi data
 
   if( planeNr == 1 ){ // upstream = red
 
-    h1->SetFillColor( kRed-10 );
-    h2->SetFillColor( kRed-10 );
+    //h1->SetFillColor( kRed-10 );
+    //h2->SetFillColor( kRed-10 );
     h3->SetFillColor( kRed-10 );
     h4->SetFillColor( kRed-10 );
-    h5->SetFillColor( kRed-10 );
+    //h5->SetFillColor( kRed-10 );
     h6->SetFillColor( kRed-10 );
+    /*
     p1->SetFillColor( kRed-10 );
     p2->SetFillColor( kRed-10 );
     p3->SetFillColor( kRed-10 );
     p4->SetFillColor( kRed-10 );
+    */
     g1->SetFillColor( kRed-10 );
     g2->SetFillColor( kRed-10 );
     g3->SetFillColor( kRed-10 );
@@ -586,16 +588,18 @@ CMD_PROC(td) // roi data
 
   if( planeNr == 2 ) { // middle = yellow
 
-    h1->SetFillColor( kYellow-10 );
-    h2->SetFillColor( kYellow-10 );
+    //h1->SetFillColor( kYellow-10 );
+    //h2->SetFillColor( kYellow-10 );
     h3->SetFillColor( kYellow-10 );
     h4->SetFillColor( kYellow-10 );
-    h5->SetFillColor( kYellow-10 );
+    //h5->SetFillColor( kYellow-10 );
     h6->SetFillColor( kYellow-10 );
+    /*
     p1->SetFillColor( kYellow-10 );
     p2->SetFillColor( kYellow-10 );
     p3->SetFillColor( kYellow-10 );
     p4->SetFillColor( kYellow-10 );
+    */
     g1->SetFillColor( kYellow-10 );
     g2->SetFillColor( kYellow-10 );
     g3->SetFillColor( kYellow-10 );
@@ -604,16 +608,18 @@ CMD_PROC(td) // roi data
 
   if( planeNr == 3 ){ //down stream = green
 
-    h1->SetFillColor( kGreen-10 );
-    h2->SetFillColor( kGreen-10 );
+    //h1->SetFillColor( kGreen-10 );
+    //h2->SetFillColor( kGreen-10 );
     h3->SetFillColor( kGreen-10 );
     h4->SetFillColor( kGreen-10 );
-    h5->SetFillColor( kGreen-10 );
+    //h5->SetFillColor( kGreen-10 );
     h6->SetFillColor( kGreen-10 );
+    /*
     p1->SetFillColor( kGreen-10 );
     p2->SetFillColor( kGreen-10 );
     p3->SetFillColor( kGreen-10 );
     p4->SetFillColor( kGreen-10 );
+    */
     g1->SetFillColor( kGreen-10 );
     g2->SetFillColor( kGreen-10 );
     g3->SetFillColor( kGreen-10 );
@@ -703,7 +709,13 @@ CMD_PROC(td) // roi data
 
     cout << endl;
 
-    int ktrg = vdata.size() / IMG_WIDTH / IMG_HEIGHT;
+    int timestampblocksize = 0;
+    
+    if( roc.ext && iFWVersion > 256 ) // 256 = 1.0
+      timestampblocksize = 4*ntrg;
+
+    int ktrg = ( vdata.size() - timestampblocksize ) / IMG_WIDTH / IMG_HEIGHT;
+
     cout << "  unpack " << ktrg << " event blocks";
 
     if( ktrg < ntrg ) {
@@ -954,8 +966,8 @@ CMD_PROC(td) // roi data
 	hitAvg = 0;
 	dphrmsAvg = 0;
 
-	h1->Modified();
-	h1->Update(); // hadc
+	//h1->Modified();
+	//h1->Update(); // hadc
 	//h2->Modified();
 	//h2->Update(); // hadcSubPed
 	h3->Modified();
@@ -1021,19 +1033,19 @@ CMD_PROC(td) // roi data
 
   // Final update of some live plots:
 
-  h1->Modified();
-  h1->Update();
-  h2->Modified();
-  h2->Update();
+  //h1->Modified();
+  //h1->Update();
+  //h2->Modified();
+  //h2->Update();
   h3->Modified();
   h3->Update();
   h4->Modified();
   h4->Update();
-  h5->Modified();
-  h5->Update();
+  //h5->Modified();
+  //h5->Update();
   h6->Modified();
   h6->Update();
-
+  /*
   p1->Modified();
   p1->Update();
   p2->Modified();
@@ -1042,7 +1054,7 @@ CMD_PROC(td) // roi data
   p3->Update();
   p4->Modified();
   p4->Update();
-
+  */
   g1->Modified();
   g1->Update();
   g2->Modified();
@@ -1067,16 +1079,18 @@ CMD_PROC(td) // roi data
   delete histoFile;
   delete gPedAvg;
   delete gHitAvg;
-  delete h1;
-  delete h2;
+  //delete h1;
+  //delete h2;
   delete h3;
   delete h4;
-  delete h5;
+  //delete h5;
   delete h6;
+  /*
   delete p1;
   delete p2;
   delete p3;
   delete p4;
+  */
   delete g1;
   delete g2;
   delete g3;
@@ -1803,7 +1817,7 @@ CMD_PROC(scanhold) // scan Vcal
   vector <double> via;
   via.reserve(999);
 
-  unsigned Np = 99;
+  unsigned Np = 99; // pedestal
 
   for( unsigned i = 0; i < Np; ++i ) { // events
 
@@ -1850,7 +1864,7 @@ CMD_PROC(scanhold) // scan Vcal
 		    "PH vs hold all pix;hold [6.25 ns];<PH-ped> [ADC]",
 		    256, -0.5, 255.5, -2222, 2222 );
 
-  int stp = 1; // [6 ns]
+  int stp = 1; // [6.25 ns]
 
   for( unsigned hld = 0; hld < 256; hld += stp ) {
 
@@ -1902,8 +1916,8 @@ CMD_PROC(scanhold) // scan Vcal
     calxy.Write();
     hcal.Write();
 
-    if( hld ==  80 ) stp = 2;
-    if( hld == 120 ) stp = 5;
+    if( hld ==  50 ) stp = 2;
+    if( hld == 100 ) stp = 4;
 
   } // hold
 
