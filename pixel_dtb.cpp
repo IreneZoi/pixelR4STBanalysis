@@ -368,3 +368,38 @@ void CTestboard::r4s_SetSeqCalScan( int ext )
   r4s_SetRegX(calx);
 
 }
+
+//------------------------------------------------------------------------------
+void CTestboard::r4s_SetSeqCalScanCol( int ext )
+{
+  vector<uint32_t> prog(99);
+  prog[ 0] = 0xAB254921; // 1=resetx 2=resety 9=first col y=loady 5=meas B=read col A=next col
+  prog[ 1] = 0x254AB254; prog[ 2] = 0x4AB254AB; prog[ 3] = 0xB254AB25; prog[ 4] = 0x54AB254A;	prog[ 5] = 0xAB254AB2;
+  prog[ 6] = 0x254AB254; prog[ 7] = 0x4AB254AB; prog[ 8] = 0xB254AB25; prog[ 9] = 0x54AB254A;	prog[10] = 0xAB254AB2;
+  prog[11] = 0x254AB254; prog[12] = 0x4AB254AB; prog[13] = 0xB254AB25; prog[14] = 0x54AB254A;	prog[15] = 0xAB254AB2;
+  prog[16] = 0x254AB254; prog[17] = 0x4AB254AB; prog[18] = 0xB254AB25; prog[19] = 0x54AB254A;	prog[20] = 0xAB254AB2;
+  prog[21] = 0x254AB254; prog[22] = 0x4AB254AB; prog[23] = 0xB254AB25; prog[24] = 0x54AB254A;	prog[25] = 0xAB254AB2;
+  prog[26] = 0x254AB254; prog[27] = 0x4AB254AB; prog[28] = 0xB254AB25; prog[29] = 0x54AB254A;	prog[30] = 0xAB254AB2;
+  prog[31] = 0x254AB254; prog[32] = 0x4AB254AB; prog[33] = 0xB254AB25; prog[34] = 0x54AB254A;	prog[35] = 0xAB254AB2;
+  prog[36] = 0x254AB254; prog[37] = 0x4AB254AB; prog[38] = 0xB254AB25; prog[39] = 0x54AB254A;	prog[40] = 0xAB254AB2;
+  prog[41] = 0x254AB254; prog[42] = 0x4AB254AB; prog[43] = 0xB254AB25; prog[44] = 0x54AB254A;	prog[45] = 0xAB254AB2;
+  prog[46] = 0x254AB254; prog[47] = 0x4AB254AB; prog[48] = 0xB254AB25; prog[49] = 0x54AB254A;	prog[50] = 0xAB254AB2;
+  prog[51] = 0x254AB254; prog[52] = 0x4AB254AB; prog[53] = 0xB254AB25; prog[54] = 0x54AB254A;	prog[55] = 0xAB254AB2;
+  prog[56] = 0x254AB254; prog[57] = 0x4AB254AB; prog[58] = 0xB254AB25; prog[59] = 0x54AB254A;	prog[60] = 0xAB254AB2;
+  prog[61] = 0x254AB254; prog[62] = 0x4AB254AB; prog[63] = 0xB254AB25; prog[64] = 0x54AB254A;	prog[65] = 0xAB254AB2;
+  prog[66] = 0x254AB254; prog[67] = 0x4AB254AB; prog[68] = 0xB254AB25; prog[69] = 0x54AB254A;	prog[70] = 0xAB254AB2;
+  prog[71] = 0x254AB254; prog[72] = 0x4AB254AB; prog[73] = 0xB254AB25; prog[74] = 0x54AB254A;	prog[75] = 0xAB254AB2;
+  prog[76] = 0x254AB254; prog[77] = 0x4AB254AB; prog[78] = 0xB254AB25; prog[79] = 0x54AB254A;	prog[80] = 0xAB254AB2;
+  prog[81] = 0x254AB254; prog[82] = 0x4AB254AB; prog[83] = 0xB254AB25; prog[84] = 0x54AB254A;	prog[85] = 0xAB254AB2;
+  prog[86] = 0x254AB254; prog[87] = 0x4AB254AB; prog[88] = 0xB254AB25; prog[89] = 0x54AB254A;	prog[90] = 0xAB254AB2;
+  prog[91] = 0x254AB254; prog[92] = 0x4AB254AB; prog[93] = 0xB254AB25; prog[94] = 0x54AB254A;	prog[95] = 0xAB254AB2;
+  prog[96] = 0x254AB254; prog[97] = 0x4AB254AB; prog[98] = 0x0000AB25;
+
+  r4s_SetSequence(prog);
+
+  vector <uint32_t> caly( 5, 0xffffffff ); // activate all col cal: 5x32 = 160
+  cout << "caly.size " << caly.size() << endl;
+
+  r4s_SetRegY(caly);
+
+}
