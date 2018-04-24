@@ -6,13 +6,14 @@ vd   2800 mV # DTB
 vdig 2400 mV # Reg
 
 ia   300  mA # current limit
-va   2600 mV # DTB
-vana 2120 mV # 125 mA
+va   2500 mV # DTB
+vana 2100 mV # 125 mA
 
 vref 250 mV
-rgpr 650 mV # PSI: 600
-rgsh 630 mV # PSI: 600
-vcal 200 mV
+#rgpr 650 mV # Dreimaster PSI: 600
+rgpr 900 mV # James
+rgsh 670 mV # James
+vcal 400 mV
 
 vaux1 0 mV
 vaux2 0 mV

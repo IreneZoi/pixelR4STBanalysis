@@ -7,7 +7,7 @@ vdig 2400 mV # Reg
 
 ia   300  mA # current limit
 va   2800 mV # DTB
-vana 2320 mV # 125 mA
+vana 2370 mV # 125 mA
 
 vref 250 mV
 rgpr 600 mV # PSI: 600  James: 900
@@ -22,7 +22,7 @@ daqena 1 # 1 = 40 MHz, int trg
 
 cal 7 2 # pulse col row
 
-hold 24 # test pulse
+hold 18 # test pulse peak
 
  d1 3 # RBI = SEQ_START
 #d1 4 # RBO = SEQ_END

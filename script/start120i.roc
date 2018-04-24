@@ -1,5 +1,5 @@
 
-chip 120 # new adapter, irradiated, non-chilled: 88 uA at 8 V
+chip 120 # new adapter, irradiated, chilled
 
 id   200  mA # current limit
 vd   2800 mV # DTB
@@ -7,13 +7,12 @@ vdig 2400 mV # Reg
 
 ia   300  mA # current limit
 va   2800 mV # DTB
-vana 2450 mV # 125 mA for 133
-#vana 2450 mV # 170 mA for 133
+vana 2400 mV # 125 mA at -20 deg
 
 vref 250 mV
-rgpr 600 mV # PSI: 600  James: 900
-rgsh 700 mV # PSI: 600  James: 670
-vcal 400 mV
+rgpr 800 mV # PSI: 600  James: 900
+rgsh 600 mV # PSI: 600  James: 670
+vcal 200 mV
 
 vaux1 0 mV
 vaux2 0 mV
@@ -24,7 +23,7 @@ daqena 1 # 1 = 40 MHz
 
 cal 7 2
 
-hold 22
+hold 20
 
  d1 3 # RBI = SEQ_START
 #d1 4 # RBO = SEQ_END

@@ -252,8 +252,8 @@ void ReadImage( R4sImg &map, bool slow = 1 )
 
   // prepare ADC:
 
-  //tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
-  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_2 );
+  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
+  //tb.SignalProbeADC( PROBEA_SDATA1, GAIN_2 );
 
   tb.uDelay(500); // [us] Beat 23/11/2017: must be larger 400
 
@@ -367,7 +367,7 @@ CMD_PROC(td) // roi data
 
   int planeNr;    // colorize planes in different ways
   if( ! PAR_IS_INT( planeNr, 1, 3 ) )
-    planeNr = 3;
+    planeNr = 1;
 
   int col_to_print;
   if( ! PAR_IS_INT( col_to_print, 0, 156 ) )
@@ -407,6 +407,13 @@ CMD_PROC(td) // roi data
   int roiCol = 2;     // +-ROI in col
   int roiRow = 3;     // +-ROI in row
   bool fiftyfifty = 1;// 1 = 50x50 sensor, 0 = 100x25
+
+  //line_wise = 0; // force column-wise readout
+
+  if( line_wise == 0 )
+    IMG_HEIGHT = 162; // Ali FW 0.7
+
+  cout << "line_wise " << line_wise << endl;
 
   // write header for output file:
 
@@ -464,7 +471,7 @@ CMD_PROC(td) // roi data
   TH1D hsigni( "significance", name, 1000, -100, 100 );
 
   sprintf( name,"P%i - Pixel over Threshold; N Pixel; entries",planeNr);
-  TH1D pixelOverThr("pixelOverThr", name, 161, -0.5, 160.5);
+  TH1D pixelOverThr("pixelOverThr", name, 161, -0.5, 160.5 );
   
   sprintf( name,"P%i - RMS distribution of #DeltaPH; RMS [ADC]; entries",planeNr);
   TH1D hdphrms( "hdphrms", name, 200, 0, 50 );
@@ -484,7 +491,7 @@ CMD_PROC(td) // roi data
   TProfile2D hitAmplAvg( "hitAmplAvg",
                          name, 155, 0, 155, 160, 0, 160, -2222., 2222. );
 
-  // time development
+  // time development:
 
   TGraph* gPedAvg = new TGraph();
   gPedAvg->SetName( "gPedAvg" );
@@ -626,17 +633,14 @@ CMD_PROC(td) // roi data
     d1->SetFillColor( kGreen-10 );
   }
 
-  line_wise = 0;
-  IMG_HEIGHT = 162; // FW 0.7
-  cout << "line_wise " << line_wise << endl;
-
   tb.Daq_Open( 48*1024*1024 ); // [words] max 64*1024*1024
 
   const uint32_t Blocksize = 48 * 1024 * 1024;
 
   // prepare ADC:
 
-  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_2 );
+  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 ); // 2017 gain_1
+  //tb.SignalProbeADC( PROBEA_SDATA1, GAIN_2 ); // 2018 gain_2
 
   tb.uDelay(500); // [us] Beat 23/11/2017: must be larger 400
 
@@ -658,7 +662,8 @@ CMD_PROC(td) // roi data
   double notHitPHC[155][160] = {0};
   for( int col = 0; col < 155; ++col )
     for( unsigned row = 0; row < 160; ++row )
-      noise[col][row] = 14; // safety irrad gain_2
+      noise[col][row] = 6; // initial noise fresh gain_1
+  //noise[col][row] = 14; // safety irrad gain_2
 
   timespec ts;
   clock_gettime( CLOCK_REALTIME, &ts );
@@ -710,11 +715,13 @@ CMD_PROC(td) // roi data
     cout << endl;
 
     int timestampblocksize = 0;
-    
-    if( roc.ext && iFWVersion > 256 ) // 256 = 1.0
-      timestampblocksize = 4*ntrg;
 
-    int ktrg = ( vdata.size() - timestampblocksize ) / IMG_WIDTH / IMG_HEIGHT;
+    int ktrg = vdata.size() / IMG_WIDTH / IMG_HEIGHT; // coarse
+
+    if( roc.ext && iFWVersion > 256 ) // 256 = 1.0
+      timestampblocksize = 4*ktrg;
+
+    ktrg = ( vdata.size() - timestampblocksize ) / IMG_WIDTH / IMG_HEIGHT; // fine
 
     cout << "  unpack " << ktrg << " event blocks";
 
@@ -723,11 +730,6 @@ CMD_PROC(td) // roi data
       cout << "  missing " << ntrg-ktrg << endl;
       Log.printf( "  trigger %i data size %i incomplete \n", iev, vdata.size() );
     }
-
-    for( int itrg = ktrg; itrg < ntrg; ++itrg )
-      outfile << endl
-	      << ++wev << " A "
-	      << iev; // no endl here!
 
     //cout << endl << "  timestamps:";
     cout << endl << "  hits:";
@@ -772,7 +774,7 @@ CMD_PROC(td) // roi data
 
       for( int col = 0; col < IMG_WIDTH; ++col ) { // column-wise
 
-	for( unsigned row = 0; row < IMG_HEIGHT; ++row ) {
+	for( unsigned row = 0; row < IMG_HEIGHT; ++row ) { // row-wise
 
 	  int adc = vdata.at(pos);
 	  ++pos;
@@ -1007,6 +1009,13 @@ CMD_PROC(td) // roi data
 
     } // ktrg
 
+    // patch added event A if ktrig < ntrg
+
+    for( int itrg = ktrg; itrg < ntrg; ++itrg )
+      outfile << endl
+	      << ++wev << " A "
+	      << iev; // no endl here!
+
     cout << endl; // timestamps or hits
 
     clock_gettime( CLOCK_REALTIME, &ts );
@@ -1207,7 +1216,8 @@ CMD_PROC(takeraw)
 
   // prepare ADC:
 
-  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_2 );
+  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
+  //tb.SignalProbeADC( PROBEA_SDATA1, GAIN_2 );
 
   tb.uDelay(500); // [us] Beat 23/11/2017: must be larger 400
 
@@ -1475,7 +1485,7 @@ CMD_PROC(getcal) // ph-ped map
   tb.r4s_SetSeqCalScan(); // Cal
 
   line_wise = 1;
-  IMG_HEIGHT = 163; // FW 0.6
+  IMG_HEIGHT = 163; // Beat FW 0.6
 
   unsigned Np = 99;
 
@@ -2043,7 +2053,7 @@ CMD_PROC(scanhold2d) // scan hold for various VgPr and VgSh -- finn
 
       cout << "mean rms " << hrms.GetMean() << endl;
 
-      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       tb.r4s_SetVcal(400);
       tb.r4s_SetSeqCalScan(); // Cal

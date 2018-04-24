@@ -6,16 +6,21 @@ vd   2800 mV # DTB
 vdig 2400 mV # Reg
 
 ia   300  mA # current limit
-va   2600 mV # DTB
-vana 2120 mV # 125 mA for 146
+va   2500 mV # DTB
+vana 2100 mV # 125 mA
 
 vref 250 mV
+
 #rgpr 600 mV # peak 220 at 16
 #rgsh 600 mV # underswing
-rgsh 630 mV # small underswing
+#rgsh 630 mV # small underswing
 #rgpr 700 mV # peak 50+220 at 20
-rgpr 650 mV # peak 30+210 at 17
-vcal 200 mV
+#rgpr 650 mV # peak 30+210 at 17
+
+rgpr 900 mV # James
+rgsh 670 mV # James
+
+vcal 400 mV
 
 vaux1 0 mV
 vaux2 0 mV
@@ -25,7 +30,7 @@ daqena 1 # 1 = 40 MHz
 
 cal 7 2
 
-hold 20
+hold 24
 
  d1 3 # RBI = SEQ_START
 #d1 4 # RBO = SEQ_END

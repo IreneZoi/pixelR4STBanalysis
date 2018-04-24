@@ -1,18 +1,18 @@
 
-chip 119 # new adapter, irradiated
+chip 119 # new adapter, irradiated, chilled
 
 id   200  mA # current limit
-vd   3200 mV # DTB
-vdig 2800 mV # Reg
+vd   3200 mV # DTB, must be 350 mV above Vdig
+vdig 2800 mV # Regulated
 
 ia   300  mA # current limit
-va   2800 mV # DTB
-vana 2300 mV # 125 mA
+va   2900 mV # DTB, must be 350 mV above Vana
+vana 2440 mV # 125 mA at -22 deg
 
-vref 250 mV
-rgpr 900 mV # PSI: 600  James: 900
-rgsh 500 mV # PSI: 600  James: 670
-vcal 400 mV
+vref 400 mV # baseline at 500 ADC
+rgpr 800 mV # PSI: 600  James: 900
+rgsh 600 mV # PSI: 600  James: 670
+vcal 200 mV
 
 vaux1 0 mV
 vaux2 0 mV

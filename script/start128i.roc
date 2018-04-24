@@ -7,12 +7,12 @@ vdig 2400 mV # Reg
 
 ia   300  mA # current limit
 va   2800 mV # DTB
-vana 2320 mV # 125 mA
+vana 2380 mV # 125 mA at -20 deg
 
 vref 250 mV
-rgpr 700 mV # PSI: 600  James: 900
+rgpr 800 mV # PSI: 600  James: 900
 rgsh 600 mV # PSI: 600  James: 670
-vcal 400 mV
+vcal 200 mV
 
 vaux1 0 mV
 vaux2 0 mV

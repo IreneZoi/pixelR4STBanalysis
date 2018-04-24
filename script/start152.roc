@@ -10,9 +10,9 @@ va   2600 mV # DTB
 vana 2120 mV # 125 mA
 
 vref 250 mV
-rgpr 650 mV # PSI: 600
-rgsh 630 mV # PSI: 600
-vcal 200 mV
+rgpr 900 mV # PSI: 600
+rgsh 670 mV # PSI: 600
+vcal 400 mV
 
 vaux1 0 mV
 vaux2 0 mV
@@ -22,7 +22,7 @@ daqena 1 # 1 = 40 MHz
 
 cal 7 2
 
-hold 17
+hold 24
 
  d1 3 # RBI = SEQ_START
 #d1 4 # RBO = SEQ_END

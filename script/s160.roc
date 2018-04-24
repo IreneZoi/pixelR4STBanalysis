@@ -10,9 +10,9 @@ va   2600 mV # DTB
 vana 2120 mV # 125 mA
 
 vref 250 mV
-rgpr 700 mV # PSI: 600
-rgsh 630 mV # PSI: 600
-vcal 200 mV
+rgpr 900 mV # PSI: 600
+rgsh 670 mV # PSI: 600
+vcal 400 mV
 
 vaux1 0 mV
 vaux2 0 mV

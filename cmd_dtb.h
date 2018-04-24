@@ -101,7 +101,7 @@ CMD_REG(cal2, "<x> <y>", "Set calibrate to pixel (x.y, x+1.y)")
 CMD_REG(cal4, "<x> <y>", "Set calibrate to pixel (x.y, x+3.y)")
 CMD_REG(hold, "<t>", "Set hold position in 6.25 ns steps")
 CMD_REG(adcdel, "<t>", "Set ADC sampling point in 5ns steps")
-CMD_REG(daqena, "<slow, enable>", "Enable DAQ")
+CMD_REG(daqena, "<ext, slow, enable>", "Enable DAQ")
 
 CMD_REG(go, "", "Start ROC4sens measurement sequence")
 CMD_REG(goloop, "", "Start readout loop. Stop by pressing any key")

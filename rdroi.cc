@@ -198,7 +198,8 @@ int main( int argc, char* argv[] )
   //string gain{ "B/c108-scancal2-tb21-2018-02-24-ia125-hold24.dat" };
   //string gain{ "B/c128i-scancal2-tb21-icy-2018-02-23-ia115-hold20.dat"};
   //string gain{ "B/c109-scancal2-pr900-sh670-2018-02-25-hold20b.dat" };
-  string gain{ "B/scm133i-scancal2-tb21-icy-pr800-sh600-ia115-2018-03-07-hold20.dat" };
+  //string gain{ "B/scm133i-scancal2-tb21-icy-pr800-sh600-ia115-2018-03-07-hold20.dat" };
+  string gain{ "B/scm165-scancal1-tb21-pr900-sh670-ia127-vb120-hold24.dat" };
 
   double ke = 0.036;
 
