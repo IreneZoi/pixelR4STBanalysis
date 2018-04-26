@@ -373,7 +373,7 @@ void CTestboard::r4s_SetSeqCalScan( int ext )
 void CTestboard::r4s_SetSeqCalScanCol( int ext )
 {
   vector<uint32_t> prog(99);
-  prog[ 0] = 0xAB254921; // 1=resetx 2=resety 9=first col y=loady 5=meas B=read col A=next col
+  prog[ 0] = 0xAB254921; // 1=resetx 2=resety 9=first col 4=loady 5=meas B=read col A=next col
   prog[ 1] = 0x254AB254; prog[ 2] = 0x4AB254AB; prog[ 3] = 0xB254AB25; prog[ 4] = 0x54AB254A;	prog[ 5] = 0xAB254AB2;
   prog[ 6] = 0x254AB254; prog[ 7] = 0x4AB254AB; prog[ 8] = 0xB254AB25; prog[ 9] = 0x54AB254A;	prog[10] = 0xAB254AB2;
   prog[11] = 0x254AB254; prog[12] = 0x4AB254AB; prog[13] = 0xB254AB25; prog[14] = 0x54AB254A;	prog[15] = 0xAB254AB2;

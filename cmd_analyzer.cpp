@@ -1612,6 +1612,163 @@ CMD_PROC(getcal) // ph-ped map
 }
 
 //------------------------------------------------------------------------------
+CMD_PROC(getcalcol) // ph-ped map column-wise
+{
+  int dummy; if( !PAR_IS_INT( dummy, 0, 1 ) ) dummy = 80;
+
+  TFile * histoFile = new TFile( "cal.root", "RECREATE" );
+
+  TProfile2D pedxy( "pedxy",
+		    "pedestal map;col;row;<ADC>",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+
+  TH2I hsuma( "suma",
+	      "suma map;col;row;sum ADC",
+	      IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
+
+  TH2I hsumaa( "sumaa",
+	       "sumaa map;col;row;sum ADC^2",
+	       IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
+
+  R4sImg map;
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // take pedestal map:
+
+  //tb.r4s_SetPixCal( 159, 159 );
+  //tb.r4s_SetSeqReadout(roc.ext); // pedestal
+
+  tb.r4s_SetVcal(0); // baseline?
+  tb.r4s_SetSeqCalScanCol(); // column-wise cal sequence
+
+  line_wise = 0;
+  IMG_HEIGHT = 162; // FW >= 0.7
+
+  unsigned Np = 99;
+
+  for( unsigned i = 0; i < Np; ++i ) { // events
+
+    cout << "event " << i;
+
+    ReadImage( map );
+
+    for( int x = IMG_WIDTH-1; x >= 0; --x ) // start last col
+
+      for( unsigned y = 0; y < IMG_HEIGHT; ++y ) {
+
+	int a = map.Get( x, y );
+	pedxy.Fill( x+0.5, y+0.5, a );
+	hsuma.Fill( x+0.5, y+0.5, a );
+	hsumaa.Fill( x+0.5, y+0.5, a*a );
+
+      }
+
+  } // events
+
+  TProfile2D rmsxy( "rmsxy",
+		    "rms map;col;row;RMS [ADC]",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, 0, 2222 );
+
+  TH1I hrms( "rms",
+	     "rms;rms [ADC];pixels",
+	     100, 0, 100 );
+
+  for( int x = IMG_WIDTH-1; x >= 0; --x ) // start top row
+
+    for( unsigned y = 0; y < IMG_HEIGHT; ++y ) {
+
+      double suma = hsuma.GetBinContent( x+1, y+1 ); // bins start at 1
+      double sumaa = hsumaa.GetBinContent( x+1, y+1 ); // bins start at 1
+      double rms = sqrt( sumaa/Np - suma/Np*suma/Np );
+      rmsxy.Fill( x+0.5, y+0.5, rms );
+      if( y < 160 && x < 155 )
+	hrms.Fill( rms );
+    }
+
+  cout << "mean rms " << hrms.GetMean() << endl;
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  tb.r4s_SetVcal(roc.Vcal);
+  tb.r4s_SetSeqCalScanCol(); // Cal
+
+  TProfile2D adcxy( "adcxy",
+		    "pulse height;col;row;<ADC>",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+
+  // taka data:
+
+  unsigned Nc = 16;
+
+  for( unsigned i = 0; i < Nc; ++i ) { // events
+
+    cout << "event " << i;
+
+    ReadImage( map );
+
+    for( int x = IMG_WIDTH-1; x >= 0; --x ) // start top row
+
+      for( unsigned y = 0; y < IMG_HEIGHT; ++y )
+
+	adcxy.Fill( x+0.5, y+0.5, map.Get( x, y ) );
+
+  } // events
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // subtract pedestal:
+
+  TProfile2D phxy( "phxy",
+		   "ph;col;row;<ADC> - ped",
+		   IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+
+  TH1I hph( "ph",
+	     "ph;ph [ADC-ped];pixels",
+	     100, -100, 900 );
+
+  TH1I hcal( "cal",
+	     "Vcal;Vcal [mV];pixels",
+	     200, -100, 1900 );
+
+  TProfile2D s2nxy( "s2nxy",
+		    "pulse height / RMS;col;row;<PH>/RMS",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, 0, 2222 );
+  TH1I hs2n( "s2n",
+	     "signal.noise;PH/RMS;pixels",
+	     100, 0, 200 );
+
+  for( int x = IMG_WIDTH-1; x >= 0; --x ) // start top row
+
+    for( unsigned y = 0; y < IMG_HEIGHT; ++y ) {
+
+      double a = adcxy.GetBinContent( x+1, y+1 ); // bins start at 1
+      double p = pedxy.GetBinContent( x+1, y+1 ); // bins start at 1
+      double s = rmsxy.GetBinContent( x+1, y+1 ); // bins start at 1
+      phxy.Fill( x+0.5, y+0.5, p-a );
+      s2nxy.Fill( x+0.5, y+0.5, (p-a)/s );
+      if( y < 160 && x < 155 ) {
+	hph.Fill( p-a ); // positive
+	hs2n.Fill( (p-a)/s ); // positive
+	hcal.Fill( PHtoVcal( p-a, x, y ) );
+      }
+    }
+
+  cout << hph.GetName() << " mean " << hph.GetMean() << endl;
+  cout << hcal.GetName() << " mean " << hcal.GetMean() << endl;
+
+  histoFile->Write();
+  histoFile->Close();
+  cout << histoFile->GetName() << endl;
+
+  // restore:
+
+  if( line_wise )
+    tb.r4s_SetSeqReadout( roc.ext ); // pedestal
+  else
+    tb.r4s_SetSeqReadCol( roc.ext );
+
+}
+
+//------------------------------------------------------------------------------
 CMD_PROC(scancal) // scan Vcal
 {
   int dummy; if( !PAR_IS_INT( dummy, 0, 1 ) ) dummy = 80;
