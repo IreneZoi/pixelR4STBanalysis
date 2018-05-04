@@ -403,3 +403,14 @@ void CTestboard::r4s_SetSeqCalScanCol( int ext )
   r4s_SetRegY(caly);
 
 }
+
+//------------------------------------------------------------------------------
+// A sequence to read one single column. Column should be selected by r4s_SetPixCal(x, y)
+void CTestboard::r4s_SetSeqSingleCol( int ext )
+{
+  vector<uint32_t> prog(1);
+  prog[ 0] = 0x0b254321; // 1=resetx 2=resety 3=loadx 4=loady 5=meas b=read col
+
+  r4s_SetSequence(prog);
+
+}

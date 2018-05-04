@@ -2451,3 +2451,155 @@ link.Run();
 printf("Connection to GUI closed.\n");
 }
 */
+
+//------------------------------------------------------------------------------
+// pixel-wise getcal
+CMD_PROC(getcalpix)
+{
+  
+  IMG_HEIGHT = 162;
+
+  // prepare ADC:
+  tb.Daq_Open(50000);
+  tb.SignalProbeADC( PROBEA_SDATA1, GAIN_1 );
+  tb.uDelay(500); // [us] Beat 23/11/2017: must be larger 400
+
+  // create ROOT file and histograms
+  TFile * histoFile = new TFile( "calpix.root", "RECREATE" );
+
+  TProfile2D adchxy( "adchxy", "ADC of hit pixel;col;row;<ADC>",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -4096, 4096 );
+  TH1I hadch( "adch",
+	     "ADC of the hit pixel;adc [ADC];pixels", 100, -500, 900 );
+  TProfile2D adcbxy( "adcbxy", "ADC of the pixel before;col;row;<ADC>",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -4096, 4096 );
+  TH1I hadcb( "adcb",
+	     "ADC of the pixel before;adc [ADC];pixels", 100, -500, 900 );
+  TProfile2D adcaxy( "adcaxy", "ADC of the pixel after;col;row;<ADC>",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -4096, 4096 );
+  TH1I hadca( "adca",
+	     "ADC of the pixel after;adc [ADC];pixels", 100, -500, 900 );
+  TProfile2D adcpxy( "adcpxy", "pedestal map;col;row;<ADC>",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+  TH1I hadcp( "adcp",
+	     "ADC of the pedestal pixels;adc [ADC];pixels", 100, -500, 900 );
+  TH2I hsuma( "suma", "suma map;col;row;sum ADC",
+	      IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
+  TH2I hsumaa( "sumaa", "sumaa map;col;row;sum ADC^2",
+	       IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT );
+  TProfile2D rmsxy( "rmsxy", "rms map;col;row;RMS [ADC]",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, 0, 2222 );
+  TH1I hrms( "rms", "rms;rms [ADC];pixels",
+	     100, 0, 100 );
+  TProfile2D phxy( "phxy", "ph;col;row;<ADC> - ped",
+		   IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, -2222, 2222 );
+  TH1I hph( "ph", "ph;ph [ADC-ped];pixels",
+	     100, -100, 900 );
+  TH1I hcal( "cal", "Vcal;Vcal [mV];pixels",
+	     200, -100, 1900 );
+  TProfile2D s2nxy( "s2nxy", "pulse height / RMS;col;row;<PH>/RMS",
+		    IMG_WIDTH, 0, IMG_WIDTH, IMG_HEIGHT, 0, IMG_HEIGHT, 0, 2222 );
+  TH1I hs2n( "s2n", "signal.noise;PH/RMS;pixels",
+	     100, 0, 200 );
+
+  // prapare roc4sens
+  tb.r4s_SetSeqSingleCol( roc.ext );
+
+  //vector<uint16_t> vdata; // data buffer
+
+  size_t nEvt = 16; // number of events
+  for (size_t iEvt = 0; iEvt < nEvt; ++iEvt) {
+    std::cout << "Event " << iEvt+1 << ", column:";
+    for (size_t iCol = 0; iCol < IMG_WIDTH; ++iCol) {
+      std::cout << " " << iCol << std::flush;
+      for (size_t iRow = 0; iRow < IMG_HEIGHT; ++iRow) {
+        tb.r4s_SetPixCal(iCol, iRow);
+
+        // take data:
+        tb.Daq_Start();
+
+        tb.r4s_Start(); // start sequence
+
+        tb.uDelay(50); // only one column is read, 162*25 ~ 4us
+
+        tb.Daq_Stop();
+
+        // read buffer:
+        vector<uint16_t> cdata; // data buffer for one column
+        unsigned int ret = tb.Daq_Read( cdata );
+        //vdata.insert(vdata.end(), cdata.begin(), cdata.end());
+
+        for(size_t iPix = 0; iPix < IMG_HEIGHT-2; ++iPix) {
+          // get correct ADC
+          int adc = cdata[iPix];
+          if( adc & 0x1000 ) // ADC overrange
+            adc = R4S_VALUE_OR;
+          else if( adc & 0x0800 ) // negative
+            adc -= 0x1000;
+
+          // fill the primary histograms
+          if( 160 > iRow && 155 > iCol ) {
+            if(iPix == iRow) {
+              hadch.Fill( adc );
+              adchxy.Fill(iCol+0.5, iRow+0.5, adc );
+            } else if(iPix == iRow - 1) {
+              hadcb.Fill( adc );
+              adcbxy.Fill(iCol+0.5, iRow+0.5, adc );
+            } else if(iPix == iRow + 1) {
+              hadca.Fill( adc );
+              adcaxy.Fill(iCol+0.5, iRow+0.5, adc );
+            } else {
+              hadcp.Fill( adc );
+              adcpxy.Fill(iCol+0.5, iRow+0.5, adc );
+              hsuma.Fill(iCol+0.5, iRow+0.5, adc );
+              hsumaa.Fill(iCol+0.5, iRow+0.5, adc*adc );
+            } // end if
+          } // enf if
+        } // end for loop over pixels of one column
+      } // end for loop over rows
+    } // end for loop over columns
+    std::cout << std::endl;
+  } // end for loop over events
+
+  // compute and fill RMS
+  for (size_t iCol = 0; iCol < IMG_WIDTH; ++iCol) {
+    for (size_t iRow = 0; iRow < IMG_HEIGHT; ++iRow) {
+      double suma = hsuma.GetBinContent( iCol+1, iRow+1 ); // bins start at 1
+      double sumaa = hsumaa.GetBinContent( iCol+1, iRow+1 ); // bins start at 1
+      double rms = 0.0;
+      if( 0 == iRow || 159 == iRow) {
+        rms = sqrt( sumaa/(158.0*nEvt) - suma/(158.0*nEvt)*suma/(158.0*nEvt) );
+      } else {
+        rms = sqrt( sumaa/(157.0*nEvt) - suma/(157.0*nEvt)*suma/(157.0*nEvt) );
+      } // end if
+      if( 160 > iRow && 155 > iCol ) {
+        rmsxy.Fill( iCol+0.5, iRow+0.5, rms );
+	hrms.Fill( rms );
+      } // end if
+    } // end for loop over rows
+  } // end for loop over columns
+
+  // compute and fill pedestal subtracted pulse-height
+  for (size_t iCol = 0; iCol < IMG_WIDTH; ++iCol) {
+    for (size_t iRow = 0; iRow < IMG_HEIGHT; ++iRow) {
+      double a = adchxy.GetBinContent( iCol+1, iRow+1 ); // bins start at 1
+      double p = adcpxy.GetBinContent( iCol+1, iRow+1 ); // bins start at 1
+      double s = rmsxy.GetBinContent( iCol+1, iRow+1 ); // bins start at 1
+      if( 160 > iRow && 155 > iCol ) {
+        phxy.Fill( iCol+0.5, iRow+0.5, p-a );
+        s2nxy.Fill( iCol+0.5, iRow+0.5, (p-a)/s );
+	hph.Fill( p-a ); // positive
+	hs2n.Fill( (p-a)/s ); // positive
+	hcal.Fill( PHtoVcal( p-a, iCol, iRow ) );
+      } // end if
+    } // end for loop over rows
+  } // end for loop over columns
+  //printf( "read vector size = %u\n", (unsigned int) vdata.size() );
+
+  tb.Daq_Close();
+
+  // write and close the ROOT file
+  histoFile->Write();
+  histoFile->Close();
+
+} // end CMD_PROC

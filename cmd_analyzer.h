@@ -14,6 +14,7 @@ CMD_REG( tdp, "<prnt>", "tryout for parallelisation")
 CMD_REG( getped, "", "pedestal image")
 CMD_REG( getcal, "", "pulse height image")
 CMD_REG( getcalcol, "", "pulse height image - column-wise")
+CMD_REG( getcalpix, "", "pulse height image - pixel-wise")
 CMD_REG( scancal, "", "scan Vcal")
 CMD_REG( scanhold, "", "scan hold delay")
 CMD_REG( scanhold2d, "", "scan hold delay for various rgpr and rgsh settings")
@@ -22,5 +23,6 @@ CMD_REG( seqreadcol, "", "Load measure -> readout columns") // FW 0.7
 CMD_REG( seqcalscan, "", "Load calibrate scan sequence")
 CMD_REG( scanva, "", "scan VA from r4s")
 CMD_REG( asetvana, "<target Iana>", "Scan Vana to reach target Iana ")
+
 
 //CMD_REG( gui, "", "Start graphical user interface");

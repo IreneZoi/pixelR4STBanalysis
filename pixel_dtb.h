@@ -243,6 +243,7 @@ class CTestboard
   void r4s_SetSeqReadCol(int ext = 0); // FW 0.7, 0.8
   void r4s_SetSeqCalScan(int ext = 0); // row-wise
   void r4s_SetSeqCalScanCol(int ext = 0); // Column-wise
+  void r4s_SetSeqSingleCol(int ext = 0); // read a single column
 
   void r4s_SetPixCal(uint8_t x, uint8_t y);
   void r4s_Set2PixCal(uint8_t x, uint8_t y);
