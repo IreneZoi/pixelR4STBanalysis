@@ -1,0 +1,8 @@
+iteration 3
+    alignxA  -0.458 // [mm] same sign as dx
+    alignyA   0.00  // [mm] same sign as dy
+    alignfA  -0.008 // [rad] same sign dxvsy
+
+    alignxC   0.112 // [mm] same sign as dx
+    alignyC  -0.20  // [mm] same sign as dy
+    alignfC  -0.007 // [rad] same sign dxvsy
