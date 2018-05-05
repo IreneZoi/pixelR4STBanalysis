@@ -14,6 +14,8 @@
 // drei -p 5.6 -f 1024  (50x50)
 
 // drei 1757
+// drei -f 1842
+// drei -f 1894
 
 #include <cstdlib> // atoi
 #include <iostream> // cout
@@ -70,6 +72,8 @@ double p2[3][155][160];
 double p3[3][155][160];
 double ke[3];
 
+TProfile phvsprev[3];
+TProfile dphvsprev[3];
 TH1I hph[3];
 TH1I hdph[3];
 TH1I hnpx[3];
@@ -360,6 +364,9 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 
       // column-wise common mode correction:
 
+      double phprev = 0;
+      double dphprev = 0;
+
       for( unsigned ipx = 0; ipx < vpx.size(); ++ipx ) {
 
 	int col4 = vpx[ipx].col;
@@ -390,16 +397,35 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 
 	} // jpx
 
-	if( row4 == row1 ) continue; // Randpixel
+	if( row4 == row1 ) {
+	  phprev = ph1;
+	  continue; // Randpixel
+	}
 	if( row4 == row7 ) continue;
+
+	phvsprev[plane].Fill( phprev, ph4 );
+
+	if( run >= 1873 && run <= 1905 ) { // fresh
+	  if( plane == A )
+	    ph4 -= 0.17*phprev; // Tsunami
+	  if( plane == B )
+	    ph4 -= 0.14*phprev; // Tsunami
+	  if( plane == C )
+	    ph4 -= 0.15*phprev; // Tsunami
+	}
+
+	phprev = vpx[ipx].ph; // original ph4
 
 	double dph;
 	if( row4 - row1 < row7 - row4 )
 	  dph = ph4 - ph1;
 	else
 	  dph = ph4 - ph7;
-
+ 
 	hdph[plane].Fill( dph ); // sig 2.7
+
+	dphvsprev[plane].Fill( dphprev, dph );
+	dphprev = dph;
 
 	double dphcut = 12; // sig 4.5
 
@@ -413,26 +439,63 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 
 	}
 
-	if( run >= 1757 ) {
+	if( run >= 1757 ) { // fresh
 
-	  //dphcut = 30; // gain_2 1767 dx3cq3 3.73
-	  dphcut = 40; // gain_2 1767 dx3cq3 3.41
-	  //dphcut = 50; // gain_2 1767 dx3cq3 3.47
-	  //dphcut = 60; // gain_2 1767 dx3cq3 3.63
+	  //dphcut = 30; // gain_2 1767 dx3cq3 3.39
+	  dphcut = 40; // gain_2 1767 dx3cq3 3.18
+	  //dphcut = 50; // gain_2 1767 dx3cq3 3.31
+	  //dphcut = 60; // gain_2 1767 dx3cq3 
 
 	  if( plane == B )
-	    //dphcut = 30; // 1782 dx3cq3 3.52
-	    dphcut = 40; // 1782 dx3cq3 3.33
-	  //dphcut = 50; // 1782 dx3cq3 3.41
+	    //dphcut = 30; // 1783 dx3cq3 3.10
+	    dphcut = 40; // 1783 dx3cq3 3.03
+	  //dphcut = 50; // 1767 dx3cq3 3.31
 
 	}
 
 	if( run >= 1789 ) {
 
-	  dphcut = 40; // gain_2
+	  dphcut = 30; // gain_2, 1820: dx3cq3 5.07
 
 	  if( plane == B )
-	    dphcut = 30; // 130i
+	    //dphcut = 20; // 130i, 1820: dx3cq3 5.41
+	    dphcut = 30; // 130i, 1820: dx3cq3 5.07
+	  //dphcut = 40; // 130i, 1820: dx3cq3 5.2307
+
+	}
+
+	if( run >= 1823 ) { // fresh
+
+	  //dphcut = 20; // gain_2 1840: dx3cq3 4.6
+	  //dphcut = 30; // gain_2 1840: dx3cq3 4.04
+	  //dphcut = 40; // gain_2 1840: dx3cq3 3.91
+	  //dphcut = 50; // gain_2 1840: dx3cq3 3.99
+
+	  //dphcut = 20; // gain_2 1840: dx3cq3 3.92
+	  dphcut = 30; // gain_2 1840: dx3cq3 3.88
+	  if( plane == B )
+	    dphcut = 40; // gain_2 1840: dx3cq3 3.88
+	}
+
+	if( run >= 1842 ) {
+
+	  dphcut = 20; // gain_2 7.5
+	  //dphcut = 30; // gain_2 7.5
+	  //dphcut = 40; // gain_2 7.6
+
+	  if( plane == B )
+	    //dphcut = 15; // 133i 8.8
+	    //dphcut = 20; // 133i 7.7
+	    dphcut = 25; // 133i 7.5
+	  //dphcut = 30; // 133i 7.6
+	}
+
+	if( run >= 1865 ) { // fresh
+
+	  //dphcut = 15; // gain_2, 1894 dx3cq3 4.85 Tsunami corrected
+	  dphcut = 20; // gain_2, 1894 dx3cq3 4.65 Tsunami corrected
+	  //dphcut = 25; // gain_2, 1894 dx3cq3 4.74 Tsunami
+	  //dphcut = 30; // gain_2, 
 
 	}
 
@@ -513,8 +576,10 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 
 	    if( fabs( vcl[icl].vpix[ipx].col - vcl[jcl].vpix[jpx].col ) < 3 &&
 		fabs( vcl[icl].vpix[ipx].row - vcl[jcl].vpix[jpx].row ) < 3 ) {
-	      vcl[icl].iso = 0;
-	      vcl[jcl].iso = 0;
+	      if( vcl[icl].q < vcl[jcl].q ) // Thu 22.3.2018
+		vcl[icl].iso = 0; // flag smaller cluster
+	      else
+		vcl[jcl].iso = 0;
 	      done = 1;
 	      break; // jpx
 	    }
@@ -598,6 +663,10 @@ int main( int argc, char* argv[] )
   if( run >= 1757 ) gainA = "A/scm146-scancal2-2018-03-12-hold20.dat";
   if( run >= 1784 ) gainA = "A/scm146-scancal2-drei-pr650-sh630-hold17.dat";
   if( run >= 1787 ) gainA = "B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
+  if( run >= 1823 ) gainA = "B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
+  if( run >= 1842 ) gainA = "A/scm152-scancal2-drei-2018-03-16-hold20.dat";
+  if( run >= 1865 ) gainA = "A/scm152-scancal2-drei-warm-2018-03-16-hold20.dat";
+  if( run >= 1872 ) gainA = "A/scm160-scancal2-drei-warm-2018-03-17-hold20.dat";
 
   ke[A] = 0.039; // Landau peak at 11 ke
   if( run >= 423 ) ke[A] = 0.0396; // Landau peak at 11 ke
@@ -608,9 +677,35 @@ int main( int argc, char* argv[] )
   if( run >= 1024 ) ke[A] = 0.0285; // r158 thicker deep diff at 11 ke
   if( run >= 1037 ) ke[A] = 0.0283; // r152 thicker deep diff at 11 ke
   if( run >= 1747 ) ke[A] = 0.035;
-  if( run >= 1757 ) ke[A] = 0.039; // 11 ke
-  if( run >= 1784 ) ke[A] = 0.040; // 11 ke 146
-  if( run >= 1787 ) ke[A] = 0.0505; // 11 ke 148
+  //if( run >= 1757 ) ke[A] = 0.0374; // 11 ke dphcut 30
+  if( run >= 1757 ) ke[A] = 0.0390; // 11 ke dphcut 40
+  if( run >= 1764 ) ke[A] = 0.0386; // 11 ke turn  7
+  if( run >= 1765 ) ke[A] = 0.0384; // 11 ke turn  8
+  if( run >= 1766 ) ke[A] = 0.0382; // 11 ke turn  9
+  if( run >= 1767 ) ke[A] = 0.0379; // 11 ke turn 10
+  if( run >= 1768 ) ke[A] = 0.0375; // 11 ke turn 11
+  if( run >= 1769 ) ke[A] = 0.0371; // 11 ke turn 12
+  if( run >= 1770 ) ke[A] = 0.0369; // 11 ke turn 13
+  if( run >= 1771 ) ke[A] = 0.0365; // 11 ke turn 14
+  if( run >= 1772 ) ke[A] = 0.0361; // 11 ke turn 15
+  if( run >= 1773 ) ke[A] = 0.0355; // 11 ke turn 16
+  if( run >= 1774 ) ke[A] = 0.0350; // 11 ke turn 17
+  if( run >= 1775 ) ke[A] = 0.0344; // 11 ke turn 18
+  if( run >= 1776 ) ke[A] = 0.0337; // 11 ke turn 19
+  if( run >= 1777 ) ke[A] = 0.0331; // 11 ke turn 20
+  if( run >= 1778 ) ke[A] = 0.0345; // 11 ke turn
+  if( run >= 1779 ) ke[A] = 0.0379; // 11 ke turn
+  if( run >= 1780 ) ke[A] = 0.0375; // 11 ke turn
+  if( run >= 1781 ) ke[A] = 0.0381; // 11 ke turn
+  if( run >= 1782 ) ke[A] = 0.0381; // 11 ke turn
+  if( run >= 1784 ) ke[A] = 0.0400; // 11 ke 146
+  if( run >= 1787 ) ke[A] = 0.0513; // 11 ke 148
+  if( run >= 1789 ) ke[A] = 0.0505; // 11 ke 148 with cold 130i
+  if( run >= 1823 ) ke[A] = 0.0511; // 11 ke 148 with warm 108
+  if( run >= 1842 ) ke[A] = 0.0353; // 11 ke 152
+  if( run >= 1865 ) ke[A] = 0.0380; // 11 ke 152
+  if( run >= 1872 ) ke[A] = 0.0605; // 11 ke 160 dph>25
+  if( run >= 1872 ) ke[A] = 0.0624; // 11 ke 160 Tsunami
 
   ifstream gainFileA( gainA );
 
@@ -653,6 +748,10 @@ int main( int argc, char* argv[] )
   if( run >= 1787 ) gainB = "A/scm146-scancal2-drei-pr650-sh630-hold17.dat";
   if( run >= 1789 ) gainB = "B/scm130i-scancal2-drei-icy-pr800-sh600-ia119-2018-03-13-hold20.dat";
   if( run >= 1798 ) gainB = "B/scm130i-scancal2-drei-icy-pr800-sh600-ia125-2018-03-13-hold16.dat";
+  if( run >= 1823 ) gainB = "B/c108-scancal2-tb21-2018-02-24-ia125-hold24.dat";
+  if( run >= 1842 ) gainB = "B/scm133-scancal2-drei-icy-2018-3-16-hold20.dat";
+  if( run >= 1865 ) gainB = "B/scm102-scancal2-drei-warm-2018-03-16-hold20.dat";
+  if( run >= 1872 ) gainB = "B/scm159-scancal2-drei-warm-2018-03-17-pr650-sh700-hold20.dat";
 
   ke[B] = 0.0276; // Landau peak at 11 ke
   if( run >= 423 ) ke[B] = 0.026;
@@ -664,12 +763,37 @@ int main( int argc, char* argv[] )
   if( run >= 1024 ) ke[B] = 0.0228; // r152 thicker deep diff at 11 ke
   if( run >= 1037 ) ke[B] = 0.029; // r160
   if( run >= 1747 ) ke[B] = 0.035; // default
-  if( run >= 1757 ) ke[B] = 0.032; // 11 ke
-  if( run >= 1766 ) ke[B] = 0.0286; // 11 ke
+  //if( run >= 1757 ) ke[B] = 0.0289; // 11 ke 148 dphcut 30
+  if( run >= 1757 ) ke[B] = 0.0307; // 11 ke 148 dphcut 40
+  if( run >= 1763 ) ke[B] = 0.0300; // 11 ke turn
+  if( run >= 1764 ) ke[B] = 0.0293; // 11 ke turn
+  if( run >= 1765 ) ke[B] = 0.0288; // 11 ke turn
+  if( run >= 1766 ) ke[B] = 0.0281; // 11 ke turn
+  if( run >= 1767 ) ke[B] = 0.0274; // 11 ke turn
+  if( run >= 1768 ) ke[B] = 0.0267; // 11 ke turn
+  if( run >= 1769 ) ke[B] = 0.0263; // 11 ke turn
+  if( run >= 1770 ) ke[B] = 0.0260; // 11 ke turn
+  if( run >= 1771 ) ke[B] = 0.0255; // 11 ke turn
+  if( run >= 1772 ) ke[B] = 0.0251; // 11 ke turn
+  if( run >= 1773 ) ke[B] = 0.0245; // 11 ke turn
+  if( run >= 1774 ) ke[B] = 0.0240; // 11 ke turn
+  if( run >= 1775 ) ke[B] = 0.0234; // 11 ke turn
+  if( run >= 1776 ) ke[B] = 0.0227; // 11 ke turn
+  if( run >= 1777 ) ke[B] = 0.0223; // 11 ke turn
+  if( run >= 1778 ) ke[B] = 0.0235; // 11 ke turn
+  if( run >= 1779 ) ke[B] = 0.0269; // 11 ke turn
+  if( run >= 1780 ) ke[B] = 0.0266; // 11 ke turn
+  if( run >= 1781 ) ke[B] = 0.0276; // 11 ke turn
   if( run >= 1782 ) ke[B] = 0.0307; // 11 ke
+  if( run >= 1783 ) ke[B] = 0.0307; // 11 ke
   if( run >= 1784 ) ke[B] = 0.0505; // 11 ke 148
-  if( run >= 1787 ) ke[B] = 0.040; // 11 ke 146
+  if( run >= 1787 ) ke[B] = 0.0402; // 11 ke 146
   if( run >= 1789 ) ke[B] = 0.035; // default
+  if( run >= 1823 ) ke[B] = 0.0385; // 11 ke 108
+  if( run >= 1842 ) ke[B] = 0.035; // default
+  if( run >= 1865 ) ke[B] = 0.038; // 11 ke 102
+  if( run >= 1872 ) ke[B] = 0.0377; // 11 ke 159 dph>25
+  if( run >= 1872 ) ke[B] = 0.0401; // 11 ke 159 Tsunami
 
   ifstream gainFileB( gainB );
 
@@ -704,6 +828,10 @@ int main( int argc, char* argv[] )
   if( run >= 1747 ) gainC = "C/scm109-scancal2-tb21-drei-2018-03-11-hold20.dat";
   if( run >= 1757 ) gainC = "C/scm109-scancal2-tb21-drei-2018-03-12-hold20.dat";
   if( run >= 1784 ) gainC = "C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat";
+  if( run >= 1823 ) gainC = "C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat";
+  if( run >= 1842 ) gainC = "C/scm159-scancal2-drei-2018-3-16-hold20.dat";
+  if( run >= 1865 ) gainC = "C/scm159-scancal2-drei-warm-2018-03-16-hold20.dat";
+  if( run >= 1872 ) gainC = "C/scm102-scanhold-drei-warm-2018-03-17-hold20.dat";
 
   ke[C] = 0.0366; // Landau peak at 11 ke
   if( run >=  432 ) ke[C] = 0.028; // Landau peak at 11 ke
@@ -711,7 +839,29 @@ int main( int argc, char* argv[] )
   if( run >=  998 ) ke[C] = 0.041; // c148
   if( run >= 1024 ) ke[C] = 0.039; // c159
   if( run >= 1747 ) ke[C] = 0.040; // c109
-  if( run >= 1784 ) ke[C] = 0.0425; // c109
+  if( run >= 1757 ) ke[C] = 0.0393; // c109
+  if( run >= 1758 ) ke[C] = 0.0398; // c109
+  if( run >= 1768 ) ke[C] = 0.0393; // c109 turn
+  if( run >= 1769 ) ke[C] = 0.0391; // c109 turn
+  if( run >= 1770 ) ke[C] = 0.0388; // c109 turn
+  if( run >= 1771 ) ke[C] = 0.0386; // c109 turn
+  if( run >= 1772 ) ke[C] = 0.0383; // c109 turn
+  if( run >= 1773 ) ke[C] = 0.0379; // c109 turn
+  if( run >= 1774 ) ke[C] = 0.0374; // c109 turn
+  if( run >= 1775 ) ke[C] = 0.0370; // c109 turn
+  if( run >= 1776 ) ke[C] = 0.0364; // c109 turn
+  if( run >= 1777 ) ke[C] = 0.0359; // c109 turn
+  if( run >= 1778 ) ke[C] = 0.0367; // c109 turn
+  if( run >= 1779 ) ke[C] = 0.0392; // c109 turn
+  if( run >= 1780 ) ke[C] = 0.0392; // c109 turn
+  if( run >= 1781 ) ke[C] = 0.0395; // c109 turn
+  if( run >= 1782 ) ke[C] = 0.0395; // c109 turn
+  if( run >= 1784 ) ke[C] = 0.0422; // c109 turn
+  if( run >= 1823 ) ke[C] = 0.0463; // c109 with warm 108
+  if( run >= 1842 ) ke[C] = 0.0404; // c159
+  if( run >= 1865 ) ke[C] = 0.042; // c159
+  if( run >= 1872 ) ke[C] = 0.0416; // c102 dph>25
+  if( run >= 1872 ) ke[C] = 0.0429; // c102 Tsunami
 
   ifstream gainFileC( gainC );
 
@@ -828,6 +978,15 @@ int main( int argc, char* argv[] )
 
   for( unsigned ipl = 0; ipl < 3; ++ipl ) {
 
+    phvsprev[ipl] = TProfile( Form( "phvsprev%s", PN[ipl].c_str() ),
+			      Form( "%s Tsunami;previous PH [ADC];%s <PH> [ADC]",
+				    PN[ipl].c_str(), PN[ipl].c_str() ),
+			      80, 0, 800, -999, 1999 );
+    dphvsprev[ipl] = TProfile( Form( "dphvsprev%s", PN[ipl].c_str() ),
+			      Form( "%s Tsunami;previous #DeltaPH [ADC];%s <#DeltaPH> [ADC]",
+				    PN[ipl].c_str(), PN[ipl].c_str() ),
+			       80, 0, 800, -999, 1999 );
+
     hph[ipl] = TH1I( Form( "ph%s", PN[ipl].c_str() ),
 		     Form("%s PH;ADC-PED [ADC];%s pixels",
 			  PN[ipl].c_str(), PN[ipl].c_str() ),
@@ -895,7 +1054,7 @@ int main( int argc, char* argv[] )
   double f = 0.5;
   //double f = 0.1; // aligned
 
-  TH1I hdxAB( "dxAB", "Bx-Ax;x-x [mm];cluster pairs", 400, -2, 2 );
+  TH1I hdxAB( "dxAB", "Bx-Ax;x-x [mm];cluster pairs", 800, -2, 2 );
   TH1I hdyAB( "dyAB", "By-Ay;y-y [mm];cluster pairs", 400, -2, 2 );
   TProfile dxvsxAB( "dxvsxAB", "dx vs x A-B;x [mm];<dx> [mm]", 320, -4, 4, -f, f );
   TProfile dxvsyAB( "dxvsyAB", "dx vs y A-B;y [mm];<dx> [mm]",  80, -4, 4, -f, f );
@@ -917,7 +1076,7 @@ int main( int argc, char* argv[] )
   TH2I * hxxCB = new TH2I( "xxCB", "C vs B;row B;row C;clusters", 320, -4, 4, 320, -4, 4 );
   TH2I * hyyCB = new TH2I( "yyCB", "C vs B;col B;col C;clusters",  80, -4, 4,  80, -4, 4 );
 
-  TH1I hdxCB( "dxCB", "Cx-Bx;x-x [mm];cluster pairs", 400, -2, 2 );
+  TH1I hdxCB( "dxCB", "Cx-Bx;x-x [mm];cluster pairs", 800, -2, 2 );
   TH1I hdyCB( "dyCB", "Cy-By;y-y [mm];cluster pairs", 400, -2, 2 );
   TProfile dxvsxCB( "dxvsxCB", "dx vs x C-B;x [mm];<dx> [mm]", 320, -4, 4, -f, f );
   TProfile dxvsyCB( "dxvsyCB", "dx vs y C-B;y [mm];<dx> [mm]",  80, -4, 4, -f, f );
@@ -936,7 +1095,7 @@ int main( int argc, char* argv[] )
   TH2I * hxxCA = new TH2I( "xxCA", "C vs A;row A;row C;clusters", 320, -4, 4, 320, -4, 4 );
   TH2I * hyyCA = new TH2I( "yyCA", "C vs A;col A;col C;clusters",  80, -4, 4,  80, -4, 4 );
 
-  TH1I hdxCA( "dxCA", "Cx-Ax;x-x [mm];cluster pairs", 200, -1, 1 );
+  TH1I hdxCA( "dxCA", "Cx-Ax;x-x [mm];cluster pairs", 400, -1, 1 );
   TH1I hdyCA( "dyCA", "Cy-Ay;y-y [mm];cluster pairs", 200, -1, 1 );
 
   TProfile dxvsxCA( "dxvsxCA", "dx vs x C-A;x [mm];<dx> [mm]", 320, -4, 4, -f, f );
@@ -990,7 +1149,7 @@ int main( int argc, char* argv[] )
 
   TProfile dx3vsx( "dx3vsx", "dx vs x;x [mm];<dx3> [mm]", 320, -4, 4, -0.5, 0.5 );
   TProfile dx3vsy( "dx3vsy", "dx vs y;y [mm];<dx3> [mm]",  80, -4, 4, -0.5, 0.5 );
-  TProfile dx3vsxm( "dx3vsxm", "dx vs x mod 100 um;x mod 100 [#mum];<dx3> [mm]",
+  TProfile dx3vsxm( "dx3vsxm", "dx vs x mod 50 um;x mod 50 [#mum];<dx3> [mm]",
 		    50, 0, 50, -0.5, 0.5 );
 
   TProfile madx3vsdx( "madx3vsdx", "MAD(dx3) vs dx C-A;C-A dx [#mum];MAD dx3 [mm]",
@@ -1001,10 +1160,10 @@ int main( int argc, char* argv[] )
 		 500, -0.25, 0.25 );
   TProfile madx3vsx( "madx3vsx", "MAD(dx3) vs x;x [mm];MAD dx3 [mm]", 320, -4, 4, 0, 0.1 );
   TProfile madx3vsy( "madx3vsy", "MAD(dx3) vs y;y [mm];MAD dx3 [mm]",  80, -4, 4, 0, 0.1 );
-  TProfile madx3vsxm( "madx3vsxm", "MAD(dx3) vs xmod;x mod 100 [#mum];MAD dx3 [mm]",
+  TProfile madx3vsxm( "madx3vsxm", "MAD(dx3) vs xmod;x mod 50 [#mum];MAD dx3 [mm]",
 		      50, 0, 50, 0, 0.1 );
 
-  TProfile etavsxmB3( "etavsxmB3", "eta vs xmod;x mod 100 [#mum];B <eta>",
+  TProfile etavsxmB3( "etavsxmB3", "eta vs xmod;x mod 50 [#mum];B <eta>",
 		      50, 0, 50, -1.1, 1.1 );
   TProfile madx3vseta( "madx3vseta", "MAD(dx3) vs eta;eta;MAD dx3 [mm]",
 		       100, -1, 1, 0, 0.1 );
@@ -1032,6 +1191,10 @@ int main( int argc, char* argv[] )
 
   TH1I hclszB3( "clszB3", "B cluster size on tracks;cluster size [pixels];B clusters on tracks",
 		40, 0.5, 40.5 );
+  TH1I hncolB3( "ncolB3", "B cluster size on tracks;cluster size [columns];B clusters on tracks",
+		20, 0.5, 20.5 );
+  TH1I hnrowB3( "nrowB3", "B cluster size on tracks;cluster size [rows];B clusters on tracks",
+		20, 0.5, 20.5 );
   TH1I hclphB3( "clphB3", "B cluster PH on tracks;cluster ph [ADC];B clusters on tracks",
 		200, 0, 1000 );
   TH1I hclqB3( "clqB3", "B cluster charge on tracks;cluster charge [ke];B clusters on tracks",
@@ -1050,10 +1213,10 @@ int main( int argc, char* argv[] )
 	       160, 0, 80 );
 
   TProfile nrowvsxmB3( "nrowvsxmB3",
-		       "B rows vs xmod;x mod 100 [#mum];<B cluster size [rows]>",
+		       "B rows vs xmod;x mod 50 [#mum];<B cluster size [rows]>",
 		       50, 0, 50, 0.5, 10.5 );
   TProfile clqvsxmB3( "clqvsxmB3",
-		      "B cluster charge vs xmod;x mod 100 [#mum];<B cluster charge [ke]>",
+		      "B cluster charge vs xmod;x mod 50 [#mum];<B cluster charge [ke]>",
 		      50, 0, 50, 0, 50 );
 
   TH1I hetaA3( "etaA3", "A cluster eta;eta;A 2-pix clusters on tracks",
@@ -1070,9 +1233,9 @@ int main( int argc, char* argv[] )
   TH1I hpxqC3( "pxqC3", "C pixel charge;pixel charge [ke];C pixels on tracks",
 	       100, 0, 20 );
 
-  TH1I hpxpA3( "pxpA3", "A pixel PH;pixel PH [ADC];A pixels on tracks", 150, 0, 300 );
-  TH1I hpxpB3( "pxpB3", "B pixel PH;pixel PH [ADC];B pixels on tracks", 150, 0, 300 );
-  TH1I hpxpC3( "pxpC3", "C pixel PH;pixel PH [ADC];C pixels on tracks", 150, 0, 300 );
+  TH1I hpxpA3( "pxpA3", "A pixel PH;pixel PH [ADC];A pixels on tracks", 250, 0, 500 );
+  TH1I hpxpB3( "pxpB3", "B pixel PH;pixel PH [ADC];B pixels on tracks", 250, 0, 500 );
+  TH1I hpxpC3( "pxpC3", "C pixel PH;pixel PH [ADC];C pixels on tracks", 250, 0, 500 );
 
   TH1I hpxq1stB3( "pxq1stB3", "B 1st pixel charge;pixel charge [ke];B `st pixels on tracks",
 		  100, 0, 20 );
@@ -1091,13 +1254,13 @@ int main( int argc, char* argv[] )
 		   320, -4, 4, -0.1, 1.1 );
   TProfile effvsy( "effvsy", "eff vs y;y [mm];DUT efficiency",
 		   80, -4, 4, -0.1, 1.1 );
-  TProfile effvsxm( "effvsxm", "eff vs x mod 100;x mod 100 [#mum];DUT efficiency",
+  TProfile effvsxm( "effvsxm", "eff vs x mod 50;x mod 50 [#mum];DUT efficiency",
 		    50, 0, 50, -0.1, 1.1 );
 
   TProfile effvsev( "effvsev", "eff vs time;trigger;DUT efficiency",
 		    3100, 0, 3100*1000, -0.1, 1.1 );
-  TProfile effvsiev( "effvsiev", "eff vs event;event mod 100;DUT efficiency",
-		     100, -0.5, 99.5, -0.1, 1.1 );
+  TProfile effvsiev( "effvsiev", "eff vs event;event mod 200;DUT efficiency",
+		     100, -0.5, 199.5, -0.1, 1.1 );
   TProfile effvsmpxA( "effvsmpxA", "eff vs occupancy A;occupancy A [pixels];DUT efficiency",
 		      50, 0.5, 50.5, -0.1, 1.1 );
   TProfile effvsqA( "effvsqA", "eff vs charge A;cluster charge A [ke];DUT efficiency",
@@ -1108,15 +1271,20 @@ int main( int argc, char* argv[] )
   const double log10 = log(10);
   string ADD {"A"}; // added flag
 
-  double qL =  8;
-  double qR = 17;
+  double qL =  9;
+  double qR = 15;
 
   double qLB = qL;
   double qRB = qR;
 
-  if( run >= 1788 ) { // 130i peak at 4
+  if( run >= 1789 && run <= 1822 ) { // 130i peak at 4
     qLB = 2;
     qRB = 7;
+  }
+
+  if( run >= 1842 && run <= 1864 ) { // 133i peak at 5
+    qLB = 3;
+    qRB = 8;
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1274,8 +1442,8 @@ int main( int argc, char* argv[] )
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // A-B cluster correlations:
 
-    double ptchc = 0.025; // [mm] col size
-    double ptchr = 0.100; // [mm] row size
+    double ptchc = 0.100; // [mm] col size
+    double ptchr = 0.025; // [mm] row size
     if( fifty ) {
       ptchc = 0.050;
       ptchr = 0.050;
@@ -1284,11 +1452,11 @@ int main( int argc, char* argv[] )
 
     for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ) {
 
-      double xA = cA->row*ptchc - 4.0 - alignxA; // rot90 Dreimaster
-      double yA = cA->col*ptchr - 3.9 - alignyA; // 100 um px
+      double xA = cA->row*ptchr - 4.0 - alignxA; // rot90 Dreimaster
+      double yA = cA->col*ptchc - 3.9 - alignyA; // 100 um px
       if( fifty ) {
-	xA = cA->col*ptchr - 3.9 - alignxA; // straight
-	yA = cA->row*ptchc - 4.0 - alignyA; // PCB
+	xA = cA->col*ptchc - 3.9 - alignxA; // straight
+	yA = cA->row*ptchr - 4.0 - alignyA; // PCB
       }
 
       double xAr = xA*cfA - yA*sfA;
@@ -1304,15 +1472,15 @@ int main( int argc, char* argv[] )
 
       for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
 
-	double xB = cB->row*ptchc - 4.0;
-	double yB = cB->col*ptchr - 3.9;
+	double xB = cB->row*ptchr - 4.0;
+	double yB = cB->col*ptchc - 3.9;
 	if( run == 431 ) {
-	  xB = cB->row*0.050 - 4.0; // rot90
-	  yB = cB->col*0.050 - 3.9; // PCB
+	  xB = cB->row*ptchr - 4.0; // rot90
+	  yB = cB->col*ptchc - 3.9; // PCB
 	}
 	if( fifty ) {
-	  xB = cB->col*0.050 - 3.9; // straight
-	  yB = cB->row*0.050 - 4.0; // PCB
+	  xB = cB->col*ptchc - 3.9; // straight
+	  yB = cB->row*ptchr - 4.0; // PCB
 	}
 
 	hxxAB->Fill( xAr, xB );
@@ -1351,15 +1519,15 @@ int main( int argc, char* argv[] )
 
     for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
 
-      double xB = cB->row*ptchc - 4.0;
-      double yB = cB->col*ptchr - 3.9;
+      double xB = cB->row*ptchr - 4.0;
+      double yB = cB->col*ptchc - 3.9;
       if( run == 431 ) {
-	xB = cB->row*0.050 - 4.0; // rot90
-	yB = cB->col*0.050 - 3.9; // PCB
+	xB = cB->row*ptchr - 4.0; // rot90
+	yB = cB->col*ptchc - 3.9; // PCB
       }
       if( fifty ) {
-	xB = cB->col*0.050 - 3.9; // straight
-	yB = cB->row*0.050 - 4.0; // PCB
+	xB = cB->col*ptchc - 3.9; // straight
+	yB = cB->row*ptchr - 4.0; // PCB
       }
 
       hxB.Fill( xB );
@@ -1372,11 +1540,11 @@ int main( int argc, char* argv[] )
 
       for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ) {
 
-	double xC = cC->row*ptchc - 4.0 - alignxC; // rot90 Dreimaster
-	double yC = cC->col*ptchr - 3.9 - alignyC; // down
+	double xC = cC->row*ptchr - 4.0 - alignxC; // rot90 Dreimaster
+	double yC = cC->col*ptchc - 3.9 - alignyC; // down
 	if( fifty ) {
-	  xC = cC->col*ptchr - 3.9 - alignxC; // straight
-	  yC = cC->row*ptchc - 4.0 - alignyC; // PCB
+	  xC = cC->col*ptchc - 3.9 - alignxC; // straight
+	  yC = cC->row*ptchr - 4.0 - alignyC; // PCB
 	}
 
 	double xCr = xC*cfC - yC*sfC;
@@ -1416,11 +1584,11 @@ int main( int argc, char* argv[] )
 
     for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ) {
 
-      double xC = cC->row*ptchc - 4.0 - alignxC;
-      double yC = cC->col*ptchr - 3.9 - alignyC;
+      double xC = cC->row*ptchr - 4.0 - alignxC;
+      double yC = cC->col*ptchc - 3.9 - alignyC;
       if( fifty ) {
-	xC = cC->col*ptchr - 3.9 - alignxC; // straight
-	yC = cC->row*ptchc - 4.0 - alignyC; // PCB
+	xC = cC->col*ptchc - 3.9 - alignxC; // straight
+	yC = cC->row*ptchr - 4.0 - alignyC; // PCB
       }
 
       double xCr = xC*cfC - yC*sfC;
@@ -1443,11 +1611,11 @@ int main( int argc, char* argv[] )
 
       for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ) {
 
-	double xA = cA->row*ptchc - 4.0 - alignxA; // rot90 Dreimaster
-	double yA = cA->col*ptchr - 3.9 - alignyA; // down
+	double xA = cA->row*ptchr - 4.0 - alignxA; // rot90 Dreimaster
+	double yA = cA->col*ptchc - 3.9 - alignyA; // down
 	if( fifty ) {
-	  xA = cA->col*ptchr - 3.9 - alignxA; // straight
-	  yA = cA->row*ptchc - 4.0 - alignyA; // PCB
+	  xA = cA->col*ptchc - 3.9 - alignxA; // straight
+	  yA = cA->row*ptchr - 4.0 - alignyA; // PCB
 	}
 
 	double xAr = xA*cfA - yA*sfA;
@@ -1462,12 +1630,12 @@ int main( int argc, char* argv[] )
 	hdxCA.Fill( dxCA );
 	hdyCA.Fill( dyCA );
 
-	if( fabs( dxCA ) > 40*3E-3 * 5/pp + 0.02 ) continue; // includes beam divergence: +-5 sigma
+	if( fabs( dxCA ) > 3 * 40E-3 * 5/pp + 0.02 ) continue; // includes beam divergence: +-5 sigma
 
 	hdyCAc.Fill( dyCA );
 	dyvsyCA.Fill( yAr, dyCA );
 
-	if( fabs( dyCA ) > 40*3E-3 * 5/pp + 0.1 ) continue; // [mm]
+	if( fabs( dyCA ) > 3 * 40E-3 * 5/pp + 0.1 ) continue; // [mm]
 
 	++nm;
 
@@ -1476,7 +1644,10 @@ int main( int argc, char* argv[] )
 
 	double xavg = 0.5 * ( xAr + xCr );
 	double yavg = 0.5 * ( yAr + yCr );
+
 	double xmod = fmod( xavg + 8, 0.05 ); // [mm] 0..0.05
+	if( fifty )
+	  xmod = fmod( xavg + 8.025, 0.05 ); // [mm] 0..0.05
 
 	double etaA = -2;
 	if( cA->size == 2 ) {
@@ -1489,15 +1660,15 @@ int main( int argc, char* argv[] )
 
 	for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
 
-	  double xB = cB->row*ptchc - 4.0;
-	  double yB = cB->col*ptchr - 3.9;
+	  double xB = cB->row*ptchr - 4.0;
+	  double yB = cB->col*ptchc - 3.9;
 	  if( run == 431 ) {
-	    xB = cB->row*0.050 - 4.0; // rot90
-	    yB = cB->col*0.050 - 3.9; // PCB
+	    xB = cB->row*ptchr - 4.0; // rot90
+	    yB = cB->col*ptchc - 3.9; // PCB
 	  }
 	  if( fifty ) {
-	    xB = cB->col*0.050 - 3.9; // straight
-	    yB = cB->row*0.050 - 4.0; // PCB
+	    xB = cB->col*ptchc - 3.9; // straight
+	    yB = cB->row*ptchr - 4.0; // PCB
 	  }
 
 	  double etaB = -2;
@@ -1583,15 +1754,35 @@ int main( int argc, char* argv[] )
 	  if( run == 1047 )
 	    dx3 -= 0.00082*xavg; // from -dx3vsx
 	  if( run == 1764 )
-	    dx3 -= 0.00075*xavg; // from -dx3vsx.Fit("pol1")
+	    dx3 -= 0.00067*xavg; // from -dx3vsx.Fit("pol1")
 	  if( run == 1765 )
-	    dx3 -= 0.00103*xavg; // from -dx3vsx.Fit("pol1")
+	    dx3 -= 0.00085*xavg; // from -dx3vsx.Fit("pol1")
 	  if( run == 1766 )
 	    dx3 -= 0.00106*xavg; // from -dx3vsx.Fit("pol1")
 	  if( run == 1767 )
 	    dx3 -= 0.00119*xavg; // from -dx3vsx.Fit("pol1")
 	  if( run == 1768 )
 	    dx3 -= 0.00139*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1769 )
+	    dx3 -= 0.00152*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1770 )
+	    dx3 -= 0.00165*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1771 )
+	    dx3 -= 0.00191*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1772 )
+	    dx3 -= 0.00206*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1773 )
+	    dx3 -= 0.00206*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1774 )
+	    dx3 -= 0.00261*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1775 )
+	    dx3 -= 0.00293*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1776 )
+	    dx3 -= 0.00316*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1777 )
+	    dx3 -= 0.00337*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1778 )
+	    dx3 -= 0.00031*xavg; // from -dx3vsx.Fit("pol1")
 	  if( run == 1779 )
 	    dx3 += 0.00049*xavg; // from -dx3vsx.Fit("pol1")
 	  if( run == 1780 )
@@ -1599,8 +1790,19 @@ int main( int argc, char* argv[] )
 	  if( run == 1781 )
 	    dx3 += 0.00027*xavg; // from -dx3vsx.Fit("pol1")
 	  if( run == 1782 )
-	    dx3 += 0.00027*xavg; // from -dx3vsx.Fit("pol1")
+	    dx3 += 0.00028*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1783 )
+	    dx3 += 0.00028*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1784 )
+	    dx3 += 0.00028*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1785 )
+	    dx3 += 0.00028*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1786 )
+	    dx3 -= 0.00001*xavg; // from -dx3vsx.Fit("pol1")
 	  if( run == 1787 )
+	    dx3 -= 0.00117*xavg; // from -dx3vsx.Fit("pol1")
+
+	  if( run == 1789 )
 	    dx3 -= 0.00118*xavg; // from -dx3vsx.Fit("pol1")
 	  if( run == 1789 )
 	    dx3 -= 0.00213*xavg; // from -dx3vsx.Fit("pol1")
@@ -1638,6 +1840,169 @@ int main( int argc, char* argv[] )
 	    dx3 -= 0.00220*xavg; // from -dx3vsx.Fit("pol1")
 	  if( run == 1815 )
 	    dx3 -= 0.00220*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1816 )
+	    dx3 -= 0.00230*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1817 )
+	    dx3 -= 0.00230*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1818 )
+	    dx3 -= 0.00240*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1819 )
+	    dx3 -= 0.00250*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1820 )
+	    dx3 -= 0.00220*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1822 )
+	    dx3 -= 0.00218*xavg; // from -dx3vsx.Fit("pol1")
+
+	  if( run == 1825 )
+	    dx3 += 0.00043*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1826 )
+	    dx3 += 0.00036*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1827 )
+	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1828 )
+	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1829 )
+	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1830 )
+	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1831 )
+	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1832 )
+	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1833 )
+	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1834 )
+	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1835 )
+	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1836 )
+	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1837 )
+	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1838 )
+	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1839 )
+	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1840 )
+	    dx3 -= 0.00054*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1843 )
+	    dx3 -= 0.00200*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1845 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1846 )
+	    dx3 -= 0.00251*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1847 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1848 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1849 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1850 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1851 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1852 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1853 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1854 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1855 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1856 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1857 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1858 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1859 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1860 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1861 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1862 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1863 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1864 )
+	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+
+	  if( run == 1865 )
+	    dx3 -= 0.00049*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1866 )
+	    dx3 -= 0.00110*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1868 )
+	    dx3 -= 0.00155*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1869 )
+	    dx3 -= 0.00063*xavg; // from -dx3vsx.Fit("pol1")
+
+	  if( run == 1873 )
+	    dx3  = 0.00019*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1874 )
+	    dx3 -= 0.00067*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1875 )
+	    dx3 -= 0.00098*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1876 )
+	    dx3 -= 0.00137*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1877 )
+	    dx3 -= 0.00163*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1878 )
+	    dx3 -= 0.00170*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1879 )
+	    dx3 -= 0.00178*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1880 )
+	    dx3 -= 0.00200*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1881 )
+	    dx3 -= 0.00224*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1882 )
+	    dx3 -= 0.00242*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1883 )
+	    dx3 -= 0.00257*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1884 )
+	    dx3 -= 0.00275*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1885 )
+	    dx3 -= 0.00300*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1886 )
+	    dx3 -= 0.00323*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1887 )
+	    dx3 -= 0.00341*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1888 )
+	    dx3 -= 0.00367*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1889 )
+	    dx3 -= 0.00374*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1890 )
+	    dx3 -= 0.00400*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1891 )
+	    dx3 -= 0.00088*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1892 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1893 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1894 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1895 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1896 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1897 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1898 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1899 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1900 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1901 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1902 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1903 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1904 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+	  if( run == 1905 )
+	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
 
 	  double dy3 = yB - yavg;
 	  double dxy = sqrt( dx3*dx3 + dy3*dy3 );
@@ -1757,6 +2122,8 @@ int main( int argc, char* argv[] )
 
 	    hclszA3.Fill( cA->size );
 	    hclszB3.Fill( cB->size );
+	    hncolB3.Fill( ncolB );
+	    hnrowB3.Fill( nrowB );
 	    hclszC3.Fill( cC->size );
 
 	    hclphA3.Fill( cA->sum );
@@ -1774,6 +2141,7 @@ int main( int argc, char* argv[] )
 	      nrowvsxmB3.Fill( xmod*1E3, ncolB );
 	    else
 	      nrowvsxmB3.Fill( xmod*1E3, nrowB );
+
 	    clqvsxmB3.Fill( xmod*1E3, cB->q );
 
 	    if( cA->size == 2 )
@@ -1837,7 +2205,7 @@ int main( int argc, char* argv[] )
 
 	  effvsxm.Fill( xmod*1E3, eff[50] ); // bias dot
 	  effvsev.Fill( iev, eff[50] );
-	  effvsiev.Fill( iev%100, eff[50] );
+	  effvsiev.Fill( iev%200, eff[50] );
 	  //effvsmpxA.Fill( pbA.size(), eff[50] );
 	  effvsqA.Fill( cA->q, eff[50] );
 	  effvstxy.Fill( dxyCA, eff[50] ); // flat
