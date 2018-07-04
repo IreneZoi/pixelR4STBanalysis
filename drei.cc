@@ -367,11 +367,9 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
       }
 
       // column-wise common mode correction:
-      
+
       double phprev = 0;
       double dphprev = 0;
-
-              
 
       for( unsigned ipx = 0; ipx < vpx.size(); ++ipx ) {
 
@@ -384,11 +382,6 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 	double ph1 = ph4;
 	double ph7 = ph4;
 
-	// finn
-	int rowprv = row1; // stores the row index of the previous pixel
-	double phprv = ph1; // same for ph
-
-	
 	for( unsigned jpx = 0; jpx < vpx.size(); ++jpx ) {
 
 	  if( jpx == ipx ) continue;
@@ -425,26 +418,14 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 	    ph4 -= 0.15*phprev; // Tsunami
 	}
 
-	// finn ------------------------------
-	// correction for x-talk
-	double cx = 0.; // x-talk correction factor
-	if( run > 1822 && run < 1841) cx =  0.075; // c108 100x25 p-stop default -- gain = 2
-	//	cout << " ******* cx *****" <<cx << endl;
-	
-	if ( row4 - rowprv == 1 )
-	  ph4 = ph4 - cx * phprv;
-	phprv = ph4; 
-	// finn -----------------------------
 	phprev = vpx[ipx].ph; // original ph4
-	
-	double dph;
-	//if( row4 - row1 < row7 - row4 )
-	//  dph = ph4 - ph1;
-	//else
-	//  dph = ph4 - ph7;
 
-	dph = ph4 - ( ph1 + ph7 ) / 2; //finn
-	
+	double dph;
+	if( row4 - row1 < row7 - row4 )
+	  dph = ph4 - ph1;
+	else
+	  dph = ph4 - ph7;
+ 
 	hdph[plane].Fill( dph ); // sig 2.7
 
 	dphvsprev[plane].Fill( dphprev, dph );
