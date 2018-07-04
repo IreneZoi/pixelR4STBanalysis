@@ -14,7 +14,7 @@
 // drei -p 5.6 -f 1024  (50x50)
 
 // drei 1757
-// drei -f 1842
+// drei -f 1842  ************* -f is the option for 50x50 **********************
 // drei -f 1894
 
 #include <cstdlib> // atoi
@@ -29,6 +29,7 @@
 #include <time.h> // clock_gettime
 #include <sched.h> // getcpu
 #include <sys/resource.h>
+#include <unistd.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -210,25 +211,28 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
   int run = stoi( runnum );
 
   list < vector < cluster > > evlist;
-
+  string datapath = "/mnt/pixeldata/";
   string Xfile;
   if( plane == A ) {
-    Xfile = "A/roi000" + runnum + ".txt";
+    Xfile = datapath+"a/roi000" + runnum + ".txt";
     if( run > 999 )
-      Xfile = "A/roi00" + runnum + ".txt";
+      Xfile = datapath+"a/roi00" + runnum + ".txt";
   }
   if( plane == B ) {
-    Xfile = "B/roi000" + runnum + ".txt";
+    Xfile = datapath+"b/roi000" + runnum + ".txt";
     if( run > 999 )
-      Xfile = "B/roi00" + runnum + ".txt";
+      Xfile = datapath+"b/roi00" + runnum + ".txt";
   }
   if( plane == C ) {
-    Xfile = "C/roi000" + runnum + ".txt";
+    Xfile = datapath+"c/roi000" + runnum + ".txt";
     if( run > 999 )
-      Xfile = "C/roi00" + runnum + ".txt";
+      Xfile = datapath+"c/roi00" + runnum + ".txt";
   }
+  // cout << "FOK " << access(Xfile.c_str(),F_OK) << endl;
+  // cout << "ROK " << access(Xfile.c_str(),R_OK) << endl;
   cout << "try to open  " << Xfile;
-  ifstream Xstream( Xfile.c_str() );
+  ifstream Xstream( Xfile.c_str(), ifstream::in );
+  cout << " is opening good? " << Xstream.good() << endl;
   if( !Xstream ) {
     cout << " : failed " << endl;
     return evlist;
@@ -363,9 +367,11 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
       }
 
       // column-wise common mode correction:
-
+      
       double phprev = 0;
       double dphprev = 0;
+
+              
 
       for( unsigned ipx = 0; ipx < vpx.size(); ++ipx ) {
 
@@ -378,6 +384,11 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 	double ph1 = ph4;
 	double ph7 = ph4;
 
+	// finn
+	int rowprv = row1; // stores the row index of the previous pixel
+	double phprv = ph1; // same for ph
+
+	
 	for( unsigned jpx = 0; jpx < vpx.size(); ++jpx ) {
 
 	  if( jpx == ipx ) continue;
@@ -414,14 +425,26 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 	    ph4 -= 0.15*phprev; // Tsunami
 	}
 
+	// finn ------------------------------
+	// correction for x-talk
+	double cx = 0.; // x-talk correction factor
+	if( run > 1822 && run < 1841) cx =  0.075; // c108 100x25 p-stop default -- gain = 2
+	//	cout << " ******* cx *****" <<cx << endl;
+	
+	if ( row4 - rowprv == 1 )
+	  ph4 = ph4 - cx * phprv;
+	phprv = ph4; 
+	// finn -----------------------------
 	phprev = vpx[ipx].ph; // original ph4
-
+	
 	double dph;
-	if( row4 - row1 < row7 - row4 )
-	  dph = ph4 - ph1;
-	else
-	  dph = ph4 - ph7;
- 
+	//if( row4 - row1 < row7 - row4 )
+	//  dph = ph4 - ph1;
+	//else
+	//  dph = ph4 - ph7;
+
+	dph = ph4 - ( ph1 + ph7 ) / 2; //finn
+	
 	hdph[plane].Fill( dph ); // sig 2.7
 
 	dphvsprev[plane].Fill( dphprev, dph );
@@ -649,7 +672,7 @@ int main( int argc, char* argv[] )
   // gains:
 
   //string gainA{ "A/r113-scancal-tb21-0921.dat"}; // lots of negative q
-  string gainA{ "A/r113-scancal-tb21-0923.dat"};
+  string gainA{ "/home/cmspix/A/r113-scancal-tb21-0923.dat"};
   if( run >=  423 ) gainA = "A/r113-scancal-tb21-0923.dat";
   if( run >=  430 ) gainA = "A/r112-scancal-tb21-0925.dat";
   if( run >=  439 ) gainA = "A/r113-scancal-tb21-0923.dat";
@@ -663,10 +686,10 @@ int main( int argc, char* argv[] )
   if( run >= 1757 ) gainA = "A/scm146-scancal2-2018-03-12-hold20.dat";
   if( run >= 1784 ) gainA = "A/scm146-scancal2-drei-pr650-sh630-hold17.dat";
   if( run >= 1787 ) gainA = "B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
-  if( run >= 1823 ) gainA = "B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
+  if( run >= 1823 ) gainA = "/home/cmspix/r4sclient/B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
   if( run >= 1842 ) gainA = "A/scm152-scancal2-drei-2018-03-16-hold20.dat";
   if( run >= 1865 ) gainA = "A/scm152-scancal2-drei-warm-2018-03-16-hold20.dat";
-  if( run >= 1872 ) gainA = "A/scm160-scancal2-drei-warm-2018-03-17-hold20.dat";
+  if( run >= 1872 ) gainA = "/home/cmspix/r4sclient/A/scm160-scancal2-drei-warm-2018-03-17-hold20.dat";
 
   ke[A] = 0.039; // Landau peak at 11 ke
   if( run >= 423 ) ke[A] = 0.0396; // Landau peak at 11 ke
@@ -748,10 +771,12 @@ int main( int argc, char* argv[] )
   if( run >= 1787 ) gainB = "A/scm146-scancal2-drei-pr650-sh630-hold17.dat";
   if( run >= 1789 ) gainB = "B/scm130i-scancal2-drei-icy-pr800-sh600-ia119-2018-03-13-hold20.dat";
   if( run >= 1798 ) gainB = "B/scm130i-scancal2-drei-icy-pr800-sh600-ia125-2018-03-13-hold16.dat";
-  if( run >= 1823 ) gainB = "B/c108-scancal2-tb21-2018-02-24-ia125-hold24.dat";
+  //  if( run >= 1823 ) gainB = "/home/cmspix/r4sclient/B/c108-scancal2-tb21-2018-02-24-ia125-hold24.dat";
+  if( run >= 1823 ) gainB = "/home/cmspix/r4sclient/B/scm108-scancal2-drei-2018-3-15-hold24.dat";
   if( run >= 1842 ) gainB = "B/scm133-scancal2-drei-icy-2018-3-16-hold20.dat";
   if( run >= 1865 ) gainB = "B/scm102-scancal2-drei-warm-2018-03-16-hold20.dat";
-  if( run >= 1872 ) gainB = "B/scm159-scancal2-drei-warm-2018-03-17-pr650-sh700-hold20.dat";
+  if( run >= 1872 ) gainB = "/home/cmspix/r4sclient/B/scm159-scancal2-drei-warm-2018-03-17-pr650-sh700-hold20.dat";
+  //  if( run >= 1872 ) gainB = "/home/cmspix/r4sclient/A/scm159-scancal1-tb21-pr900-sh670-ia125-vb120-hold24.dat";
 
   ke[B] = 0.0276; // Landau peak at 11 ke
   if( run >= 423 ) ke[B] = 0.026;
@@ -828,10 +853,10 @@ int main( int argc, char* argv[] )
   if( run >= 1747 ) gainC = "C/scm109-scancal2-tb21-drei-2018-03-11-hold20.dat";
   if( run >= 1757 ) gainC = "C/scm109-scancal2-tb21-drei-2018-03-12-hold20.dat";
   if( run >= 1784 ) gainC = "C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat";
-  if( run >= 1823 ) gainC = "C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat";
+  if( run >= 1823 ) gainC = "/home/cmspix/r4sclient/C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat";
   if( run >= 1842 ) gainC = "C/scm159-scancal2-drei-2018-3-16-hold20.dat";
   if( run >= 1865 ) gainC = "C/scm159-scancal2-drei-warm-2018-03-16-hold20.dat";
-  if( run >= 1872 ) gainC = "C/scm102-scanhold-drei-warm-2018-03-17-hold20.dat";
+  if( run >= 1872 ) gainC = "/home/cmspix/r4sclient/C/scm102-scanhold-drei-warm-2018-03-17-hold20.dat";
 
   ke[C] = 0.0366; // Landau peak at 11 ke
   if( run >=  432 ) ke[C] = 0.028; // Landau peak at 11 ke
@@ -885,6 +910,7 @@ int main( int argc, char* argv[] )
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+  string alignpath = "align/";
   int aligniteration = 0;
 
   double alignxA = 0.0; // [mm] same sign as dx
@@ -895,7 +921,7 @@ int main( int argc, char* argv[] )
   double alignyC = 0.0; // [mm] same sign as dy
   double alignfC = 0.0; // [rad] same sign dxvsy
 
-  string alignFileName = "align_" + runnum + ".dat";
+  string alignFileName = alignpath+"align_" + runnum + ".dat";
 
   ifstream alignFile( alignFileName );
 
@@ -965,7 +991,7 @@ int main( int argc, char* argv[] )
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // (re-)create root file:
 
-  TFile * histoFile = new TFile( Form( "drei-r%i.root", run ), "RECREATE" );
+  TFile * histoFile = new TFile( Form( "/home/zoiirene/Output/drei-r%i.root", run ), "RECREATE" );
 
   // book histos:
 
@@ -1938,7 +1964,7 @@ int main( int argc, char* argv[] )
 	    dx3 -= 0.00063*xavg; // from -dx3vsx.Fit("pol1")
 
 	  if( run == 1873 )
-	    dx3  = 0.00019*xavg; // from -dx3vsx.Fit("pol1")
+	    dx3  = 0.000000018*xavg; // from -dx3vsx.Fit("pol1") - opposite of the slope from a linear fit has to be added as correction
 	  if( run == 1874 )
 	    dx3 -= 0.00067*xavg; // from -dx3vsx.Fit("pol1")
 	  if( run == 1875 )
@@ -2371,25 +2397,25 @@ int main( int argc, char* argv[] )
        << "alignfC " << setw(11) << newalignfC << endl
     ;
 
-  cout << "update alignment file? (y/n)" << endl;
-  string ans;
-  cin >> ans;
-  string YES{"y"};
-  if( ans == YES ) {
+  // cout << "update alignment file? (y/n)" << endl;
+  // string ans;
+  // cin >> ans;
+  // string YES{"y"};
+  // if( ans == YES ) {
 
-    ofstream alignFile( alignFileName );
+  //   ofstream alignFile( alignFileName );
 
-    alignFile << "# alignment for run " << run << endl;
-    alignFile << "iteration " << aligniteration << endl;
-    alignFile << "alignxA " << setw(11) << newalignxA << endl;
-    alignFile << "alignyA " << setw(11) << newalignyA << endl;
-    alignFile << "alignfA " << setw(11) << newalignfA << endl;
-    alignFile << "alignxC " << setw(11) << newalignxC << endl;
-    alignFile << "alignyC " << setw(11) << newalignyC << endl;
-    alignFile << "alignfC " << setw(11) << newalignfC << endl;
+  //   alignFile << "# alignment for run " << run << endl;
+  //   alignFile << "iteration " << aligniteration << endl;
+  //   alignFile << "alignxA " << setw(11) << newalignxA << endl;
+  //   alignFile << "alignyA " << setw(11) << newalignyA << endl;
+  //   alignFile << "alignfA " << setw(11) << newalignfA << endl;
+  //   alignFile << "alignxC " << setw(11) << newalignxC << endl;
+  //   alignFile << "alignyC " << setw(11) << newalignyC << endl;
+  //   alignFile << "alignfC " << setw(11) << newalignfC << endl;
 
-    alignFile.close();
-  }
+  //   alignFile.close();
+  // }
 
   cout << endl << histoFile->GetName() << endl;
 
