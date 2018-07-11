@@ -12,7 +12,7 @@
 // drei -p 6.0 -l 546000 1019
 // drei -p 6.0 1020  (2.1M)
 // drei -p 5.6 -f 1024  (50x50)
-
+// ****************************use flag: '-p beamEnergy' to change the beam energy! ***********************************
 // drei 1757
 // drei -f 1842  ************* -f is the option for 50x50 **********************
 // drei -f 1894
@@ -38,6 +38,13 @@
 #include <TProfile2D.h>
 #include <TF1.h>
 
+#define halfSensorX 4.0
+#define halfSensorY 3.9
+#define ACspacing 40 //[mm]
+
+#define DreiMasterPlanes 3
+#define r4sRows 160
+#define r4sColumns 155
 
 using namespace std;
 
@@ -68,32 +75,28 @@ const int B{1};
 const int C{2};
 string PN[]{"A","B","C"};
 
-double p0[3][155][160]; // Fermi
-double p1[3][155][160];
-double p2[3][155][160];
-double p3[3][155][160];
-double ke[3];
+double p0[DreiMasterPlanes][r4sColumns][160]; // Fermi
+double p1[DreiMasterPlanes][r4sColumns][160];
+double p2[DreiMasterPlanes][r4sColumns][160];
+double p3[DreiMasterPlanes][r4sColumns][160];
+double ke[DreiMasterPlanes];
 
-TProfile phvsprev[3];
-TProfile dphvsprev[3];
-TH1I hph[3];
-TH1I hdph[3];
-TH1I hnpx[3];
-TH1I hnht[3];
-TH2I * hpxmap[3];
-TH1I hncl[3];
-TH2I * hclmap[3];
-TH1I hclsz[3];
-TH1I hclph[3];
-TH1I hclq[3];
+TProfile phvsprev[DreiMasterPlanes];
+TProfile dphvsprev[DreiMasterPlanes];
+TH1I hph[DreiMasterPlanes];
+TH1I hdph[DreiMasterPlanes];
+TH1I hnpx[DreiMasterPlanes];
+TH1I hnht[DreiMasterPlanes];
+TH2I * hpxmap[DreiMasterPlanes];
+TH1I hncl[DreiMasterPlanes];
+TH2I * hclmap[DreiMasterPlanes];
+TH1I hclsz[DreiMasterPlanes];
+TH1I hclph[DreiMasterPlanes];
+TH1I hclq[DreiMasterPlanes];
 
 list < evInfo > infoA;
 list < evInfo > infoB;
 list < evInfo > infoC;
-
-#define halfSensorX 4.0
-#define halfSensorY 3.9
-#define ACspacing 40 //[mm]
 
 
 double nSigmaTolerance = 3;
@@ -101,529 +104,11 @@ double beamDivergence = 0.001; //1 mrad
 double straightTracks = ACspacing*beamDivergence*nSigmaTolerance;
 
 
-/*
+//functions definition
+vector<cluster> getClus( vector <pixel> pb, int fCluCut = 1 ); // 1 = no gap
+list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bool fifty );
 //------------------------------------------------------------------------------
-unsigned digit_value( char c )
-{
-return unsigned( c - '0' ); // negatives get flipped to large positives
-}
 
-//------------------------------------------------------------------------------
-int fast_atoi( const char * p )
-{
-bool neg = false;
-if( *p == '-') {
-neg = true;
-++p;
-}
-//cout << " " << *p << flush;
-int x = digit_value( *p ); // first digit, must be present
-unsigned d;
-while( ( d = digit_value( *++p ) ) <= 9 ) {
-x = x*10 + d;
-//cout << " " << *p << flush;
-}
-if( neg )
-x = -x;
-
-return x;
-}
-*/
-//------------------------------------------------------------------------------
-vector<cluster> getClus( vector <pixel> pb, int fCluCut = 1 ) // 1 = no gap
-{
-  // returns clusters with local coordinates
-  // next-neighbour topological clustering (allows fCluCut-1 empty pixels)
-
-  vector <cluster> v;
-  if( pb.size() == 0 ) return v;
-
-  int * gone = new int[pb.size()] {0};
-
-  unsigned seed = 0;
-
-  while( seed < pb.size() ) {
-
-    // start a new cluster:
-
-    cluster c;
-    c.vpix.push_back( pb[seed] );
-    gone[seed] = 1;
-
-    // let it grow as much as possible:
-
-    int growing;
-    do{
-      growing = 0;
-      for( unsigned i = 0; i < pb.size(); ++i ) {
-        if( !gone[i] ) { // unused pixel
-          for( unsigned int p = 0; p < c.vpix.size(); ++p ) { // vpix in cluster so far
-            int dr = c.vpix.at(p).row - pb[i].row;
-            int dc = c.vpix.at(p).col - pb[i].col;
-            if( ( dr >= -fCluCut ) && ( dr <= fCluCut ) &&
-		( dc >= -fCluCut ) && ( dc <= fCluCut ) ) {
-              c.vpix.push_back(pb[i]);
-	      gone[i] = 1;
-              growing = 1;
-              break; // p, important!
-            }
-          } // p loop over vpix
-        } // not gone
-      } // i loop over all pix
-    }
-    while( growing );
-
-    // added all I could. determine position and append it to the list of clusters:
-
-    c.sum = 0;
-    c.q = 0;
-    c.size = 0;
-    c.col = 0;
-    c.row = 0;
-    c.iso = 1;
-
-    for( vector<pixel>::iterator p = c.vpix.begin();  p != c.vpix.end();  ++p ) {
-      double ph = p->ph;
-      c.sum += ph;
-      double q = p->q;
-      c.q += q;
-      //c.col += (*p).col*ph;
-      //c.row += (*p).row*ph;
-      c.col += (*p).col*q;
-      c.row += (*p).row*q;
-    }
-
-    c.size = c.vpix.size();
-
-    //cout << "(cluster with " << c.vpix.size() << " pixels)" << endl;
-
-    //c.col /= c.sum;
-    //c.row /= c.sum;
-    c.col /= c.q;
-    c.row /= c.q;
-
-    v.push_back(c); // add cluster to vector
-
-    // look for a new seed = used pixel:
-
-    while( ( ++seed < pb.size() ) && gone[seed] );
-
-  } // while over seeds
-
-  // nothing left,  return clusters
-
-  delete gone;
-  return v;
-}
-
-//------------------------------------------------------------------------------
-list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bool fifty )
-{
-  int run = stoi( runnum );
-
-  list < vector < cluster > > evlist;
-  string datapath = "/mnt/pixeldata/";
-  string Xfile;
-  if( plane == A ) {
-    Xfile = datapath+"a/roi000" + runnum + ".txt";
-    if( run > 999 )
-      Xfile = datapath+"a/roi00" + runnum + ".txt";
-  }
-  if( plane == B ) {
-    Xfile = datapath+"b/roi000" + runnum + ".txt";
-    if( run > 999 )
-      Xfile = datapath+"b/roi00" + runnum + ".txt";
-  }
-  if( plane == C ) {
-    Xfile = datapath+"c/roi000" + runnum + ".txt";
-    if( run > 999 )
-      Xfile = datapath+"c/roi00" + runnum + ".txt";
-  }
-  // cout << "FOK " << access(Xfile.c_str(),F_OK) << endl;
-  // cout << "ROK " << access(Xfile.c_str(),R_OK) << endl;
-  cout << "try to open  " << Xfile;
-  ifstream Xstream( Xfile.c_str(), ifstream::in );
-  cout << " is opening good? " << Xstream.good() << endl;
-  if( !Xstream ) {
-    cout << " : failed " << endl;
-    return evlist;
-  }
-  cout << " : succeed " << endl;
-
-  string START {"START"};
-  string hd; // header
-
-  while( hd != START ) {
-    getline( Xstream, hd ); // read one line into string
-    cout << "  " << hd << endl;
-  }
-
-  string F {"F"}; // filled flag
-  string E {"E"}; // empty flag
-  string BLANK{" "};
-
-  bool ldb = 0;
-  uint64_t prevtime = 0;
-
-  while( Xstream.good() && ! Xstream.eof() &&
-	 evlist.size() < Nev ) {
-
-    string evseed;
-    getline( Xstream, evseed ); // read one line into string
-
-    istringstream iss( evseed ); // tokenize string
-    int iev;
-    iss >> iev;
-
-    if( iev%1000 == 0 )
-      cout << "  " << PN[plane] << " " << iev << flush;
-
-    string filled;
-    iss >> filled;
-
-    int iblk; // event block number: 100, 200, 300...
-    iss >> iblk;
-
-    uint64_t evtime = prevtime;
-
-    if( filled == F )
-      iss >> evtime; // from run 456
-
-    else if( filled == E )
-      iss >> evtime; // from run 456
-
-    vector <pixel> pb; // for clustering
-    vector <cluster> vcl;
-    evInfo evinf;
-    evinf.evtime = evtime;
-    evinf.filled = filled;
-    evinf.skip = 0;
-    prevtime = evtime;
-
-    if( filled == F ) {
-
-      string roi;
-      getline( Xstream, roi );
-
-      size_t start = 0;
-      size_t gap = 0;
-      unsigned ng = 0; // 3 per pix
-      string BLANK{" "};
-      while( gap < roi.size()-1 ) { // data have trailing blank
-	gap = roi.find( BLANK, start );
-	start = gap + BLANK.size();
-	++ng;
-      }
-      hnpx[plane].Fill( ng/3 );
-
-      vector <pixel> vpx;
-
-      if( ng/3 < 400 ) {
-
-	vpx.reserve(ng/3);
-
-	size_t start = 0;
-	size_t gap = 0;
-	while( gap < roi.size()-1 ) { // data have trailing blank
-
-	  gap = roi.find( BLANK, start );
-	  string s1( roi.substr( start, gap - start ) );
-	  //cout << " " << s1 << "(" << gap << ")";
-	  //int col = stoi(s1);
-	  int col = atoi( s1.c_str() ); // 4% faster
-	  //int col = fast_atoi( s1.c_str() ); // another 6% faster
-	  start = gap + BLANK.size();
-
-	  gap = roi.find( BLANK, start );
-	  string s2( roi.substr( start, gap - start ) );
-	  //cout << " " << s2 << "(" << gap << ")";
-	  //int row = stoi(s2);
-	  int row = atoi( s2.c_str() );
-	  //int row = fast_atoi( s2.c_str() );
-	  start = gap + BLANK.size();
-
-	  gap = roi.find( BLANK, start );
-	  string s3( roi.substr( start, gap - start ) );
-	  //cout << " " << s1 << "(" << gap << ")";
-	  //double ph = stod(s3);
-	  double ph = atof(s3.c_str());
-	  hph[plane].Fill( ph );
-	  start = gap + BLANK.size();
-
-	  pixel px { col, row, ph, ph };
-	  vpx.push_back(px); // comment out = no clustering
-
-	}
-	/* slower
-	  istringstream css( roi ); // tokenize string
-	  while( ! css.eof() ) {
-	  int col;
-	  int row;
-	  double ph;
-	  css >> col;
-	  css >> row;
-	  css >> ph;
-
-	  pixel px { col, row, ph, ph };
-	  vpx.push_back(px);
-
-	  hph[plane].Fill( ph );
-
-	  } // roi px
-	*/
-      } // size
-      else {
-	evinf.skip = 1;
-	cout << " (" << iev << ": B ROI " << ng/3 << " skip)";
-      }
-
-      // column-wise common mode correction:
-
-      double phprev = 0;
-      double dphprev = 0;
-
-      for( unsigned ipx = 0; ipx < vpx.size(); ++ipx ) {
-
-	int col4 = vpx[ipx].col;
-	int row4 = vpx[ipx].row;
-	double ph4 = vpx[ipx].ph;
-
-	int row1 = row4;
-	int row7 = row4;
-	double ph1 = ph4;
-	double ph7 = ph4;
-
-	for( unsigned jpx = 0; jpx < vpx.size(); ++jpx ) {
-
-	  if( jpx == ipx ) continue;
-	  if( vpx[jpx].col != col4 ) continue; // want same column
-
-	  int jrow = vpx[jpx].row;
-
-	  if( jrow < row1 ) {
-	    row1 = jrow;
-	    ph1 = vpx[jpx].ph;
-	  }
-
-	  if( jrow > row7 ) {
-	    row7 = jrow;
-	    ph7 = vpx[jpx].ph;
-	  }
-
-	} // jpx
-
-	if( row4 == row1 ) {
-	  phprev = ph1;
-	  continue; // Randpixel
-	}
-	if( row4 == row7 ) continue;
-
-	phvsprev[plane].Fill( phprev, ph4 );
-
-	if( run >= 1873 && run <= 1905 ) { // fresh
-	  if( plane == A )
-	    ph4 -= 0.17*phprev; // Tsunami
-	  if( plane == B )
-	    ph4 -= 0.14*phprev; // Tsunami
-	  if( plane == C )
-	    ph4 -= 0.15*phprev; // Tsunami
-	}
-
-	phprev = vpx[ipx].ph; // original ph4
-
-	double dph;
-	if( row4 - row1 < row7 - row4 )
-	  dph = ph4 - ph1;
-	else
-	  dph = ph4 - ph7;
- 
-	hdph[plane].Fill( dph ); // sig 2.7
-
-	dphvsprev[plane].Fill( dphprev, dph );
-	dphprev = dph;
-
-	double dphcut = 12; // sig 4.5
-
-	if( run >= 1747 ) {
-
-	  dphcut = 40; // gain_2
-
-	  if( plane == B )
-	    dphcut = 30; // 136i
-	  //dphcut = 40; // 136i
-
-	}
-
-	if( run >= 1757 ) { // fresh
-
-	  //dphcut = 30; // gain_2 1767 dx3cq3 3.39
-	  dphcut = 40; // gain_2 1767 dx3cq3 3.18
-	  //dphcut = 50; // gain_2 1767 dx3cq3 3.31
-	  //dphcut = 60; // gain_2 1767 dx3cq3 
-
-	  if( plane == B )
-	    //dphcut = 30; // 1783 dx3cq3 3.10
-	    dphcut = 40; // 1783 dx3cq3 3.03
-	  //dphcut = 50; // 1767 dx3cq3 3.31
-
-	}
-
-	if( run >= 1789 ) {
-
-	  dphcut = 30; // gain_2, 1820: dx3cq3 5.07
-
-	  if( plane == B )
-	    //dphcut = 20; // 130i, 1820: dx3cq3 5.41
-	    dphcut = 30; // 130i, 1820: dx3cq3 5.07
-	  //dphcut = 40; // 130i, 1820: dx3cq3 5.2307
-
-	}
-
-	if( run >= 1823 ) { // fresh
-
-	  //dphcut = 20; // gain_2 1840: dx3cq3 4.6
-	  //dphcut = 30; // gain_2 1840: dx3cq3 4.04
-	  //dphcut = 40; // gain_2 1840: dx3cq3 3.91
-	  //dphcut = 50; // gain_2 1840: dx3cq3 3.99
-
-	  //dphcut = 20; // gain_2 1840: dx3cq3 3.92
-	  dphcut = 30; // gain_2 1840: dx3cq3 3.88
-	  if( plane == B )
-	    dphcut = 40; // gain_2 1840: dx3cq3 3.88
-	}
-
-	if( run >= 1842 ) {
-
-	  dphcut = 20; // gain_2 7.5
-	  //dphcut = 30; // gain_2 7.5
-	  //dphcut = 40; // gain_2 7.6
-
-	  if( plane == B )
-	    //dphcut = 15; // 133i 8.8
-	    //dphcut = 20; // 133i 7.7
-	    dphcut = 25; // 133i 7.5
-	  //dphcut = 30; // 133i 7.6
-	}
-
-	if( run >= 1865 ) { // fresh
-
-	  //dphcut = 15; // gain_2, 1894 dx3cq3 4.85 Tsunami corrected
-	  dphcut = 20; // gain_2, 1894 dx3cq3 4.65 Tsunami corrected
-	  //dphcut = 25; // gain_2, 1894 dx3cq3 4.74 Tsunami
-	  //dphcut = 30; // gain_2, 
-
-	}
-
-	if( dph > dphcut ) {
-
-	  hpxmap[plane]->Fill( col4, row4 );
-
-	  pixel px;
-
-	  if( fifty ) {
-	    px.col = col4;
-	    px.row = row4;
-	  }
-	  else{
-	    px.col = (col4+1)/2; // 100 um
-	    if( col4%2 ) 
-	      px.row = 2*row4 + 0;
-	    else
-	      px.row = 2*row4 + 1;
-	  }
-	  /*
-	    int ia = dph/300 * nb; // Landau peak at 200 ADC
-	    if( ia > nb-1 ) ia = nb-1; // overflow
-	    dph = ia * 300.0/nb; // bits
-	  */
-	  px.ph = dph;
-
-	  // r4scal.C
-
-	  double U = ( dph - p3[plane][col4][row4] ) / p2[plane][col4][row4];
-
-	  if( U >= 1 )
-	    U = 0.9999999; // avoid overflow
-
-	  double vcal = p0[plane][col4][row4] - p1[plane][col4][row4] * log( (1-U)/U ); // inverse Fermi
-
-	  px.q = ke[plane]*vcal;
-
-	  pb.push_back(px);
-
-	}
-
-      } // ipx
-
-      //if( ldb ) cout << " roi " << vpx.size() << ", hits " << pb.size() << endl;
-
-    } // filled
-
-    // clustering:
-
-    hnht[plane].Fill( pb.size() );
-
-    if( pb.size() > 50 ) pb.clear(); // speed
-
-    vcl = getClus(pb);
-
-    hncl[plane].Fill( vcl.size() );
-    if( vcl.size() )
-      if( ldb ) cout << "  clusters " << vcl.size() << endl;
-
-    for( unsigned icl = 0; icl < vcl.size(); ++icl ) {
-
-      hclmap[plane]->Fill( vcl[icl].col, vcl[icl].row );
-
-      hclph[plane].Fill( vcl[icl].sum );
-      hclq[plane].Fill( vcl[icl].q );
-
-      if( vcl[icl].sum > 55 ) hclsz[plane].Fill( vcl[icl].size );
-
-      // cluster isolation:
-
-      for( unsigned jcl = icl+1; jcl < vcl.size(); ++jcl ) {
-
-	bool done = 0;
-
-	for( unsigned ipx = 0; ipx < vcl[icl].vpix.size(); ++ipx ) {
-	  for( unsigned jpx = 0; jpx < vcl[jcl].vpix.size(); ++jpx )
-
-	    if( fabs( vcl[icl].vpix[ipx].col - vcl[jcl].vpix[jpx].col ) < 3 &&
-		fabs( vcl[icl].vpix[ipx].row - vcl[jcl].vpix[jpx].row ) < 3 ) {
-	      if( vcl[icl].q < vcl[jcl].q ) // Thu 22.3.2018
-		vcl[icl].iso = 0; // flag smaller cluster
-	      else
-		vcl[jcl].iso = 0;
-	      done = 1;
-	      break; // jpx
-	    }
-	  if( done ) break; // ipx
-
-	} // ipx
-
-      } // jcl
-
-    } // icl
-
-    evlist.push_back(vcl);
-    if( plane == A )
-      infoA.push_back(evinf);
-    else if( plane == B )
-      infoB.push_back(evinf);
-    else if( plane == C )
-      infoC.push_back(evinf);
-
-  } // events
-
-  cout << endl;
-  cout << "done " << Xfile << ", read " << evlist.size() << " events" << endl;
-
-  return evlist;
-
-} // oneplane
-
-//------------------------------------------------------------------------------
 int main( int argc, char* argv[] )
 {
 
@@ -1025,7 +510,7 @@ int main( int argc, char* argv[] )
     hpxmap[ipl] = new TH2I( Form( "pxmap%s", PN[ipl].c_str() ),
 			    Form( "%s pixel map, PH > cut;col;row;%s PH pixels",
 				  PN[ipl].c_str(), PN[ipl].c_str() ),
-			    155, -0.5, 154.5, 160, -0.5, 159.5 );
+			    r4sColumns, -0.5, 154.5, r4sRows, -0.5, 159.5 );
 
     hncl[ipl] = TH1I( Form( "ncl%s", PN[ipl].c_str() ),
 		      Form( "%s cluster per event;clusters;%s events",
@@ -2416,3 +1901,499 @@ int main( int argc, char* argv[] )
 
   return 0;
 }
+
+
+
+//------------------------------------------------------------------------------
+vector<cluster> getClus( vector <pixel> pb, int fCluCut ) // 1 = no gap
+{
+  // returns clusters with local coordinates
+  // next-neighbour topological clustering (allows fCluCut-1 empty pixels)
+
+  vector <cluster> v;
+  if( pb.size() == 0 ) return v;
+
+  int * gone = new int[pb.size()] {0};
+
+  unsigned seed = 0;
+
+  while( seed < pb.size() ) {
+
+    // start a new cluster:
+
+    cluster c;
+    c.vpix.push_back( pb[seed] );
+    gone[seed] = 1;
+
+    // let it grow as much as possible:
+
+    int growing;
+    do{
+      growing = 0;
+      for( unsigned i = 0; i < pb.size(); ++i ) {
+        if( !gone[i] ) { // unused pixel
+          for( unsigned int p = 0; p < c.vpix.size(); ++p ) { // vpix in cluster so far
+            int dr = c.vpix.at(p).row - pb[i].row;
+            int dc = c.vpix.at(p).col - pb[i].col;
+            if( ( dr >= -fCluCut ) && ( dr <= fCluCut ) &&
+		( dc >= -fCluCut ) && ( dc <= fCluCut ) ) {
+              c.vpix.push_back(pb[i]);
+	      gone[i] = 1;
+              growing = 1;
+              break; // p, important!
+            }
+          } // p loop over vpix
+        } // not gone
+      } // i loop over all pix
+    }
+    while( growing );
+
+    // added all I could. determine position and append it to the list of clusters:
+
+    c.sum = 0;
+    c.q = 0;
+    c.size = 0;
+    c.col = 0;
+    c.row = 0;
+    c.iso = 1;
+
+    for( vector<pixel>::iterator p = c.vpix.begin();  p != c.vpix.end();  ++p ) {
+      double ph = p->ph;
+      c.sum += ph;
+      double q = p->q;
+      c.q += q;
+      //c.col += (*p).col*ph;
+      //c.row += (*p).row*ph;
+      c.col += (*p).col*q;
+      c.row += (*p).row*q;
+    }
+
+    c.size = c.vpix.size();
+
+    //cout << "(cluster with " << c.vpix.size() << " pixels)" << endl;
+
+    //c.col /= c.sum;
+    //c.row /= c.sum;
+    c.col /= c.q;
+    c.row /= c.q;
+
+    v.push_back(c); // add cluster to vector
+
+    // look for a new seed = used pixel:
+
+    while( ( ++seed < pb.size() ) && gone[seed] );
+
+  } // while over seeds
+
+  // nothing left,  return clusters
+
+  delete gone;
+  return v;
+}//getClus
+
+
+list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bool fifty )
+{
+  int run = stoi( runnum );
+
+  list < vector < cluster > > evlist;
+  string datapath = "/mnt/pixeldata/";
+  string Xfile;
+  if( plane == A ) {
+    Xfile = datapath+"a/roi000" + runnum + ".txt";
+    if( run > 999 )
+      Xfile = datapath+"a/roi00" + runnum + ".txt";
+  }
+  if( plane == B ) {
+    Xfile = datapath+"b/roi000" + runnum + ".txt";
+    if( run > 999 )
+      Xfile = datapath+"b/roi00" + runnum + ".txt";
+  }
+  if( plane == C ) {
+    Xfile = datapath+"c/roi000" + runnum + ".txt";
+    if( run > 999 )
+      Xfile = datapath+"c/roi00" + runnum + ".txt";
+  }
+  // cout << "FOK " << access(Xfile.c_str(),F_OK) << endl;
+  // cout << "ROK " << access(Xfile.c_str(),R_OK) << endl;
+  cout << "try to open  " << Xfile;
+  ifstream Xstream( Xfile.c_str(), ifstream::in );
+  cout << " is opening good? " << Xstream.good() << endl;
+  if( !Xstream ) {
+    cout << " : failed " << endl;
+    return evlist;
+  }
+  cout << " : succeed " << endl;
+
+  string START {"START"};
+  string hd; // header
+
+  while( hd != START ) {
+    getline( Xstream, hd ); // read one line into string
+    cout << "  " << hd << endl;
+  }
+
+  string F {"F"}; // filled flag
+  string E {"E"}; // empty flag
+  string BLANK{" "};
+
+  bool ldb = 0;
+  uint64_t prevtime = 0;
+
+  while( Xstream.good() && ! Xstream.eof() &&
+	 evlist.size() < Nev ) {
+
+    string evseed;
+    getline( Xstream, evseed ); // read one line into string
+
+    istringstream iss( evseed ); // tokenize string
+    int iev;
+    iss >> iev;
+
+    if( iev%1000 == 0 )
+      cout << "  " << PN[plane] << " " << iev << flush;
+
+    string filled;
+    iss >> filled;
+
+    int iblk; // event block number: 100, 200, 300...
+    iss >> iblk;
+
+    uint64_t evtime = prevtime;
+
+    if( filled == F )
+      iss >> evtime; // from run 456
+
+    else if( filled == E )
+      iss >> evtime; // from run 456
+
+    vector <pixel> pb; // for clustering
+    vector <cluster> vcl;
+    evInfo evinf;
+    evinf.evtime = evtime;
+    evinf.filled = filled;
+    evinf.skip = 0;
+    prevtime = evtime;
+
+    if( filled == F ) {
+
+      string roi;
+      getline( Xstream, roi );
+
+      size_t start = 0;
+      size_t gap = 0;
+      unsigned ng = 0; // 3 per pix
+      string BLANK{" "};
+      while( gap < roi.size()-1 ) { // data have trailing blank
+	gap = roi.find( BLANK, start );
+	start = gap + BLANK.size();
+	++ng;
+      }
+      hnpx[plane].Fill( ng/3 );
+
+      vector <pixel> vpx;
+
+      if( ng/3 < 400 ) {
+
+	vpx.reserve(ng/3);
+
+	size_t start = 0;
+	size_t gap = 0;
+	while( gap < roi.size()-1 ) { // data have trailing blank
+
+	  gap = roi.find( BLANK, start );
+	  string s1( roi.substr( start, gap - start ) );
+	  //cout << " " << s1 << "(" << gap << ")";
+	  //int col = stoi(s1);
+	  int col = atoi( s1.c_str() ); // 4% faster
+	  //int col = fast_atoi( s1.c_str() ); // another 6% faster
+	  start = gap + BLANK.size();
+
+	  gap = roi.find( BLANK, start );
+	  string s2( roi.substr( start, gap - start ) );
+	  //cout << " " << s2 << "(" << gap << ")";
+	  //int row = stoi(s2);
+	  int row = atoi( s2.c_str() );
+	  //int row = fast_atoi( s2.c_str() );
+	  start = gap + BLANK.size();
+
+	  gap = roi.find( BLANK, start );
+	  string s3( roi.substr( start, gap - start ) );
+	  //cout << " " << s1 << "(" << gap << ")";
+	  //double ph = stod(s3);
+	  double ph = atof(s3.c_str());
+	  hph[plane].Fill( ph );
+	  start = gap + BLANK.size();
+
+	  pixel px { col, row, ph, ph };
+	  vpx.push_back(px); // comment out = no clustering
+
+	}
+	/* slower
+	  istringstream css( roi ); // tokenize string
+	  while( ! css.eof() ) {
+	  int col;
+	  int row;
+	  double ph;
+	  css >> col;
+	  css >> row;
+	  css >> ph;
+
+	  pixel px { col, row, ph, ph };
+	  vpx.push_back(px);
+
+	  hph[plane].Fill( ph );
+
+	  } // roi px
+	*/
+      } // size
+      else {
+	evinf.skip = 1;
+	cout << " (" << iev << ": B ROI " << ng/3 << " skip)";
+      }
+
+      // column-wise common mode correction:
+
+      double phprev = 0;
+      double dphprev = 0;
+
+      for( unsigned ipx = 0; ipx < vpx.size(); ++ipx ) {
+
+	int col4 = vpx[ipx].col;
+	int row4 = vpx[ipx].row;
+	double ph4 = vpx[ipx].ph;
+
+	int row1 = row4;
+	int row7 = row4;
+	double ph1 = ph4;
+	double ph7 = ph4;
+
+	for( unsigned jpx = 0; jpx < vpx.size(); ++jpx ) {
+
+	  if( jpx == ipx ) continue;
+	  if( vpx[jpx].col != col4 ) continue; // want same column
+
+	  int jrow = vpx[jpx].row;
+
+	  if( jrow < row1 ) {
+	    row1 = jrow;
+	    ph1 = vpx[jpx].ph;
+	  }
+
+	  if( jrow > row7 ) {
+	    row7 = jrow;
+	    ph7 = vpx[jpx].ph;
+	  }
+
+	} // jpx
+
+	if( row4 == row1 ) {
+	  phprev = ph1;
+	  continue; // Randpixel
+	}
+	if( row4 == row7 ) continue;
+
+	phvsprev[plane].Fill( phprev, ph4 );
+
+	if( run >= 1873 && run <= 1905 ) { // fresh
+	  if( plane == A )
+	    ph4 -= 0.17*phprev; // Tsunami
+	  if( plane == B )
+	    ph4 -= 0.14*phprev; // Tsunami
+	  if( plane == C )
+	    ph4 -= 0.15*phprev; // Tsunami
+	}
+
+	phprev = vpx[ipx].ph; // original ph4
+
+	double dph;
+	if( row4 - row1 < row7 - row4 )
+	  dph = ph4 - ph1;
+	else
+	  dph = ph4 - ph7;
+ 
+	hdph[plane].Fill( dph ); // sig 2.7
+
+	dphvsprev[plane].Fill( dphprev, dph );
+	dphprev = dph;
+
+	double dphcut = 12; // sig 4.5
+
+	if( run >= 1747 ) {
+
+	  dphcut = 40; // gain_2
+
+	  if( plane == B )
+	    dphcut = 30; // 136i
+	  //dphcut = 40; // 136i
+
+	}
+
+	if( run >= 1757 ) { // fresh
+
+	  //dphcut = 30; // gain_2 1767 dx3cq3 3.39
+	  dphcut = 40; // gain_2 1767 dx3cq3 3.18
+	  //dphcut = 50; // gain_2 1767 dx3cq3 3.31
+	  //dphcut = 60; // gain_2 1767 dx3cq3 
+
+	  if( plane == B )
+	    //dphcut = 30; // 1783 dx3cq3 3.10
+	    dphcut = 40; // 1783 dx3cq3 3.03
+	  //dphcut = 50; // 1767 dx3cq3 3.31
+
+	}
+
+	if( run >= 1789 ) {
+
+	  dphcut = 30; // gain_2, 1820: dx3cq3 5.07
+
+	  if( plane == B )
+	    //dphcut = 20; // 130i, 1820: dx3cq3 5.41
+	    dphcut = 30; // 130i, 1820: dx3cq3 5.07
+	  //dphcut = 40; // 130i, 1820: dx3cq3 5.2307
+
+	}
+
+	if( run >= 1823 ) { // fresh
+
+	  //dphcut = 20; // gain_2 1840: dx3cq3 4.6
+	  //dphcut = 30; // gain_2 1840: dx3cq3 4.04
+	  //dphcut = 40; // gain_2 1840: dx3cq3 3.91
+	  //dphcut = 50; // gain_2 1840: dx3cq3 3.99
+
+	  //dphcut = 20; // gain_2 1840: dx3cq3 3.92
+	  dphcut = 30; // gain_2 1840: dx3cq3 3.88
+	  if( plane == B )
+	    dphcut = 40; // gain_2 1840: dx3cq3 3.88
+	}
+
+	if( run >= 1842 ) {
+
+	  dphcut = 20; // gain_2 7.5
+	  //dphcut = 30; // gain_2 7.5
+	  //dphcut = 40; // gain_2 7.6
+
+	  if( plane == B )
+	    //dphcut = 15; // 133i 8.8
+	    //dphcut = 20; // 133i 7.7
+	    dphcut = 25; // 133i 7.5
+	  //dphcut = 30; // 133i 7.6
+	}
+
+	if( run >= 1865 ) { // fresh
+
+	  //dphcut = 15; // gain_2, 1894 dx3cq3 4.85 Tsunami corrected
+	  dphcut = 20; // gain_2, 1894 dx3cq3 4.65 Tsunami corrected
+	  //dphcut = 25; // gain_2, 1894 dx3cq3 4.74 Tsunami
+	  //dphcut = 30; // gain_2, 
+
+	}
+
+	if( dph > dphcut ) {
+
+	  hpxmap[plane]->Fill( col4, row4 );
+
+	  pixel px;
+
+	  if( fifty ) {
+	    px.col = col4;
+	    px.row = row4;
+	  }
+	  else{
+	    px.col = (col4+1)/2; // 100 um
+	    if( col4%2 ) 
+	      px.row = 2*row4 + 0;
+	    else
+	      px.row = 2*row4 + 1;
+	  }
+	  /*
+	    int ia = dph/300 * nb; // Landau peak at 200 ADC
+	    if( ia > nb-1 ) ia = nb-1; // overflow
+	    dph = ia * 300.0/nb; // bits
+	  */
+	  px.ph = dph;
+
+	  // r4scal.C
+
+	  double U = ( dph - p3[plane][col4][row4] ) / p2[plane][col4][row4];
+
+	  if( U >= 1 )
+	    U = 0.9999999; // avoid overflow
+
+	  double vcal = p0[plane][col4][row4] - p1[plane][col4][row4] * log( (1-U)/U ); // inverse Fermi
+
+	  px.q = ke[plane]*vcal;
+
+	  pb.push_back(px);
+
+	}
+
+      } // ipx
+
+      //if( ldb ) cout << " roi " << vpx.size() << ", hits " << pb.size() << endl;
+
+    } // filled
+
+    // clustering:
+
+    hnht[plane].Fill( pb.size() );
+
+    if( pb.size() > 50 ) pb.clear(); // speed
+
+    vcl = getClus(pb);
+
+    hncl[plane].Fill( vcl.size() );
+    if( vcl.size() )
+      if( ldb ) cout << "  clusters " << vcl.size() << endl;
+
+    for( unsigned icl = 0; icl < vcl.size(); ++icl ) {
+
+      hclmap[plane]->Fill( vcl[icl].col, vcl[icl].row );
+
+      hclph[plane].Fill( vcl[icl].sum );
+      hclq[plane].Fill( vcl[icl].q );
+
+      if( vcl[icl].sum > 55 ) hclsz[plane].Fill( vcl[icl].size );
+
+      // cluster isolation:
+
+      for( unsigned jcl = icl+1; jcl < vcl.size(); ++jcl ) {
+
+	bool done = 0;
+
+	for( unsigned ipx = 0; ipx < vcl[icl].vpix.size(); ++ipx ) {
+	  for( unsigned jpx = 0; jpx < vcl[jcl].vpix.size(); ++jpx )
+
+	    if( fabs( vcl[icl].vpix[ipx].col - vcl[jcl].vpix[jpx].col ) < 3 &&
+		fabs( vcl[icl].vpix[ipx].row - vcl[jcl].vpix[jpx].row ) < 3 ) {
+	      if( vcl[icl].q < vcl[jcl].q ) // Thu 22.3.2018
+		vcl[icl].iso = 0; // flag smaller cluster
+	      else
+		vcl[jcl].iso = 0;
+	      done = 1;
+	      break; // jpx
+	    }
+	  if( done ) break; // ipx
+
+	} // ipx
+
+      } // jcl
+
+    } // icl
+
+    evlist.push_back(vcl);
+    if( plane == A )
+      infoA.push_back(evinf);
+    else if( plane == B )
+      infoB.push_back(evinf);
+    else if( plane == C )
+      infoC.push_back(evinf);
+
+  } // events
+
+  cout << endl;
+  cout << "done " << Xfile << ", read " << evlist.size() << " events" << endl;
+
+  return evlist;
+
+} // oneplane
