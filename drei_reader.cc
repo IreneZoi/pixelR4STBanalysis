@@ -147,6 +147,89 @@ int main( int argc, char* argv[] )
   } // argc
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //ALIGN
+  
+  string alignpath = "align/";
+  int aligniteration = 0;
+
+  double alignxA = 0.0; // [mm] same sign as dx
+  double alignyA = 0.0; // [mm] same sign as dy
+  double alignfA = 0.0; // [rad] same sign dxvsy
+
+  double alignxC = 0.0; // [mm] same sign as dx
+  double alignyC = 0.0; // [mm] same sign as dy
+  double alignfC = 0.0; // [rad] same sign dxvsy
+
+  string alignFileName = alignpath+"align_" + runnum + ".dat";
+
+  ifstream alignFile( alignFileName );
+
+  cout << endl;
+
+  if( alignFile.bad() || ! alignFile.is_open() ) {
+    cout << "no " << alignFileName << ", will bootstrap" << endl;
+  }
+  else {
+
+    cout << "read alignment from " << alignFileName << endl;
+
+    string HASH( "#" );
+    string ITER( "iteration" );
+    string ALXA( "alignxA" );
+    string ALYA( "alignyA" );
+    string ALFA( "alignfA" );
+    string ALXC( "alignxC" );
+    string ALYC( "alignyC" );
+    string ALFC( "alignfC" );
+
+    while( ! alignFile.eof() ) {
+
+      string line;
+      getline( alignFile, line );
+      cout << line << endl;
+
+      if( line.empty() ) continue;
+
+      stringstream tokenizer( line );
+      string tag;
+      tokenizer >> tag; // leading white space is suppressed
+      if( tag.substr(0,1) == HASH ) // comments start with #
+	continue;
+
+      if( tag == ITER )
+	tokenizer >> aligniteration;
+
+      double val;
+      tokenizer >> val;
+      if(      tag == ALXA )
+	alignxA = val;
+      else if( tag == ALYA )
+	alignyA = val;
+      else if( tag == ALFA )
+	alignfA = val;
+      else if( tag == ALXC )
+	alignxC = val;
+      else if( tag == ALYC )
+	alignyC = val;
+      else if( tag == ALFC )
+	alignfC = val;
+
+      // anything else on the line and in the file gets ignored
+
+    } // while getline
+
+    alignFile.close();
+
+  } // alignFile
+
+  double cfA = cos(alignfA);
+  double sfA = sin(alignfA);
+  double cfC = cos(alignfC);
+  double sfC = sin(alignfC);
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // gains:
 
   //string gainA{ "A/r113-scancal-tb21-0921.dat"}; // lots of negative q
@@ -386,87 +469,6 @@ int main( int argc, char* argv[] )
 
   } // while
 
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-  string alignpath = "align/";
-  int aligniteration = 0;
-
-  double alignxA = 0.0; // [mm] same sign as dx
-  double alignyA = 0.0; // [mm] same sign as dy
-  double alignfA = 0.0; // [rad] same sign dxvsy
-
-  double alignxC = 0.0; // [mm] same sign as dx
-  double alignyC = 0.0; // [mm] same sign as dy
-  double alignfC = 0.0; // [rad] same sign dxvsy
-
-  string alignFileName = alignpath+"align_" + runnum + ".dat";
-
-  ifstream alignFile( alignFileName );
-
-  cout << endl;
-
-  if( alignFile.bad() || ! alignFile.is_open() ) {
-    cout << "no " << alignFileName << ", will bootstrap" << endl;
-  }
-  else {
-
-    cout << "read alignment from " << alignFileName << endl;
-
-    string HASH( "#" );
-    string ITER( "iteration" );
-    string ALXA( "alignxA" );
-    string ALYA( "alignyA" );
-    string ALFA( "alignfA" );
-    string ALXC( "alignxC" );
-    string ALYC( "alignyC" );
-    string ALFC( "alignfC" );
-
-    while( ! alignFile.eof() ) {
-
-      string line;
-      getline( alignFile, line );
-      cout << line << endl;
-
-      if( line.empty() ) continue;
-
-      stringstream tokenizer( line );
-      string tag;
-      tokenizer >> tag; // leading white space is suppressed
-      if( tag.substr(0,1) == HASH ) // comments start with #
-	continue;
-
-      if( tag == ITER )
-	tokenizer >> aligniteration;
-
-      double val;
-      tokenizer >> val;
-      if(      tag == ALXA )
-	alignxA = val;
-      else if( tag == ALYA )
-	alignyA = val;
-      else if( tag == ALFA )
-	alignfA = val;
-      else if( tag == ALXC )
-	alignxC = val;
-      else if( tag == ALYC )
-	alignyC = val;
-      else if( tag == ALFC )
-	alignfC = val;
-
-      // anything else on the line and in the file gets ignored
-
-    } // while getline
-
-    alignFile.close();
-
-  } // alignFile
-
-  double cfA = cos(alignfA);
-  double sfA = sin(alignfA);
-  double cfC = cos(alignfC);
-  double sfC = sin(alignfC);
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // (re-)create root file:
 
   TFile * histoFile = new TFile( Form( "/home/zoiirene/Output/drei-r%i.root", run ), "RECREATE" );
