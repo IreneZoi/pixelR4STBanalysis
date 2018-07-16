@@ -48,6 +48,7 @@
 
 
 using namespace std;
+bool PRINT = false;
 
 struct evInfo {
   uint64_t evtime;
@@ -164,9 +165,12 @@ int main( int argc, char* argv[] )
   double alignxC = 0.0; // [mm] same sign as dx
   double alignyC = 0.0; // [mm] same sign as dy
   double alignfC = 0.0; // [rad] same sign dxvsy
-  string gainA = {"a "};
+  string gainA = "a ";
   string gainB = "b ";
   string gainC = "c ";
+  double keA = 0.0;
+  double keB = 0.0;
+  double keC = 0.0;
 
   string alignFileName = "0";
   if(alignversion == 1)  
@@ -196,7 +200,10 @@ int main( int argc, char* argv[] )
     string GAINA( "gainA" );
     string GAINB( "gainB" );
     string GAINC( "gainC" );
-    
+    string KEA( "keA" );
+    string KEB( "keB" );
+    string KEC( "keC" );
+
     while( ! alignFile.eof() ) {
 
       string line;
@@ -214,11 +221,6 @@ int main( int argc, char* argv[] )
       if( tag == ITER )
 	tokenizer >> aligniteration;
 
-      double val;
-      string sval;
-      // // tokenizer >> val;
-      // // tokenizer >> sval;
-      // cout << tag << " " << val << " " << sval << endl;
       if( tag == ALXA )
 	tokenizer >>	alignxA; // = val;
       else if( tag == ALYA )
@@ -237,6 +239,12 @@ int main( int argc, char* argv[] )
 	tokenizer >> 	gainB;// = sval;
       else if( tag == GAINC )
 	tokenizer >> 	gainC;// = sval;
+      else if( tag == KEA )
+	tokenizer >> 	keA;// = sval;
+      else if( tag == KEB )
+	tokenizer >> 	keB;// = sval;
+      else if( tag == KEC )
+	tokenizer >> 	keC;// = sval;
 
 
       // anything else on the line and in the file gets ignored
@@ -251,72 +259,14 @@ int main( int argc, char* argv[] )
   double sfA = sin(alignfA);
   double cfC = cos(alignfC);
   double sfC = sin(alignfC);
-  cout << "Gains " <<  gainA << " " << gainB << " " << gainC << endl;
-  cout << " alignfA " << alignfA << endl;
+
+  if(PRINT)  cout << "Gains " <<  gainA << " " << gainB << " " << gainC << endl;
+  if(PRINT)  cout << " alignfA " << alignfA << endl;
   
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // gains:
-
-  // //string gainA{ "A/r113-scancal-tb21-0921.dat"}; // lots of negative q
-  // string gainA{ "/home/cmspix/A/r113-scancal-tb21-0923.dat"};
-  // if( run >=  423 ) gainA = "A/r113-scancal-tb21-0923.dat";
-  // if( run >=  430 ) gainA = "A/r112-scancal-tb21-0925.dat";
-  // if( run >=  439 ) gainA = "A/r113-scancal-tb21-0923.dat";
-  // if( run >=  866 ) gainA = "A/r109-scancal-tb21-1112.dat";
-  // if( run >=  998 ) gainA = "A/r146-scancal-tb21-1208.dat";
-  // if( run >= 1010 ) gainA = "A/r163-scancal-tb21-1209.dat";
-  // if( run >= 1024 ) gainA = "A/r158-scancal-tb21-1210.dat";
-  // if( run >= 1037 ) gainA = "A/r152-scancal-tb21-1211.dat";
-  // if( run >= 1037 ) gainA = "A/r152-scancal-tb21-1211.dat";
-  // if( run >= 1747 ) gainA = "A/scm108-scancal-tb21-drei-2018-03-11-hold20.dat";
-  // if( run >= 1757 ) gainA = "A/scm146-scancal2-2018-03-12-hold20.dat";
-  // if( run >= 1784 ) gainA = "A/scm146-scancal2-drei-pr650-sh630-hold17.dat";
-  // if( run >= 1787 ) gainA = "B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
-  // if( run >= 1823 ) gainA = "/home/cmspix/r4sclient/B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
-  // if( run >= 1842 ) gainA = "A/scm152-scancal2-drei-2018-03-16-hold20.dat";
-  // if( run >= 1865 ) gainA = "A/scm152-scancal2-drei-warm-2018-03-16-hold20.dat";
-  // if( run >= 1872 ) gainA = "/home/cmspix/r4sclient/A/scm160-scancal2-drei-warm-2018-03-17-hold20.dat";
-
-  ke[A] = 0.039; // Landau peak at 11 ke
-  if( run >= 423 ) ke[A] = 0.0396; // Landau peak at 11 ke
-  if( run >= 432 ) ke[A] = 0.039; // r112
-  if( run >= 866 ) ke[A] = 0.038; // r109
-  if( run >= 998 ) ke[A] = 0.0354; // r146
-  if( run >= 1010 ) ke[A] = 0.0356; // r163
-  if( run >= 1024 ) ke[A] = 0.0285; // r158 thicker deep diff at 11 ke
-  if( run >= 1037 ) ke[A] = 0.0283; // r152 thicker deep diff at 11 ke
-  if( run >= 1747 ) ke[A] = 0.035;
-  //if( run >= 1757 ) ke[A] = 0.0374; // 11 ke dphcut 30
-  if( run >= 1757 ) ke[A] = 0.0390; // 11 ke dphcut 40
-  if( run >= 1764 ) ke[A] = 0.0386; // 11 ke turn  7
-  if( run >= 1765 ) ke[A] = 0.0384; // 11 ke turn  8
-  if( run >= 1766 ) ke[A] = 0.0382; // 11 ke turn  9
-  if( run >= 1767 ) ke[A] = 0.0379; // 11 ke turn 10
-  if( run >= 1768 ) ke[A] = 0.0375; // 11 ke turn 11
-  if( run >= 1769 ) ke[A] = 0.0371; // 11 ke turn 12
-  if( run >= 1770 ) ke[A] = 0.0369; // 11 ke turn 13
-  if( run >= 1771 ) ke[A] = 0.0365; // 11 ke turn 14
-  if( run >= 1772 ) ke[A] = 0.0361; // 11 ke turn 15
-  if( run >= 1773 ) ke[A] = 0.0355; // 11 ke turn 16
-  if( run >= 1774 ) ke[A] = 0.0350; // 11 ke turn 17
-  if( run >= 1775 ) ke[A] = 0.0344; // 11 ke turn 18
-  if( run >= 1776 ) ke[A] = 0.0337; // 11 ke turn 19
-  if( run >= 1777 ) ke[A] = 0.0331; // 11 ke turn 20
-  if( run >= 1778 ) ke[A] = 0.0345; // 11 ke turn
-  if( run >= 1779 ) ke[A] = 0.0379; // 11 ke turn
-  if( run >= 1780 ) ke[A] = 0.0375; // 11 ke turn
-  if( run >= 1781 ) ke[A] = 0.0381; // 11 ke turn
-  if( run >= 1782 ) ke[A] = 0.0381; // 11 ke turn
-  if( run >= 1784 ) ke[A] = 0.0400; // 11 ke 146
-  if( run >= 1787 ) ke[A] = 0.0513; // 11 ke 148
-  if( run >= 1789 ) ke[A] = 0.0505; // 11 ke 148 with cold 130i
-  if( run >= 1823 ) ke[A] = 0.0511; // 11 ke 148 with warm 108
-  if( run >= 1842 ) ke[A] = 0.0353; // 11 ke 152
-  if( run >= 1865 ) ke[A] = 0.0380; // 11 ke 152
-  if( run >= 1872 ) ke[A] = 0.0605; // 11 ke 160 dph>25
-  if( run >= 1872 ) ke[A] = 0.0624; // 11 ke 160 Tsunami
+  ke[A] = keA; // Landau peak at 11 ke
+  ke[B] = keB; // Landau peak at 11 ke
+  ke[C] = keC; // Landau peak at 11 ke
 
   ifstream gainFileA( gainA );
 
@@ -338,75 +288,6 @@ int main( int argc, char* argv[] )
 
   } // while
 
-  // B:
-
-  // string gainB{ "B/r108-scancal-tb21-0921.dat" };
-  // //if( run >= 423 ) gainB = "B/r108-scancal-tb21-0923-hold24.dat";
-  // if( run >=  423 ) gainB = "B/r108-scancal-tb21-0923-hold25.dat";
-  // if( run >=  430 ) gainB = "A/r117-scancal-tb21-1005.dat";
-  // if( run >=  432 ) gainB = "B/r110-scancal-tb21-0925-hold25.dat"; // 12.6 ke
-  // //if( run >= 432 ) gainB = "B/r110-scancal-tb21-0925-hold26.dat"; // 12.0 ke
-  // if( run >=  444 ) gainB = "B/r110-scancal-tb21-0928-hold24.dat";
-  // if( run >=  866 ) gainB = "B/r148-scancal-tb21-1112.dat";
-  // if( run >=  998 ) gainB = "B/r150-scancal-tb21-1208.dat";
-  // if( run >= 1010 ) gainB = "B/r146-scancal-tb21-1208.dat";
-  // if( run >= 1024 ) gainB = "B/r152-scancal-tb21-1210.dat";
-  // if( run >= 1037 ) gainB = "B/r160-scancal-tb21-2017-12-11.dat";
-  // if( run >= 1747 ) gainB = "B/scm136i-scancal2-tb21-icy-drei-2018-03-11-hold20.dat";
-  // if( run >= 1757 ) gainB = "B/scm148-scancal2-2018-03-12-hold16.dat";
-  // if( run >= 1782 ) gainB = "B/scm148-scancal2-2018-03-12-hold24.dat";
-  // if( run >= 1784 ) gainB = "B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
-  // if( run >= 1787 ) gainB = "A/scm146-scancal2-drei-pr650-sh630-hold17.dat";
-  // if( run >= 1789 ) gainB = "B/scm130i-scancal2-drei-icy-pr800-sh600-ia119-2018-03-13-hold20.dat";
-  // if( run >= 1798 ) gainB = "B/scm130i-scancal2-drei-icy-pr800-sh600-ia125-2018-03-13-hold16.dat";
-  // //  if( run >= 1823 ) gainB = "/home/cmspix/r4sclient/B/c108-scancal2-tb21-2018-02-24-ia125-hold24.dat";
-  // if( run >= 1823 ) gainB = "/home/cmspix/r4sclient/B/scm108-scancal2-drei-2018-3-15-hold24.dat";
-  // if( run >= 1842 ) gainB = "B/scm133-scancal2-drei-icy-2018-3-16-hold20.dat";
-  // if( run >= 1865 ) gainB = "B/scm102-scancal2-drei-warm-2018-03-16-hold20.dat";
-  // if( run >= 1872 ) gainB = "/home/cmspix/r4sclient/B/scm159-scancal2-drei-warm-2018-03-17-pr650-sh700-hold20.dat";
-  // //  if( run >= 1872 ) gainB = "/home/cmspix/r4sclient/A/scm159-scancal1-tb21-pr900-sh670-ia125-vb120-hold24.dat";
-
-  ke[B] = 0.0276; // Landau peak at 11 ke
-  if( run >= 423 ) ke[B] = 0.026;
-  if( run >= 432 ) ke[B] = 0.0326; // r110
-  if( run >= 443 ) ke[B] = 0.036; // cmspixel-daq
-  if( run >= 866 ) ke[B] = 0.029; // c148
-  if( run >= 998 ) ke[B] = 0.0264; // c150 clcut 2
-  if( run >= 1010 ) ke[B] = 0.033; // r146
-  if( run >= 1024 ) ke[B] = 0.0228; // r152 thicker deep diff at 11 ke
-  if( run >= 1037 ) ke[B] = 0.029; // r160
-  if( run >= 1747 ) ke[B] = 0.035; // default
-  //if( run >= 1757 ) ke[B] = 0.0289; // 11 ke 148 dphcut 30
-  if( run >= 1757 ) ke[B] = 0.0307; // 11 ke 148 dphcut 40
-  if( run >= 1763 ) ke[B] = 0.0300; // 11 ke turn
-  if( run >= 1764 ) ke[B] = 0.0293; // 11 ke turn
-  if( run >= 1765 ) ke[B] = 0.0288; // 11 ke turn
-  if( run >= 1766 ) ke[B] = 0.0281; // 11 ke turn
-  if( run >= 1767 ) ke[B] = 0.0274; // 11 ke turn
-  if( run >= 1768 ) ke[B] = 0.0267; // 11 ke turn
-  if( run >= 1769 ) ke[B] = 0.0263; // 11 ke turn
-  if( run >= 1770 ) ke[B] = 0.0260; // 11 ke turn
-  if( run >= 1771 ) ke[B] = 0.0255; // 11 ke turn
-  if( run >= 1772 ) ke[B] = 0.0251; // 11 ke turn
-  if( run >= 1773 ) ke[B] = 0.0245; // 11 ke turn
-  if( run >= 1774 ) ke[B] = 0.0240; // 11 ke turn
-  if( run >= 1775 ) ke[B] = 0.0234; // 11 ke turn
-  if( run >= 1776 ) ke[B] = 0.0227; // 11 ke turn
-  if( run >= 1777 ) ke[B] = 0.0223; // 11 ke turn
-  if( run >= 1778 ) ke[B] = 0.0235; // 11 ke turn
-  if( run >= 1779 ) ke[B] = 0.0269; // 11 ke turn
-  if( run >= 1780 ) ke[B] = 0.0266; // 11 ke turn
-  if( run >= 1781 ) ke[B] = 0.0276; // 11 ke turn
-  if( run >= 1782 ) ke[B] = 0.0307; // 11 ke
-  if( run >= 1783 ) ke[B] = 0.0307; // 11 ke
-  if( run >= 1784 ) ke[B] = 0.0505; // 11 ke 148
-  if( run >= 1787 ) ke[B] = 0.0402; // 11 ke 146
-  if( run >= 1789 ) ke[B] = 0.035; // default
-  if( run >= 1823 ) ke[B] = 0.0385; // 11 ke 108
-  if( run >= 1842 ) ke[B] = 0.035; // default
-  if( run >= 1865 ) ke[B] = 0.038; // 11 ke 102
-  if( run >= 1872 ) ke[B] = 0.0377; // 11 ke 159 dph>25
-  if( run >= 1872 ) ke[B] = 0.0401; // 11 ke 159 Tsunami
 
   ifstream gainFileB( gainB );
 
@@ -428,53 +309,6 @@ int main( int argc, char* argv[] )
 
   } // while
 
-  // C:
-
-  // string gainC{ "C/r110-scancal-tb21-0921.dat" };
-  // if( run >= 423 ) gainC = "C/r110-scancal-tb21-0923-hold25.dat";
-  // //if( run >= 432 ) gainC = "C/r114-scancal-tb21-0925-hold24.dat"; // 14.9
-  // if( run >= 432 ) gainC = "C/r114-scancal-tb21-0925-hold25.dat"; // 15.2
-  // //if( run >= 432 ) gainC = "C/r114-scancal-tb21-0925-hold26.dat"; // 14.9
-  // if( run >= 866 ) gainC = "C/r110-scancal-tb21-1112.dat";
-  // if( run >= 998 ) gainC = "C/r148-scancal-tb21-1208.dat";
-  // if( run >= 1024 ) gainC = "C/r159-scancal-tb21-1210.dat";
-  // if( run >= 1747 ) gainC = "C/scm109-scancal2-tb21-drei-2018-03-11-hold20.dat";
-  // if( run >= 1757 ) gainC = "C/scm109-scancal2-tb21-drei-2018-03-12-hold20.dat";
-  // if( run >= 1784 ) gainC = "C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat";
-  // if( run >= 1823 ) gainC = "/home/cmspix/r4sclient/C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat";
-  // if( run >= 1842 ) gainC = "C/scm159-scancal2-drei-2018-3-16-hold20.dat";
-  // if( run >= 1865 ) gainC = "C/scm159-scancal2-drei-warm-2018-03-16-hold20.dat";
-  // if( run >= 1872 ) gainC = "/home/cmspix/r4sclient/C/scm102-scanhold-drei-warm-2018-03-17-hold20.dat";
-
-  ke[C] = 0.0366; // Landau peak at 11 ke
-  if( run >=  432 ) ke[C] = 0.028; // Landau peak at 11 ke
-  if( run >=  866 ) ke[C] = 0.034; // c110
-  if( run >=  998 ) ke[C] = 0.041; // c148
-  if( run >= 1024 ) ke[C] = 0.039; // c159
-  if( run >= 1747 ) ke[C] = 0.040; // c109
-  if( run >= 1757 ) ke[C] = 0.0393; // c109
-  if( run >= 1758 ) ke[C] = 0.0398; // c109
-  if( run >= 1768 ) ke[C] = 0.0393; // c109 turn
-  if( run >= 1769 ) ke[C] = 0.0391; // c109 turn
-  if( run >= 1770 ) ke[C] = 0.0388; // c109 turn
-  if( run >= 1771 ) ke[C] = 0.0386; // c109 turn
-  if( run >= 1772 ) ke[C] = 0.0383; // c109 turn
-  if( run >= 1773 ) ke[C] = 0.0379; // c109 turn
-  if( run >= 1774 ) ke[C] = 0.0374; // c109 turn
-  if( run >= 1775 ) ke[C] = 0.0370; // c109 turn
-  if( run >= 1776 ) ke[C] = 0.0364; // c109 turn
-  if( run >= 1777 ) ke[C] = 0.0359; // c109 turn
-  if( run >= 1778 ) ke[C] = 0.0367; // c109 turn
-  if( run >= 1779 ) ke[C] = 0.0392; // c109 turn
-  if( run >= 1780 ) ke[C] = 0.0392; // c109 turn
-  if( run >= 1781 ) ke[C] = 0.0395; // c109 turn
-  if( run >= 1782 ) ke[C] = 0.0395; // c109 turn
-  if( run >= 1784 ) ke[C] = 0.0422; // c109 turn
-  if( run >= 1823 ) ke[C] = 0.0463; // c109 with warm 108
-  if( run >= 1842 ) ke[C] = 0.0404; // c159
-  if( run >= 1865 ) ke[C] = 0.042; // c159
-  if( run >= 1872 ) ke[C] = 0.0416; // c102 dph>25
-  if( run >= 1872 ) ke[C] = 0.0429; // c102 Tsunami
 
   ifstream gainFileC( gainC );
 
