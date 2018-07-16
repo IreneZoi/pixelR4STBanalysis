@@ -164,6 +164,9 @@ int main( int argc, char* argv[] )
   double alignxC = 0.0; // [mm] same sign as dx
   double alignyC = 0.0; // [mm] same sign as dy
   double alignfC = 0.0; // [rad] same sign dxvsy
+  string gainA = {"a "};
+  string gainB = "b ";
+  string gainC = "c ";
 
   string alignFileName = "0";
   if(alignversion == 1)  
@@ -190,7 +193,10 @@ int main( int argc, char* argv[] )
     string ALXC( "alignxC" );
     string ALYC( "alignyC" );
     string ALFC( "alignfC" );
-
+    string GAINA( "gainA" );
+    string GAINB( "gainB" );
+    string GAINC( "gainC" );
+    
     while( ! alignFile.eof() ) {
 
       string line;
@@ -209,19 +215,29 @@ int main( int argc, char* argv[] )
 	tokenizer >> aligniteration;
 
       double val;
-      tokenizer >> val;
+      string sval;
+      // // tokenizer >> val;
+      // // tokenizer >> sval;
+      // cout << tag << " " << val << " " << sval << endl;
       if( tag == ALXA )
-	alignxA = val;
+	tokenizer >>	alignxA; // = val;
       else if( tag == ALYA )
-	alignyA = val;
+	tokenizer >> 	alignyA;// = val;
       else if( tag == ALFA )
-	alignfA = val;
+	tokenizer >> 	alignfA;// = val;
       else if( tag == ALXC )
-	alignxC = val;
+	tokenizer >> 	alignxC;// = val;
       else if( tag == ALYC )
-	alignyC = val;
+	tokenizer >> 	alignyC;// = val;
       else if( tag == ALFC )
-	alignfC = val;
+	tokenizer >> 	alignfC;// = val;
+      else if( tag == GAINA )
+	tokenizer >> 	gainA;// = sval;
+      else if( tag == GAINB )
+	tokenizer >> 	gainB;// = sval;
+      else if( tag == GAINC )
+	tokenizer >> 	gainC;// = sval;
+
 
       // anything else on the line and in the file gets ignored
 
@@ -235,31 +251,33 @@ int main( int argc, char* argv[] )
   double sfA = sin(alignfA);
   double cfC = cos(alignfC);
   double sfC = sin(alignfC);
-
+  cout << "Gains " <<  gainA << " " << gainB << " " << gainC << endl;
+  cout << " alignfA " << alignfA << endl;
+  
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // gains:
 
-  //string gainA{ "A/r113-scancal-tb21-0921.dat"}; // lots of negative q
-  string gainA{ "/home/cmspix/A/r113-scancal-tb21-0923.dat"};
-  if( run >=  423 ) gainA = "A/r113-scancal-tb21-0923.dat";
-  if( run >=  430 ) gainA = "A/r112-scancal-tb21-0925.dat";
-  if( run >=  439 ) gainA = "A/r113-scancal-tb21-0923.dat";
-  if( run >=  866 ) gainA = "A/r109-scancal-tb21-1112.dat";
-  if( run >=  998 ) gainA = "A/r146-scancal-tb21-1208.dat";
-  if( run >= 1010 ) gainA = "A/r163-scancal-tb21-1209.dat";
-  if( run >= 1024 ) gainA = "A/r158-scancal-tb21-1210.dat";
-  if( run >= 1037 ) gainA = "A/r152-scancal-tb21-1211.dat";
-  if( run >= 1037 ) gainA = "A/r152-scancal-tb21-1211.dat";
-  if( run >= 1747 ) gainA = "A/scm108-scancal-tb21-drei-2018-03-11-hold20.dat";
-  if( run >= 1757 ) gainA = "A/scm146-scancal2-2018-03-12-hold20.dat";
-  if( run >= 1784 ) gainA = "A/scm146-scancal2-drei-pr650-sh630-hold17.dat";
-  if( run >= 1787 ) gainA = "B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
-  if( run >= 1823 ) gainA = "/home/cmspix/r4sclient/B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
-  if( run >= 1842 ) gainA = "A/scm152-scancal2-drei-2018-03-16-hold20.dat";
-  if( run >= 1865 ) gainA = "A/scm152-scancal2-drei-warm-2018-03-16-hold20.dat";
-  if( run >= 1872 ) gainA = "/home/cmspix/r4sclient/A/scm160-scancal2-drei-warm-2018-03-17-hold20.dat";
+  // //string gainA{ "A/r113-scancal-tb21-0921.dat"}; // lots of negative q
+  // string gainA{ "/home/cmspix/A/r113-scancal-tb21-0923.dat"};
+  // if( run >=  423 ) gainA = "A/r113-scancal-tb21-0923.dat";
+  // if( run >=  430 ) gainA = "A/r112-scancal-tb21-0925.dat";
+  // if( run >=  439 ) gainA = "A/r113-scancal-tb21-0923.dat";
+  // if( run >=  866 ) gainA = "A/r109-scancal-tb21-1112.dat";
+  // if( run >=  998 ) gainA = "A/r146-scancal-tb21-1208.dat";
+  // if( run >= 1010 ) gainA = "A/r163-scancal-tb21-1209.dat";
+  // if( run >= 1024 ) gainA = "A/r158-scancal-tb21-1210.dat";
+  // if( run >= 1037 ) gainA = "A/r152-scancal-tb21-1211.dat";
+  // if( run >= 1037 ) gainA = "A/r152-scancal-tb21-1211.dat";
+  // if( run >= 1747 ) gainA = "A/scm108-scancal-tb21-drei-2018-03-11-hold20.dat";
+  // if( run >= 1757 ) gainA = "A/scm146-scancal2-2018-03-12-hold20.dat";
+  // if( run >= 1784 ) gainA = "A/scm146-scancal2-drei-pr650-sh630-hold17.dat";
+  // if( run >= 1787 ) gainA = "B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
+  // if( run >= 1823 ) gainA = "/home/cmspix/r4sclient/B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
+  // if( run >= 1842 ) gainA = "A/scm152-scancal2-drei-2018-03-16-hold20.dat";
+  // if( run >= 1865 ) gainA = "A/scm152-scancal2-drei-warm-2018-03-16-hold20.dat";
+  // if( run >= 1872 ) gainA = "/home/cmspix/r4sclient/A/scm160-scancal2-drei-warm-2018-03-17-hold20.dat";
 
   ke[A] = 0.039; // Landau peak at 11 ke
   if( run >= 423 ) ke[A] = 0.0396; // Landau peak at 11 ke
@@ -322,31 +340,31 @@ int main( int argc, char* argv[] )
 
   // B:
 
-  string gainB{ "B/r108-scancal-tb21-0921.dat" };
-  //if( run >= 423 ) gainB = "B/r108-scancal-tb21-0923-hold24.dat";
-  if( run >=  423 ) gainB = "B/r108-scancal-tb21-0923-hold25.dat";
-  if( run >=  430 ) gainB = "A/r117-scancal-tb21-1005.dat";
-  if( run >=  432 ) gainB = "B/r110-scancal-tb21-0925-hold25.dat"; // 12.6 ke
-  //if( run >= 432 ) gainB = "B/r110-scancal-tb21-0925-hold26.dat"; // 12.0 ke
-  if( run >=  444 ) gainB = "B/r110-scancal-tb21-0928-hold24.dat";
-  if( run >=  866 ) gainB = "B/r148-scancal-tb21-1112.dat";
-  if( run >=  998 ) gainB = "B/r150-scancal-tb21-1208.dat";
-  if( run >= 1010 ) gainB = "B/r146-scancal-tb21-1208.dat";
-  if( run >= 1024 ) gainB = "B/r152-scancal-tb21-1210.dat";
-  if( run >= 1037 ) gainB = "B/r160-scancal-tb21-2017-12-11.dat";
-  if( run >= 1747 ) gainB = "B/scm136i-scancal2-tb21-icy-drei-2018-03-11-hold20.dat";
-  if( run >= 1757 ) gainB = "B/scm148-scancal2-2018-03-12-hold16.dat";
-  if( run >= 1782 ) gainB = "B/scm148-scancal2-2018-03-12-hold24.dat";
-  if( run >= 1784 ) gainB = "B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
-  if( run >= 1787 ) gainB = "A/scm146-scancal2-drei-pr650-sh630-hold17.dat";
-  if( run >= 1789 ) gainB = "B/scm130i-scancal2-drei-icy-pr800-sh600-ia119-2018-03-13-hold20.dat";
-  if( run >= 1798 ) gainB = "B/scm130i-scancal2-drei-icy-pr800-sh600-ia125-2018-03-13-hold16.dat";
-  //  if( run >= 1823 ) gainB = "/home/cmspix/r4sclient/B/c108-scancal2-tb21-2018-02-24-ia125-hold24.dat";
-  if( run >= 1823 ) gainB = "/home/cmspix/r4sclient/B/scm108-scancal2-drei-2018-3-15-hold24.dat";
-  if( run >= 1842 ) gainB = "B/scm133-scancal2-drei-icy-2018-3-16-hold20.dat";
-  if( run >= 1865 ) gainB = "B/scm102-scancal2-drei-warm-2018-03-16-hold20.dat";
-  if( run >= 1872 ) gainB = "/home/cmspix/r4sclient/B/scm159-scancal2-drei-warm-2018-03-17-pr650-sh700-hold20.dat";
-  //  if( run >= 1872 ) gainB = "/home/cmspix/r4sclient/A/scm159-scancal1-tb21-pr900-sh670-ia125-vb120-hold24.dat";
+  // string gainB{ "B/r108-scancal-tb21-0921.dat" };
+  // //if( run >= 423 ) gainB = "B/r108-scancal-tb21-0923-hold24.dat";
+  // if( run >=  423 ) gainB = "B/r108-scancal-tb21-0923-hold25.dat";
+  // if( run >=  430 ) gainB = "A/r117-scancal-tb21-1005.dat";
+  // if( run >=  432 ) gainB = "B/r110-scancal-tb21-0925-hold25.dat"; // 12.6 ke
+  // //if( run >= 432 ) gainB = "B/r110-scancal-tb21-0925-hold26.dat"; // 12.0 ke
+  // if( run >=  444 ) gainB = "B/r110-scancal-tb21-0928-hold24.dat";
+  // if( run >=  866 ) gainB = "B/r148-scancal-tb21-1112.dat";
+  // if( run >=  998 ) gainB = "B/r150-scancal-tb21-1208.dat";
+  // if( run >= 1010 ) gainB = "B/r146-scancal-tb21-1208.dat";
+  // if( run >= 1024 ) gainB = "B/r152-scancal-tb21-1210.dat";
+  // if( run >= 1037 ) gainB = "B/r160-scancal-tb21-2017-12-11.dat";
+  // if( run >= 1747 ) gainB = "B/scm136i-scancal2-tb21-icy-drei-2018-03-11-hold20.dat";
+  // if( run >= 1757 ) gainB = "B/scm148-scancal2-2018-03-12-hold16.dat";
+  // if( run >= 1782 ) gainB = "B/scm148-scancal2-2018-03-12-hold24.dat";
+  // if( run >= 1784 ) gainB = "B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat";
+  // if( run >= 1787 ) gainB = "A/scm146-scancal2-drei-pr650-sh630-hold17.dat";
+  // if( run >= 1789 ) gainB = "B/scm130i-scancal2-drei-icy-pr800-sh600-ia119-2018-03-13-hold20.dat";
+  // if( run >= 1798 ) gainB = "B/scm130i-scancal2-drei-icy-pr800-sh600-ia125-2018-03-13-hold16.dat";
+  // //  if( run >= 1823 ) gainB = "/home/cmspix/r4sclient/B/c108-scancal2-tb21-2018-02-24-ia125-hold24.dat";
+  // if( run >= 1823 ) gainB = "/home/cmspix/r4sclient/B/scm108-scancal2-drei-2018-3-15-hold24.dat";
+  // if( run >= 1842 ) gainB = "B/scm133-scancal2-drei-icy-2018-3-16-hold20.dat";
+  // if( run >= 1865 ) gainB = "B/scm102-scancal2-drei-warm-2018-03-16-hold20.dat";
+  // if( run >= 1872 ) gainB = "/home/cmspix/r4sclient/B/scm159-scancal2-drei-warm-2018-03-17-pr650-sh700-hold20.dat";
+  // //  if( run >= 1872 ) gainB = "/home/cmspix/r4sclient/A/scm159-scancal1-tb21-pr900-sh670-ia125-vb120-hold24.dat";
 
   ke[B] = 0.0276; // Landau peak at 11 ke
   if( run >= 423 ) ke[B] = 0.026;
@@ -412,21 +430,21 @@ int main( int argc, char* argv[] )
 
   // C:
 
-  string gainC{ "C/r110-scancal-tb21-0921.dat" };
-  if( run >= 423 ) gainC = "C/r110-scancal-tb21-0923-hold25.dat";
-  //if( run >= 432 ) gainC = "C/r114-scancal-tb21-0925-hold24.dat"; // 14.9
-  if( run >= 432 ) gainC = "C/r114-scancal-tb21-0925-hold25.dat"; // 15.2
-  //if( run >= 432 ) gainC = "C/r114-scancal-tb21-0925-hold26.dat"; // 14.9
-  if( run >= 866 ) gainC = "C/r110-scancal-tb21-1112.dat";
-  if( run >= 998 ) gainC = "C/r148-scancal-tb21-1208.dat";
-  if( run >= 1024 ) gainC = "C/r159-scancal-tb21-1210.dat";
-  if( run >= 1747 ) gainC = "C/scm109-scancal2-tb21-drei-2018-03-11-hold20.dat";
-  if( run >= 1757 ) gainC = "C/scm109-scancal2-tb21-drei-2018-03-12-hold20.dat";
-  if( run >= 1784 ) gainC = "C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat";
-  if( run >= 1823 ) gainC = "/home/cmspix/r4sclient/C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat";
-  if( run >= 1842 ) gainC = "C/scm159-scancal2-drei-2018-3-16-hold20.dat";
-  if( run >= 1865 ) gainC = "C/scm159-scancal2-drei-warm-2018-03-16-hold20.dat";
-  if( run >= 1872 ) gainC = "/home/cmspix/r4sclient/C/scm102-scanhold-drei-warm-2018-03-17-hold20.dat";
+  // string gainC{ "C/r110-scancal-tb21-0921.dat" };
+  // if( run >= 423 ) gainC = "C/r110-scancal-tb21-0923-hold25.dat";
+  // //if( run >= 432 ) gainC = "C/r114-scancal-tb21-0925-hold24.dat"; // 14.9
+  // if( run >= 432 ) gainC = "C/r114-scancal-tb21-0925-hold25.dat"; // 15.2
+  // //if( run >= 432 ) gainC = "C/r114-scancal-tb21-0925-hold26.dat"; // 14.9
+  // if( run >= 866 ) gainC = "C/r110-scancal-tb21-1112.dat";
+  // if( run >= 998 ) gainC = "C/r148-scancal-tb21-1208.dat";
+  // if( run >= 1024 ) gainC = "C/r159-scancal-tb21-1210.dat";
+  // if( run >= 1747 ) gainC = "C/scm109-scancal2-tb21-drei-2018-03-11-hold20.dat";
+  // if( run >= 1757 ) gainC = "C/scm109-scancal2-tb21-drei-2018-03-12-hold20.dat";
+  // if( run >= 1784 ) gainC = "C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat";
+  // if( run >= 1823 ) gainC = "/home/cmspix/r4sclient/C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat";
+  // if( run >= 1842 ) gainC = "C/scm159-scancal2-drei-2018-3-16-hold20.dat";
+  // if( run >= 1865 ) gainC = "C/scm159-scancal2-drei-warm-2018-03-16-hold20.dat";
+  // if( run >= 1872 ) gainC = "/home/cmspix/r4sclient/C/scm102-scanhold-drei-warm-2018-03-17-hold20.dat";
 
   ke[C] = 0.0366; // Landau peak at 11 ke
   if( run >=  432 ) ke[C] = 0.028; // Landau peak at 11 ke
