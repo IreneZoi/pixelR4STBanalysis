@@ -38,13 +38,14 @@
 #include <TProfile2D.h>
 #include <TF1.h>
 
-#define halfSensorX 4.0
-#define halfSensorY 3.9
-#define ACspacing 40 //[mm]
-
 #define DreiMasterPlanes 3
 #define r4sRows 160
 #define r4sColumns 155
+
+#define halfSensorX 4.0
+#define halfSensorY 3.9
+#define ACspacing 40 //[mm] distance between planes A and C in the dreimaster
+
 
 using namespace std;
 
@@ -75,10 +76,10 @@ const int B{1};
 const int C{2};
 string PN[]{"A","B","C"};
 
-double p0[DreiMasterPlanes][r4sColumns][160]; // Fermi
-double p1[DreiMasterPlanes][r4sColumns][160];
-double p2[DreiMasterPlanes][r4sColumns][160];
-double p3[DreiMasterPlanes][r4sColumns][160];
+double p0[DreiMasterPlanes][r4sColumns][r4sRows]; // Fermi
+double p1[DreiMasterPlanes][r4sColumns][r4sRows];
+double p2[DreiMasterPlanes][r4sColumns][r4sRows];
+double p3[DreiMasterPlanes][r4sColumns][r4sRows];
 double ke[DreiMasterPlanes];
 
 TProfile phvsprev[DreiMasterPlanes];
@@ -132,6 +133,7 @@ int main( int argc, char* argv[] )
   double beamEnergy = 5.6; // [GeV]
   double beamDivergenceScaled = 5/beamEnergy; // 5sigma/energy
   bool fifty = 0;
+  int alignversion = 1; 
 
   for( int i = 1; i < argc; ++i ) {
 
@@ -143,6 +145,9 @@ int main( int argc, char* argv[] )
 
     if( !strcmp( argv[i], "-f" ) )
       fifty = 1;
+
+    if( !strcmp( argv[i], "-a" ) )
+      alignversion = atoi( argv[++i] );
 
   } // argc
 
@@ -160,7 +165,11 @@ int main( int argc, char* argv[] )
   double alignyC = 0.0; // [mm] same sign as dy
   double alignfC = 0.0; // [rad] same sign dxvsy
 
-  string alignFileName = alignpath+"align_" + runnum + ".dat";
+  string alignFileName = "0";
+  if(alignversion == 1)  
+    alignFileName = alignpath+"align_" + runnum + ".dat";
+  if(alignversion == 2)  
+    alignFileName = alignpath+"align_v2_" + runnum + ".dat";
 
   ifstream alignFile( alignFileName );
 
@@ -201,7 +210,7 @@ int main( int argc, char* argv[] )
 
       double val;
       tokenizer >> val;
-      if(      tag == ALXA )
+      if( tag == ALXA )
 	alignxA = val;
       else if( tag == ALYA )
 	alignyA = val;
@@ -471,7 +480,7 @@ int main( int argc, char* argv[] )
 
   // (re-)create root file:
 
-  TFile * histoFile = new TFile( Form( "/home/zoiirene/Output/drei-r%i.root", run ), "RECREATE" );
+  TFile * histoFile = new TFile( Form( "/home/zoiirene/Output/drei-r%i_irene.root", run ), "RECREATE" );
 
   // book histos:
 
@@ -646,6 +655,8 @@ int main( int argc, char* argv[] )
   TH1I hdx3cqi( "dx3cqi", "triplet dx, Landau peak, isolated;dx [mm];isolated Landau peak triplets",
 		500, -0.25, 0.25 );
   TH1I hdx3cq3( "dx3cq3", "triplet dx, 3 Landau peak;dx [mm];Landau peak triplets",
+		500, -0.25, 0.25 );
+  TH1I hdx3nocq3( "dx3nocq3", "triplet dx, no 3 Landau peak;dx [mm];no Landau peak triplets",
 		500, -0.25, 0.25 );
   TH1I hdx3cq3i( "dx3cq3i", "triplet dx, 3 Landau peak, isolated;dx [mm];isolated Landau peak triplets",
 		 500, -0.25, 0.25 );
@@ -1516,9 +1527,12 @@ int main( int argc, char* argv[] )
 	  hdx3.Fill( dx3 );
 	  hdy3.Fill( dy3 );
 
-	  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 ) { // cut on y, look at x, see madxvsy
+	  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 ) { // cut on y, look at x, see madx3vsy
 
 	    hdx3c.Fill( dx3 );
+
+	    if( (cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
+	      hdx3nocq3.Fill( dx3);
 
 	    if( dx3 > 0.04 && dx3 < -0.06 ) { // side lobe
 	      cout << endl;
@@ -1535,7 +1549,7 @@ int main( int argc, char* argv[] )
 	      for( unsigned icl = 0; icl < vclC.size(); ++icl )
 		cout << " (" << vclC[icl].col << ", " << vclC[icl].row << ", " << vclC[icl].q << ")";
 	      cout << endl;
-	    }
+	    } 
 
 	    if( cA->iso && cB->iso && cC->iso ) {
 
@@ -1569,6 +1583,7 @@ int main( int argc, char* argv[] )
 
 	    } // iso
 
+	    
 	    if( cB->q > qLB && cB->q < qRB ) {
 
 	      hdx3cq.Fill( dx3 );
