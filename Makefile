@@ -81,6 +81,11 @@ drei: drei.cc
 	-Wall -O2 -o drei $(ROOTGLIBS)
 	@echo 'done: drei'
 
+drei_reader: drei_reader.cc
+	g++ $(ROOTCFLAGS) drei_reader.cc \
+	-Wall -O2 -o drei_reader $(ROOTGLIBS)
+	@echo 'done: drei_reader'
+
 zweiAB: zweiAB.cc
 	g++ $(ROOTCFLAGS) zweiAB.cc \
 	-Wall -O2 -o zweiAB $(ROOTGLIBS)
