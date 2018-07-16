@@ -109,6 +109,8 @@ double straightTracks = ACspacing*beamDivergence*nSigmaTolerance;
 //functions definition
 vector<cluster> getClus( vector <pixel> pb, int fCluCut = 1 ); // 1 = no gap
 list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bool fifty );
+void getGain( string gainfile, double (*p0)[r4sColumns][r4sRows], double (*p1)[r4sColumns][r4sRows], double (*p2)[r4sColumns][r4sRows], double (*p3)[r4sColumns][r4sRows], int plane);
+
 //------------------------------------------------------------------------------
 
 int main( int argc, char* argv[] )
@@ -268,67 +270,11 @@ int main( int argc, char* argv[] )
   ke[B] = keB; // Landau peak at 11 ke
   ke[C] = keC; // Landau peak at 11 ke
 
-  ifstream gainFileA( gainA );
 
-  if( ! gainFileA ) {
-    cout << "gain file for A not found" << endl;
-    return 1;
-  }
+  getGain( gainA, p0, p1, p2, p3, 0);
+  getGain( gainB, p0, p1, p2, p3, 1);
+  getGain( gainC, p0, p1, p2, p3, 2);
 
-  while( ! gainFileA.eof() ) {
-
-    int icol;
-    int irow;
-    gainFileA >> icol;
-    gainFileA >> irow;
-    gainFileA >> p0[A][icol][irow];
-    gainFileA >> p1[A][icol][irow];
-    gainFileA >> p2[A][icol][irow];
-    gainFileA >> p3[A][icol][irow];
-
-  } // while
-
-
-  ifstream gainFileB( gainB );
-
-  if( ! gainFileB ) {
-    cout << "gain file for B not found" << endl;
-    return 1;
-  }
-
-  while( ! gainFileB.eof() ) {
-
-    int icol;
-    int irow;
-    gainFileB >> icol;
-    gainFileB >> irow;
-    gainFileB >> p0[B][icol][irow];
-    gainFileB >> p1[B][icol][irow];
-    gainFileB >> p2[B][icol][irow];
-    gainFileB >> p3[B][icol][irow];
-
-  } // while
-
-
-  ifstream gainFileC( gainC );
-
-  if( ! gainFileC ) {
-    cout << "gain file for C not found" << endl;
-    return 1;
-  }
-
-  while( ! gainFileC.eof() ) {
-
-    int icol;
-    int irow;
-    gainFileC >> icol;
-    gainFileC >> irow;
-    gainFileC >> p0[C][icol][irow];
-    gainFileC >> p1[C][icol][irow];
-    gainFileC >> p2[C][icol][irow];
-    gainFileC >> p3[C][icol][irow];
-
-  } // while
 
   // (re-)create root file:
 
@@ -2266,3 +2212,28 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
   return evlist;
 
 } // oneplane
+
+
+
+void getGain( string gainfile, double (*p0)[r4sColumns][r4sRows], double (*p1)[r4sColumns][r4sRows], double (*p2)[r4sColumns][r4sRows], double (*p3)[r4sColumns][r4sRows], int plane)
+{
+  ifstream gainFile( gainfile );
+
+  if( ! gainFile ) {
+    cout << "gain file " << gainfile << " not found" << endl;
+  }
+  
+  while( ! gainFile.eof() ) {
+
+    int icol;
+    int irow;
+    gainFile >> icol;
+    gainFile >> irow;
+    gainFile >> p0[plane][icol][irow];
+    gainFile >> p1[plane][icol][irow];
+    gainFile >> p2[plane][icol][irow];
+    gainFile >> p3[plane][icol][irow];
+    
+  } // while
+
+}
