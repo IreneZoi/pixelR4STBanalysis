@@ -99,7 +99,7 @@ double straightTracks = ACspacing*beamDivergence*nSigmaTolerance;
 vector<cluster> getClus( vector <pixel> pb, int fCluCut = 1 ); // 1 = no gap
 list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bool fifty );
 void getGain( string gainfile, double (*p0)[r4sColumns][r4sRows], double (*p1)[r4sColumns][r4sRows], double (*p2)[r4sColumns][r4sRows], double (*p3)[r4sColumns][r4sRows], int plane);
-
+void bookHists();
 //------------------------------------------------------------------------------
 
 int main( int argc, char* argv[] )
@@ -121,9 +121,7 @@ int main( int argc, char* argv[] )
 
   // further arguments:
   int Nev = 20*1000*1000;
-  double beamEnergy = -1.0; // [GeV]
-  double beamDivergenceScaled = 5/beamEnergy; // 5sigma/energy
-  bool fifty = 0;
+  //  bool fifty = 0;
   int alignversion = 1; 
 
   for( int i = 1; i < argc; ++i ) {
@@ -164,6 +162,7 @@ int main( int argc, char* argv[] )
   int pitch = 0; 
   double ptchc = 0.0;// 0.100; // [mm] col size
   double ptchr = 0.0;//0.025; // [mm] row size
+  double beamEnergy = -1.0; // [GeV]
   
   string alignFileName = "0";
   if(alignversion == 1)  
@@ -241,7 +240,7 @@ int main( int argc, char* argv[] )
       else if( tag == KEC )
 	tokenizer >> 	keC;
       else if( tag == BEAMENERGY )
-	tokenizer >> 	beamEnergy;
+	tokenizer >>  beamEnergy;
       else if( tag == PITCH )
 	tokenizer >> pitch;
 
@@ -284,6 +283,7 @@ int main( int argc, char* argv[] )
       ptchr = 0.050;
     }
 
+  double beamDivergenceScaled = 5/beamEnergy; // 5sigma/energy
 
   
   // (re-)create root file:
@@ -291,69 +291,9 @@ int main( int argc, char* argv[] )
   TFile * histoFile = new TFile( Form( "/home/zoiirene/Output/drei-r%i_irene.root", run ), "RECREATE" );
 
   // book histos:
-
-  int nbx =  80; //number of bins x
-  int nby = 320; //number of bins y
-  if( fifty ) {
-    nbx = 160;
-    nby = 160;
-  }
-
-  for( unsigned ipl = 0; ipl < DreiMasterPlanes; ++ipl ) {
-
-    phvsprev[ipl] = TProfile( Form( "phvsprev%s", PN[ipl].c_str() ),
-			      Form( "%s Tsunami;previous PH [ADC];%s <PH> [ADC]",
-				    PN[ipl].c_str(), PN[ipl].c_str() ),
-			      80, 0, 800, -999, 1999 );
-    dphvsprev[ipl] = TProfile( Form( "dphvsprev%s", PN[ipl].c_str() ),
-			      Form( "%s Tsunami;previous #DeltaPH [ADC];%s <#DeltaPH> [ADC]",
-				    PN[ipl].c_str(), PN[ipl].c_str() ),
-			       80, 0, 800, -999, 1999 );
-
-    hph[ipl] = TH1I( Form( "ph%s", PN[ipl].c_str() ),
-		     Form("%s PH;ADC-PED [ADC];%s pixels",
-			  PN[ipl].c_str(), PN[ipl].c_str() ),
-		     500, -100, 900 );
-    hdph[ipl] = TH1I( Form( "dph%s", PN[ipl].c_str() ),
-		      Form( "%s #DeltaPH;#DeltaPH [ADC];%s pixels",
-			    PN[ipl].c_str(), PN[ipl].c_str() ),
-		      500, -100, 900 );
-    hnpx[ipl] = TH1I( Form( "npx%s", PN[ipl].c_str() ),
-		      Form( "%s ROI pixels per event;ROI pixels;%s events",
-			    PN[ipl].c_str(), PN[ipl].c_str() ),
-		      200, 0, 1000 );
-    hnht[ipl] = TH1I( Form( "nht%s", PN[ipl].c_str() ),
-		      Form( "%s pixel hits per event;pixel hits;%s events",
-			    PN[ipl].c_str(), PN[ipl].c_str() ),
-		      50, 0.5, 50.5 );
-    hpxmap[ipl] = new TH2I( Form( "pxmap%s", PN[ipl].c_str() ),
-			    Form( "%s pixel map, PH > cut;col;row;%s PH pixels",
-				  PN[ipl].c_str(), PN[ipl].c_str() ),
-			    r4sColumns, -0.5, 154.5, r4sRows, -0.5, 159.5 );
-
-    hncl[ipl] = TH1I( Form( "ncl%s", PN[ipl].c_str() ),
-		      Form( "%s cluster per event;clusters;%s events",
-			    PN[ipl].c_str(), PN[ipl].c_str() ),
-		      21, -0.5, 20.5 );
-    hclmap[ipl] = new TH2I( Form( "clmap%s", PN[ipl].c_str() ),
-			    Form( "%s cluster map;col;row;%s clusters",
-				  PN[ipl].c_str(), PN[ipl].c_str() ),
-			    nbx, 0, nbx, nby, 0, nby );
-    hclsz[ipl] = TH1I( Form( "clsz%s", PN[ipl].c_str() ),
-		       Form( "%s cluster size;cluster size [pixels];%s clusters",
-			     PN[ipl].c_str(), PN[ipl].c_str() ),
-		       20, 0.5, 20.5 );
-    hclph[ipl] = TH1I( Form( "clph%s", PN[ipl].c_str() ),
-		       Form( "%s cluster PH;cluster ph [ADC];%s clusters",
-			     PN[ipl].c_str(), PN[ipl].c_str() ),
-		       200, 0, 1000 );
-    hclq[ipl] = TH1I( Form( "clq%s", PN[ipl].c_str() ),
-		      Form( "%s cluster charge;cluster charge [ke];%s clusters",
-			    PN[ipl].c_str(), PN[ipl].c_str() ),
-		      100, 0, 50 );
-
-  } // ipl
-
+  if(PRINT) cout << "***** going to book hists ***********" << endl;
+  bookHists();
+  if(PRINT)   cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
 
   const double log10 = log(10);
   string ADD {"A"}; // added flag
@@ -413,6 +353,7 @@ int main( int argc, char* argv[] )
 #pragma omp section
     {
       //cout << "A " << sched_getcpu() << endl << flush; // changes
+      if(PRINT) cout << "***** Plane A ***********" << endl;
 
       evlistA = oneplane( A, runnum, Nev, fifty );
 
@@ -424,6 +365,7 @@ int main( int argc, char* argv[] )
 #pragma omp section
     {
       //cout << "B " << sched_getcpu() << endl << flush; // different from A
+      if(PRINT) cout << "***** Plane B ***********" << endl;
 
       evlistB = oneplane( B, runnum, Nev, fifty );
 
@@ -435,6 +377,7 @@ int main( int argc, char* argv[] )
 #pragma omp section
     {
       //cout << "C " << sched_getcpu() << endl << flush; // different from A and B
+      if(PRINT) cout << "***** Plane C ***********" << endl;
 
       evlistC = oneplane( C, runnum, Nev, fifty );
 
@@ -471,277 +414,95 @@ int main( int argc, char* argv[] )
   uint64_t prevtimeB = 0;
   uint64_t prevtimeC = 0;
 
+  if(PRINT) cout << "***** CLUSTERS CORRELATION ***********" << endl;
+
   cout << endl << "tracking ev" << flush;
 
-  for( ; evinfoB != infoB.end() && evA != evlistA.end() && evB != evlistB.end() && evC != evlistC.end();
-       ++evinfoA, ++evinfoB, ++evinfoC, ++evA, ++evB, ++evC ) {
 
-    vector <cluster> vclA = *evA;
-    vector <cluster> vclB = *evB;
-    vector <cluster> vclC = *evC;
+  for( ; evinfoB != infoB.end() && evA != evlistA.end() && evB != evlistB.end() && evC != evlistC.end();       ++evinfoA, ++evinfoB, ++evinfoC, ++evA, ++evB, ++evC )
+    {
 
-    ++iev;
-    if( iev%10000 == 0 )
-      cout << " " << iev << flush;
+      vector <cluster> vclA = *evA;
+      vector <cluster> vclB = *evB;
+      vector <cluster> vclC = *evC;
 
-    if( evinfoA->filled == ADD ) cout << endl << "ev " << iev << " added A" << endl;
-    if( evinfoB->filled == ADD ) cout << endl << "ev " << iev << " added B" << endl;
-    if( evinfoC->filled == ADD ) cout << endl << "ev " << iev << " added C" << endl;
-
-    uint64_t dtA = evinfoA->evtime - prevtimeA;
-    prevtimeA = evinfoA->evtime;
-
-    uint64_t dtB = evinfoB->evtime - prevtimeB;
-    prevtimeB = evinfoB->evtime;
-    if( iev > 1 && dtB > 0 ) // added events have same time
-      hdt.Fill( log(dtB/40e6) / log10 ); // MHz -> s
-
-    uint64_t dtC = evinfoC->evtime - prevtimeC;
-    prevtimeC = evinfoC->evtime;
-
-    long ddtAB = dtA - dtB;
-    long ddtCB = dtC - dtB;
-    long ddtCA = dtC - dtA;
-    if( iev > 1 && dtB > 0 ) {
-      hddtAB.Fill( ddtAB );
-      hddtCB.Fill( ddtCB );
-      hddtCA.Fill( ddtCA );
-      ddtvsdtAB.Fill( log(dtB/40e6) / log10, ddtAB );
+      ++iev;
+      if( iev%10000 == 0 )
+	cout << " " << iev << flush;
+      
+      if( evinfoA->filled == ADD ) cout << endl << "ev " << iev << " added A" << endl;
+      if( evinfoB->filled == ADD ) cout << endl << "ev " << iev << " added B" << endl;
+      if( evinfoC->filled == ADD ) cout << endl << "ev " << iev << " added C" << endl;
+      
+      uint64_t dtA = evinfoA->evtime - prevtimeA;
+      prevtimeA = evinfoA->evtime;
+      
+      uint64_t dtB = evinfoB->evtime - prevtimeB;
+      prevtimeB = evinfoB->evtime;
+      if( iev > 1 && dtB > 0 ) // added events have same time
+	hdt->Fill( log(dtB/40e6) / log10 ); // MHz -> s
+      
+      uint64_t dtC = evinfoC->evtime - prevtimeC;
+      prevtimeC = evinfoC->evtime;
+      
+      long ddtAB = dtA - dtB;
+      long ddtCB = dtC - dtB;
+      long ddtCA = dtC - dtA;
+      if( iev > 1 && dtB > 0 ) {
+	hddtAB->Fill( ddtAB );
+	hddtCB->Fill( ddtCB );
+	hddtCA->Fill( ddtCA );
+	ddtvsdtAB->Fill( log(dtB/40e6) / log10, ddtAB );
     }
-    if( abs( ddtAB ) > 1999 )
-      cout << endl << "ev " << iev
-	   << " dtA " << dtA
-	   << ", dtB " << dtB << " (" << dtB/40E6 << "s)"
-	   << ", ddtAB " << ddtAB
-	   << endl;
-    if( abs( ddtCB ) > 1999 )
-      cout << endl << "ev " << iev
-	   << " dtC " << dtC
-	   << ", dtB " << dtB << " (" << dtB/40E6 << "s)"
-	   << ", ddtCB " << ddtCB
-	   << endl;
-    if( abs( ddtCA ) > 1999 )
-      cout << endl << "ev " << iev
-	   << " dtC " << dtC
-	   << ", dtA " << dtA << " (" << dtA/40E6 << "s)"
-	   << ", ddtCA " << ddtCA
-	   << endl;
-
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // A-B cluster correlations:
-
-    int nm = 0;
-
-    for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ) {
-
-      double xA = cA->row*ptchr - halfSensorX - alignxA; // rot90 Dreimaster
-      double yA = cA->col*ptchc - halfSensorY - alignyA; // 100 um px
-      if( fifty ) {
-	xA = cA->col*ptchc - halfSensorY - alignxA; // straight
-	yA = cA->row*ptchr - halfSensorX - alignyA; // PCB
-      }
-
-      double xAr = xA*cfA - yA*sfA;
-      double yAr = xA*sfA + yA*cfA;
-
-      hxA.Fill( xAr );
-      hyA.Fill( yAr );
-      if( cA->iso ) {
-	hxAi.Fill( xAr );
-	hyAi.Fill( yAr );
-	hclqAi.Fill( cA->q );
-      }
-
-      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
-
-	double xB = cB->row*ptchr - halfSensorX;
-	double yB = cB->col*ptchc - halfSensorY;
-	if( run == 431 ) {
-	  xB = cB->row*ptchr - halfSensorX; // rot90
-	  yB = cB->col*ptchc - halfSensorY; // PCB
-	}
-	if( fifty ) {
-	  xB = cB->col*ptchc - halfSensorY; // straight
-	  yB = cB->row*ptchr - halfSensorX; // PCB
-	}
-
-	hxxAB->Fill( xAr, xB );
-	hyyAB->Fill( yAr, yB );
-
-	double dx = xAr - xB;
-	double dy = yAr - yB;
-
-	if( cA->q > qL  && cA->q < qR &&
-	    cB->q > qLB && cB->q < qRB &&
-	    cA->iso && cB->iso ) {
-
-	  hdxAB.Fill( dx );
-	  hdyAB.Fill( dy );
-	  dxvsxAB.Fill( xB, dx );
-	  dxvsyAB.Fill( yB, dx );
-
-	}
-
-	hdxvsev->Fill( iev, dx );
-
-	if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 &&
-	    fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
-	  ++nm;
-
-      } // clusters
-
-    } // cl
-
-    nmvsevAB.Fill( iev, nm );
-
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // B-C cluster correlations:
-
-    nm = 0;
-
-    for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
-
-      double xB = cB->row*ptchr - halfSensorX;
-      double yB = cB->col*ptchc - halfSensorY;
-      if( run == 431 ) {
-	xB = cB->row*ptchr - halfSensorX; // rot90
-	yB = cB->col*ptchc - halfSensorY; // PCB
-      }
-      if( fifty ) {
-	xB = cB->col*ptchc - halfSensorY; // straight
-	yB = cB->row*ptchr - halfSensorX; // PCB
-      }
-
-      hxB.Fill( xB );
-      hyB.Fill( yB );
-      if( cB->iso ) {
-	hxBi.Fill( xB );
-	hyBi.Fill( yB );
-	hclqBi.Fill( cB->q );
-      }
-
-      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ) {
-
-	double xC = cC->row*ptchr - halfSensorX - alignxC; // rot90 Dreimaster
-	double yC = cC->col*ptchc - halfSensorY - alignyC; // down
-	if( fifty ) {
-	  xC = cC->col*ptchc - halfSensorY - alignxC; // straight
-	  yC = cC->row*ptchr - halfSensorX - alignyC; // PCB
-	}
-
-	double xCr = xC*cfC - yC*sfC;
-	double yCr = xC*sfC + yC*cfC;
-
-	hxxCB->Fill( xB, xCr );
-	hyyCB->Fill( yB, yCr );
-
-	double dx = xCr - xB;
-	double dy = yCr - yB;
-
-	if( cC->q > qL  && cC->q < qR &&
-	    cB->q > qLB && cB->q < qRB &&
-	    cC->iso && cB->iso ) {
-
-	  hdxCB.Fill( dx );
-	  hdyCB.Fill( dy );
-	  dxvsxCB.Fill( xB, dx );
-	  dxvsyCB.Fill( yB, dx );
-
-	}
-
-	if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 &&
-	    fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
-	  ++nm;
-
-      } // clusters B
-
-    } // cl C
-
-    nmvsevCB.Fill( iev, nm );
-
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // A-C cluster correlations:
-
-    nm = 0;
-
-    for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ) {
-
-      double xC = cC->row*ptchr - halfSensorX - alignxC;
-      double yC = cC->col*ptchc - halfSensorY - alignyC;
-      if( fifty ) {
-	xC = cC->col*ptchc - halfSensorY - alignxC; // straight
-	yC = cC->row*ptchr - halfSensorX - alignyC; // PCB
-      }
-
-      double xCr = xC*cfC - yC*sfC;
-      double yCr = xC*sfC + yC*cfC;
-
-      hxC.Fill( xCr );
-      hyC.Fill( yCr );
-      if( cC->iso ) {
-	hxCi.Fill( xCr );
-	hyCi.Fill( yCr );
-	hclqCi.Fill( cC->q );
-      }
-
-      double etaC = -2;
-      if( cC->size == 2 ) {
-	double q0 = cC->vpix[0].q;
-	double q1 = cC->vpix[1].q;
-	etaC = (q1-q0)/(q1+q0);
-      }
-
+      // if( abs( ddtAB ) > 1999 )
+      //   cout << endl << "ev " << iev
+      // 	   << " dtA " << dtA
+      // 	   << ", dtB " << dtB << " (" << dtB/40E6 << "s)"
+      // 	   << ", ddtAB " << ddtAB
+      // 	   << endl;
+      // if( abs( ddtCB ) > 1999 )
+      //   cout << endl << "ev " << iev
+      // 	   << " dtC " << dtC
+      // 	   << ", dtB " << dtB << " (" << dtB/40E6 << "s)"
+      // 	   << ", ddtCB " << ddtCB
+      // 	   << endl;
+      // if( abs( ddtCA ) > 1999 )
+      //   cout << endl << "ev " << iev
+      // 	   << " dtC " << dtC
+      // 	   << ", dtA " << dtA << " (" << dtA/40E6 << "s)"
+      // 	   << ", ddtCA " << ddtCA
+      // 	   << endl;
+      
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      // A-B cluster correlations:
+      
+      int nm = 0;
+      //      if(PRINT) cout << " nm " << nm << endl;
       for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ) {
+	if(PRINT) cout << " cluster cA" << endl;
 
 	double xA = cA->row*ptchr - halfSensorX - alignxA; // rot90 Dreimaster
-	double yA = cA->col*ptchc - halfSensorY - alignyA; // down
+	double yA = cA->col*ptchc - halfSensorY - alignyA; // 100 um px
 	if( fifty ) {
 	  xA = cA->col*ptchc - halfSensorY - alignxA; // straight
 	  yA = cA->row*ptchr - halfSensorX - alignyA; // PCB
 	}
-
+	if(PRINT) cout <<  " cA->row " << cA->row << " ptchr " << ptchr << " halfSensorX " << halfSensorX <<  " alignxA " << alignxA << endl;; // rot90 Dreimaster
+	
 	double xAr = xA*cfA - yA*sfA;
 	double yAr = xA*sfA + yA*cfA;
+	//	if(PRINT) cout << " xAr "<< xAr << endl;
 
-	hxxCA->Fill( xAr, xCr );
-	hyyCA->Fill( yAr, yCr );
-
-	double dxCA = xCr - xAr;
-	double dyCA = yCr - yAr;
-	double dxyCA = sqrt( dxCA*dxCA + dyCA*dyCA );
-	hdxCA.Fill( dxCA );
-	hdyCA.Fill( dyCA );
-
-	if( fabs( dxCA ) > straightTracks * beamDivergenceScaled + 0.02 ) continue; // includes beam divergence: +-5 sigma
-
-	hdyCAc.Fill( dyCA );
-	dyvsyCA.Fill( yAr, dyCA );
-
-	if( fabs( dyCA ) > straightTracks * beamDivergenceScaled + 0.1 ) continue; // [mm]
-
-	++nm;
-
-	dxvsyCA.Fill( yAr, dxCA );
-	dxvsxCA.Fill( xAr, dxCA ); // linear trend in run 392, 403: acceptance and beam divergence ?
-
-	double xavg = 0.5 * ( xAr + xCr );
-	double yavg = 0.5 * ( yAr + yCr );
-
-	double xmod = fmod( xavg + 8, 0.05 ); // [mm] 0..0.05
-	if( fifty )
-	  xmod = fmod( xavg + 8.025, 0.05 ); // [mm] 0..0.05
-
-	double etaA = -2;
-	if( cA->size == 2 ) {
-	  double q0 = cA->vpix[0].q;
-	  double q1 = cA->vpix[1].q;
-	  etaA = (q1-q0)/(q1+q0);
+	hxA->Fill( xAr );
+	hyA->Fill( yAr );
+	if( cA->iso ) {
+	  hxAi->Fill( xAr );
+	  hyAi->Fill( yAr );
+	  hclqAi->Fill( cA->q );
 	}
-
-	int eff[999] = {0};
-
+	
 	for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
-
+	  
 	  double xB = cB->row*ptchr - halfSensorX;
 	  double yB = cB->col*ptchc - halfSensorY;
 	  if( run == 431 ) {
@@ -753,50 +514,243 @@ int main( int argc, char* argv[] )
 	    yB = cB->row*ptchr - halfSensorX; // PCB
 	  }
 
-	  double etaB = -2;
-	  if( cB->size == 2 ) {
-	    double q0 = cB->vpix[0].q;
-	    double q1 = cB->vpix[1].q;
-	    etaB = (q1-q0)/(q1+q0);
+	  hxxAB->Fill( xAr, xB );
+	  hyyAB->Fill( yAr, yB );
+	  
+	  double dx = xAr - xB;
+	  double dy = yAr - yB;
+	
+	  if( cA->q > qL  && cA->q < qR &&
+	      cB->q > qLB && cB->q < qRB &&
+	      cA->iso && cB->iso ) {
+
+	    hdxAB->Fill( dx );
+	    if(PRINT)   cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
+	  
+	    hdyAB->Fill( dy );
+	    dxvsxAB->Fill( xB, dx );
+	    dxvsyAB->Fill( yB, dx );
+	    
+	  }
+	  
+	  hdxvsev->Fill( iev, dx );
+	  
+	  if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 &&
+	      fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
+	    ++nm;
+
+	} // clusters
+	
+      } // cl
+      
+      nmvsevAB->Fill( iev, nm );
+      
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      // B-C cluster correlations:
+      
+      nm = 0;
+      
+      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
+	
+	double xB = cB->row*ptchr - halfSensorX;
+	double yB = cB->col*ptchc - halfSensorY;
+	if( run == 431 ) {
+	  xB = cB->row*ptchr - halfSensorX; // rot90
+	  yB = cB->col*ptchc - halfSensorY; // PCB
+	}
+	if( fifty ) {
+	  xB = cB->col*ptchc - halfSensorY; // straight
+	  yB = cB->row*ptchr - halfSensorX; // PCB
+	}
+	
+	hxB->Fill( xB );
+	hyB->Fill( yB );
+	if( cB->iso ) {
+	  hxBi->Fill( xB );
+	  hyBi->Fill( yB );
+	  hclqBi->Fill( cB->q );
+	}
+
+	for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ) {
+	  
+	  double xC = cC->row*ptchr - halfSensorX - alignxC; // rot90 Dreimaster
+	  double yC = cC->col*ptchc - halfSensorY - alignyC; // down
+	  if( fifty ) {
+	    xC = cC->col*ptchc - halfSensorY - alignxC; // straight
+	    yC = cC->row*ptchr - halfSensorX - alignyC; // PCB
 	  }
 
-	  int rowmin = 999;
-	  int rowmax = 0;
-	  int colmin = 999;
-	  int colmax = 0;
-	  for( int ipx = 0; ipx < cB->size; ++ipx ) {
-	    int row = cB->vpix[ipx].row;
-	    if( row < rowmin ) rowmin = row;
-	    if( row > rowmax ) rowmax = row;
-	    int col = cB->vpix[ipx].col;
-	    if( col < colmin ) colmin = col;
-	    if( col > colmax ) colmax = col;
+	  double xCr = xC*cfC - yC*sfC;
+	  double yCr = xC*sfC + yC*cfC;
+	  
+	  hxxCB->Fill( xB, xCr );
+	  hyyCB->Fill( yB, yCr );
+	  
+	  double dx = xCr - xB;
+	  double dy = yCr - yB;
+	  
+	  if( cC->q > qL  && cC->q < qR &&
+	      cB->q > qLB && cB->q < qRB &&
+	      cC->iso && cB->iso ) {
+	    
+	    hdxCB->Fill( dx );
+	    hdyCB->Fill( dy );
+	    dxvsxCB->Fill( xB, dx );
+	    dxvsyCB->Fill( yB, dx );
+	    
 	  }
-	  int nrowB = rowmax-rowmin+1;
-	  int ncolB = colmax-colmin+1;
+	  
+	  if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 &&
+	      fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
+	    ++nm;
+	  
+	} // clusters B
+	
+      } // cl C
+      
+      nmvsevCB->Fill( iev, nm );
+      
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      // A-C cluster correlations:
+      
+      nm = 0;
+      
+      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ) {
+	
+	double xC = cC->row*ptchr - halfSensorX - alignxC;
+	double yC = cC->col*ptchc - halfSensorY - alignyC;
+	if( fifty ) {
+	  xC = cC->col*ptchc - halfSensorY - alignxC; // straight
+	  yC = cC->row*ptchr - halfSensorX - alignyC; // PCB
+	}
 
-	  // triplet residual:
+	double xCr = xC*cfC - yC*sfC;
+	double yCr = xC*sfC + yC*cfC;
+	
+	hxC->Fill( xCr );
+	hyC->Fill( yCr );
+	if( cC->iso ) {
+	  hxCi->Fill( xCr );
+	  hyCi->Fill( yCr );
+	  hclqCi->Fill( cC->q );
+	}
+      
+	double etaC = -2;
+	if( cC->size == 2 ) {
+	  double q0 = cC->vpix[0].q;
+	  double q1 = cC->vpix[1].q;
+	  etaC = (q1-q0)/(q1+q0);
+	}
+	
+	for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ) {
+	
+	  double xA = cA->row*ptchr - halfSensorX - alignxA; // rot90 Dreimaster
+	  double yA = cA->col*ptchc - halfSensorY - alignyA; // down
+	  if( fifty ) {
+	  xA = cA->col*ptchc - halfSensorY - alignxA; // straight
+	  yA = cA->row*ptchr - halfSensorX - alignyA; // PCB
+	  }
 
-	  double dx3 = xB - xavg;
+	  double xAr = xA*cfA - yA*sfA;
+	  double yAr = xA*sfA + yA*cfA;
+	  
+	  hxxCA->Fill( xAr, xCr );
+	  hyyCA->Fill( yAr, yCr );
+	  
+	  double dxCA = xCr - xAr;
+	  double dyCA = yCr - yAr;
+	  double dxyCA = sqrt( dxCA*dxCA + dyCA*dyCA );
+	  hdxCA->Fill( dxCA );
+	  hdyCA->Fill( dyCA );
 
-	  if( run == 447 || run == 449 )
-	    dx3 -= 0.00076*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 866 )
+
+	  if(PRINT) cout << " tracks condition " << fabs( dxCA ) << " vs "  << straightTracks * beamDivergenceScaled + 0.02 << endl;
+	  if( fabs( dxCA ) > straightTracks * beamDivergenceScaled + 0.02 ) continue; // includes beam divergence: +-5 sigma
+	  if(PRINT) cout << " dyCA " << dyCA << endl;
+	  hdyCAc->Fill( dyCA );
+	  dyvsyCA->Fill( yAr, dyCA );
+	  
+	  if( fabs( dyCA ) > straightTracks * beamDivergenceScaled + 0.1 ) continue; // [mm]
+
+	  ++nm;
+	  
+	  dxvsyCA->Fill( yAr, dxCA );
+
+	  dxvsxCA->Fill( xAr, dxCA ); // linear trend in run 392, 403: acceptance and beam divergence ?
+	  
+	  double xavg = 0.5 * ( xAr + xCr );
+	  double yavg = 0.5 * ( yAr + yCr );
+	  
+	  double xmod = fmod( xavg + 8, 0.05 ); // [mm] 0..0.05
+	  if( fifty )
+	    xmod = fmod( xavg + 8.025, 0.05 ); // [mm] 0..0.05
+
+	  double etaA = -2;
+	  if( cA->size == 2 ) {
+	    double q0 = cA->vpix[0].q;
+	    double q1 = cA->vpix[1].q;
+	    etaA = (q1-q0)/(q1+q0);
+	  }
+
+	  int eff[999] = {0};
+	  
+	  for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
+	    
+	    double xB = cB->row*ptchr - halfSensorX;
+	    double yB = cB->col*ptchc - halfSensorY;
+	    if( run == 431 ) {
+	      xB = cB->row*ptchr - halfSensorX; // rot90
+	      yB = cB->col*ptchc - halfSensorY; // PCB
+	    }
+	    if( fifty ) {
+	      xB = cB->col*ptchc - halfSensorY; // straight
+	      yB = cB->row*ptchr - halfSensorX; // PCB
+	    }
+	    
+	    double etaB = -2;
+	    if( cB->size == 2 ) {
+	      double q0 = cB->vpix[0].q;
+	      double q1 = cB->vpix[1].q;
+	      etaB = (q1-q0)/(q1+q0);
+	    }
+	    
+	    int rowmin = 999;
+	    int rowmax = 0;
+	    int colmin = 999;
+	    int colmax = 0;
+	    for( int ipx = 0; ipx < cB->size; ++ipx ) {
+	      int row = cB->vpix[ipx].row;
+	      if( row < rowmin ) rowmin = row;
+	      if( row > rowmax ) rowmax = row;
+	      int col = cB->vpix[ipx].col;
+	      if( col < colmin ) colmin = col;
+	      if( col > colmax ) colmax = col;
+	    }
+	    int nrowB = rowmax-rowmin+1;
+	    int ncolB = colmax-colmin+1;
+
+	    // triplet residual:
+	    
+	    double dx3 = xB - xavg;
+
+	    if( run == 447 || run == 449 )
+	      dx3 -= 0.00076*xavg; // from -dx3vsx.Fit("pol1")
+	    if( run == 866 )
+	      dx3 += 0.0011*xavg; // from -dx3vsx
+	    if( run == 871 )
+	      dx3 += 0.0018*xavg; // from -dx3vsx
+	    if( run == 872 )
+	      dx3 += 0.0018*xavg; // from -dx3vsx
+	    if( run == 873 )
+	      dx3 += 0.0017*xavg; // from -dx3vsx
+	    if( run == 875 )
+	      dx3 += 0.0013*xavg; // from -dx3vsx
+	    if( run == 876 )
 	    dx3 += 0.0011*xavg; // from -dx3vsx
-	  if( run == 871 )
-	    dx3 += 0.0018*xavg; // from -dx3vsx
-	  if( run == 872 )
-	    dx3 += 0.0018*xavg; // from -dx3vsx
-	  if( run == 873 )
-	    dx3 += 0.0017*xavg; // from -dx3vsx
-	  if( run == 875 )
-	    dx3 += 0.0013*xavg; // from -dx3vsx
-	  if( run == 876 )
+	    if( run == 877 )
 	    dx3 += 0.0011*xavg; // from -dx3vsx
-	  if( run == 877 )
-	    dx3 += 0.0011*xavg; // from -dx3vsx
-	  if( run == 878 )
-	    dx3 += 0.0013*xavg; // from -dx3vsx
+	    if( run == 878 )
+	      dx3 += 0.0013*xavg; // from -dx3vsx
 	  if( run == 879 )
 	    dx3 += 0.0010*xavg; // from -dx3vsx
 	  if( run == 880 )
@@ -1089,15 +1043,15 @@ int main( int argc, char* argv[] )
 	  double dy3 = yB - yavg;
 	  double dxy = sqrt( dx3*dx3 + dy3*dy3 );
 
-	  hdx3.Fill( dx3 );
-	  hdy3.Fill( dy3 );
+	  hdx3->Fill( dx3 );
+	  hdy3->Fill( dy3 );
 
 	  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 ) { // cut on y, look at x, see madx3vsy
 
-	    hdx3c.Fill( dx3 );
+	    hdx3c->Fill( dx3 );
 
 	    if( (cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
-	      hdx3nocq3.Fill( dx3);
+	      hdx3nocq3->Fill( dx3);
 
 	    if( dx3 > 0.04 && dx3 < -0.06 ) { // side lobe
 	      cout << endl;
@@ -1117,39 +1071,39 @@ int main( int argc, char* argv[] )
 	    } 
 
 	    if( cB->iso )
-	      hdx3ci.Fill( dx3 );
+	      hdx3ci->Fill( dx3 );
  
 	    if( cA->iso && cC->iso )
-	      hdx3cii.Fill( dx3 );
+	      hdx3cii->Fill( dx3 );
 
 	    if( cA->iso && cB->iso && cC->iso ) {
 
-	      hdx3ciii.Fill( dx3 );
+	      hdx3ciii->Fill( dx3 );
 
 	      if( cB->size == 1 )
-		hdx3c1.Fill( dx3 ); // r447 4.4
+		hdx3c1->Fill( dx3 ); // r447 4.4
 	      if( cB->size == 2 )
-		hdx3c2.Fill( dx3 ); // r447 4.4
+		hdx3c2->Fill( dx3 ); // r447 4.4
 	      if( cB->size == 3 )
-		hdx3c3.Fill( dx3 ); // r447 4.8
+		hdx3c3->Fill( dx3 ); // r447 4.8
 	      if( cB->size == 4 )
-		hdx3c4.Fill( dx3 ); // r447 6.5
+		hdx3c4->Fill( dx3 ); // r447 6.5
 	      if( cB->size == 5 )
-		hdx3c5.Fill( dx3 ); // r447 16.6
+		hdx3c5->Fill( dx3 ); // r447 16.6
 	      if( cB->size == 6 )
-		hdx3c6.Fill( dx3 ); // r447 24.5
+		hdx3c6->Fill( dx3 ); // r447 24.5
 	      if( cB->size > 6 )
-		hdx3c7.Fill( dx3 ); // r447 39.9
+		hdx3c7->Fill( dx3 ); // r447 39.9
 
 	      if( xB < 0 )
-		hdx3m.Fill( dx3 );
+		hdx3m->Fill( dx3 );
 	      else
-		hdx3p.Fill( dx3 );
+		hdx3p->Fill( dx3 );
 
 	      if( fabs( dxCA ) < straightTracks * beamDivergenceScaled ) { // track angle
-		hdx3ct.Fill( dx3 );
-		madx3vsq.Fill( cB->q, fabs(dx3) );
-		madx3vsn.Fill( cB->size, fabs(dx3) );
+		hdx3ct->Fill( dx3 );
+		madx3vsq->Fill( cB->q, fabs(dx3) );
+		madx3vsn->Fill( cB->size, fabs(dx3) );
 	      }
 
 	    } // iso
@@ -1157,38 +1111,38 @@ int main( int argc, char* argv[] )
 	    
 	    if( cB->q > qLB && cB->q < qRB ) {
 
-	      hdx3cq.Fill( dx3 );
+	      hdx3cq->Fill( dx3 );
 
 	      if( cA->iso && cB->iso && cC->iso )
-		hdx3cqi.Fill( dx3 );
+		hdx3cqi->Fill( dx3 );
 	      
 	      if( cA->q > qL && cA->q < qR &&
 		  cC->q > qL && cC->q < qR ) {
 
-		hdx3cq3.Fill( dx3 );
+		hdx3cq3->Fill( dx3 );
 
 		if( cA->iso && cB->iso && cC->iso )
-		  hdx3cq3i.Fill( dx3 );
+		  hdx3cq3i->Fill( dx3 );
 
-		dx3vsev.Fill( iev, dx3 );
+		dx3vsev->Fill( iev, dx3 );
 
-		dx3vsx.Fill( xB, dx3 ); // turn
-		dx3vsy.Fill( yB, dx3 ); // rot
-		dx3vsxm.Fill( xmod*1E3, dx3 );
+		dx3vsx->Fill( xB, dx3 ); // turn
+		dx3vsy->Fill( yB, dx3 ); // rot
+		dx3vsxm->Fill( xmod*1E3, dx3 );
 
-		madx3vsdx.Fill( dxCA*1E3, fabs(dx3) ); // dxCA
+		madx3vsdx->Fill( dxCA*1E3, fabs(dx3) ); // dxCA
 
 		if( fabs( dxCA ) < straightTracks * beamDivergenceScaled ) { // track angle
 
-		  hdx3cq3t.Fill( dx3 ); // 447 4.27 um
+		  hdx3cq3t->Fill( dx3 ); // 447 4.27 um
 
-		  madx3vsx.Fill( xB, fabs(dx3) );
-		  madx3vsy.Fill( yB, fabs(dx3) );
-		  madx3vsxm.Fill( xmod*1E3, fabs(dx3) );
+		  madx3vsx->Fill( xB, fabs(dx3) );
+		  madx3vsy->Fill( yB, fabs(dx3) );
+		  madx3vsxm->Fill( xmod*1E3, fabs(dx3) );
 		  if( cB->size == 2 ) {
-		    etavsxmB3.Fill( xmod*1E3, etaB ); // sine
-		    madx3vseta.Fill( etaB, fabs(dx3) ); // flat
-		    hdx3cq3t2.Fill( dx3 ); // 447 4.25 um
+		    etavsxmB3->Fill( xmod*1E3, etaB ); // sine
+		    madx3vseta->Fill( etaB, fabs(dx3) ); // flat
+		    hdx3cq3t2->Fill( dx3 ); // 447 4.25 um
 		  }
 
 		} // angle
@@ -1205,62 +1159,62 @@ int main( int argc, char* argv[] )
 
 	    hclmapB3->Fill( cB->col, cB->row );
 
-	    hxA3.Fill( xAr );
-	    hyA3.Fill( yAr );
-	    hxB3.Fill( xB  );
-	    hyB3.Fill( yB  );
-	    hxC3.Fill( xCr );
-	    hyC3.Fill( yCr );
+	    hxA3->Fill( xAr );
+	    hyA3->Fill( yAr );
+	    hxB3->Fill( xB  );
+	    hyB3->Fill( yB  );
+	    hxC3->Fill( xCr );
+	    hyC3->Fill( yCr );
 
-	    hclszA3.Fill( cA->size );
-	    hclszB3.Fill( cB->size );
-	    hncolB3.Fill( ncolB );
-	    hnrowB3.Fill( nrowB );
-	    hclszC3.Fill( cC->size );
+	    hclszA3->Fill( cA->size );
+	    hclszB3->Fill( cB->size );
+	    hncolB3->Fill( ncolB );
+	    hnrowB3->Fill( nrowB );
+	    hclszC3->Fill( cC->size );
 
-	    hclphA3.Fill( cA->sum );
-	    hclphB3.Fill( cB->sum );
-	    hclphC3.Fill( cC->sum );
+	    hclphA3->Fill( cA->sum );
+	    hclphB3->Fill( cB->sum );
+	    hclphC3->Fill( cC->sum );
 
-	    hclqA3.Fill( cA->q );
-	    hclqB3.Fill( cB->q );
-	    hclqB3i.Fill( cB->q );
-	    hclqC3.Fill( cC->q );
+	    hclqA3->Fill( cA->q );
+	    hclqB3->Fill( cB->q );
+	    hclqB3i->Fill( cB->q );
+	    hclqC3->Fill( cC->q );
 	    if( cB->size < 4 )
-	      hclqB3n.Fill( cB->q );
+	      hclqB3n->Fill( cB->q );
 
 	    if( fifty )
-	      nrowvsxmB3.Fill( xmod*1E3, ncolB );
+	      nrowvsxmB3->Fill( xmod*1E3, ncolB );
 	    else
-	      nrowvsxmB3.Fill( xmod*1E3, nrowB );
+	      nrowvsxmB3->Fill( xmod*1E3, nrowB );
 
-	    clqvsxmB3.Fill( xmod*1E3, cB->q );
+	    clqvsxmB3->Fill( xmod*1E3, cB->q );
 
 	    if( cA->size == 2 )
-	      hetaA3.Fill( etaA );
+	      hetaA3->Fill( etaA );
 
 	    if( cB->size == 2 )
-	      hetaB3.Fill( etaB );
+	      hetaB3->Fill( etaB );
 
 	    if( cC->size == 2 )
-	      hetaC3.Fill( etaC );
+	      hetaC3->Fill( etaC );
 
 	    for( int ipx = 0; ipx < cA->size; ++ipx ) {
-	      hpxpA3.Fill( cA->vpix[ipx].ph );
-	      hpxqA3.Fill( cA->vpix[ipx].q );
+	      hpxpA3->Fill( cA->vpix[ipx].ph );
+	      hpxqA3->Fill( cA->vpix[ipx].q );
 	    }
 	    for( int ipx = 0; ipx < cB->size; ++ipx ) {
-	      hpxpB3.Fill( cB->vpix[ipx].ph );
-	      hpxqB3.Fill( cB->vpix[ipx].q );
+	      hpxpB3->Fill( cB->vpix[ipx].ph );
+	      hpxqB3->Fill( cB->vpix[ipx].q );
 	    }
 	    for( int ipx = 0; ipx < cC->size; ++ipx ) {
-	      hpxpC3.Fill( cC->vpix[ipx].ph );
-	      hpxqC3.Fill( cC->vpix[ipx].q );
+	      hpxpC3->Fill( cC->vpix[ipx].ph );
+	      hpxqC3->Fill( cC->vpix[ipx].q );
 	    }
 
 	    if( cB->size == 2 ) {
-	      hpxq1stB3.Fill( cB->vpix[0].q );
-	      hpxq2ndB3.Fill( cB->vpix[1].q ); // identical
+	      hpxq1stB3->Fill( cB->vpix[0].q );
+	      hpxq2ndB3->Fill( cB->vpix[1].q ); // identical
 	    }
 
 	    // task: store track
@@ -1284,23 +1238,23 @@ int main( int argc, char* argv[] )
 	effvsxy->Fill( xavg, yavg, eff[50] );
 
 	if( yavg > -3.7 && yavg < 3.5 )
-	  effvsx.Fill( xavg, eff[50] );
+	  effvsx->Fill( xavg, eff[50] );
 
 	if( xavg > -3.3 && xavg < 3.6 )
-	  effvsy.Fill( yavg, eff[50] );
+	  effvsy->Fill( yavg, eff[50] );
 
 	if( xavg > -3.3 && xavg < 3.6 &&
 	    yavg > -3.7 && yavg < 3.5 ) {
 
 	  for( int iw = 1; iw < 999; ++iw )
-	    effvsdxy.Fill( iw*0.010+0.005, eff[iw] );
+	    effvsdxy->Fill( iw*0.010+0.005, eff[iw] );
 
-	  effvsxm.Fill( xmod*1E3, eff[50] ); // bias dot
-	  effvsev.Fill( iev, eff[50] );
-	  effvsiev.Fill( iev%200, eff[50] );
-	  //effvsmpxA.Fill( pbA.size(), eff[50] );
-	  effvsqA.Fill( cA->q, eff[50] );
-	  effvstxy.Fill( dxyCA, eff[50] ); // flat
+	  effvsxm->Fill( xmod*1E3, eff[50] ); // bias dot
+	  effvsev->Fill( iev, eff[50] );
+	  effvsiev->Fill( iev%200, eff[50] );
+	  //effvsmpxA->Fill( pbA.size(), eff[50] );
+	  effvsqA->Fill( cA->q, eff[50] );
+	  effvstxy->Fill( dxyCA, eff[50] ); // flat
 
 	} // fiducial x, y
 
@@ -1308,18 +1262,26 @@ int main( int argc, char* argv[] )
 
     } // cl C
 
-    nmvsevCA.Fill( iev, nm );
+    nmvsevCA->Fill( iev, nm );
 
     // task: track correlations, intersects
-  } // events
+
+    
+    } // events
 
   cout << endl;
+  if(PRINT) cout << " after big loop on events!!!************************" << endl;
+  if(PRINT)cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
+  if(PRINT)cout << hdt->GetTitle() << " entries " << hdt->GetEntries() << endl;
+
 
   clock_gettime( CLOCK_REALTIME, &ts );
   time_t s3 = ts.tv_sec; // seconds since 1.1.1970
   long f3 = ts.tv_nsec; // nanoseconds
   zeit2 += s3 - s2 + ( f3 - f2 ) * 1e-9; // read and cluster
   cout << "time " << zeit2 << " s" << endl;
+  if(PRINT)cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
+  if(PRINT)cout << hdt->GetTitle() << " entries " << hdt->GetEntries() << endl;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1330,6 +1292,8 @@ int main( int argc, char* argv[] )
   cout << "full time " << s9 - s0 + ( f9 - f0 ) * 1e-9 << " s"
        << " (read and cluster " << zeit1 << " s, tracking " << zeit2 << " s)"
        << endl;
+  if(PRINT)cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
+  if(PRINT)cout << hdt->GetTitle() << " entries " << hdt->GetEntries() << endl;
 
   rusage usage;
   getrusage( RUSAGE_SELF, &usage );
@@ -1343,26 +1307,28 @@ int main( int argc, char* argv[] )
        << endl << "voluntary context switches " << usage.ru_nvcsw
        << endl << "involuntary context switches " << usage.ru_nivcsw
        << endl;
-
+  if(PRINT) cout << " going to write the hist file" << endl;
   histoFile->Write();
-  histoFile->Close();
+  if(PRINT) cout << " wrote the hist file" << endl;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // alignment fits:
 
   double newalignxA = alignxA;
+  if(PRINT) cout << " newalignxA " << newalignxA << " alignxA " << alignxA << endl;
 
-  cout << endl << hdxAB.GetTitle() << " entries " << hdxAB.GetEntries() << endl;
+  cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
+  cout << hdt->GetTitle() << " entries " << hdt->GetEntries() << endl;
 
-  if( hdxAB.GetEntries() > 999 ) {
+  if( hdxAB->GetEntries() > 999 ) {
 
     TF1 * fgp0 = new TF1( "fgp0", "[0]*exp(-0.5*((x-[1])/[2])^2)+[3]", -10, 10 );
-    double xpk = hdxAB.GetBinCenter( hdxAB.GetMaximumBin() );
-    fgp0->SetParameter( 0, hdxAB.GetMaximum() ); // amplitude
+    double xpk = hdxAB->GetBinCenter( hdxAB->GetMaximumBin() );
+    fgp0->SetParameter( 0, hdxAB->GetMaximum() ); // amplitude
     fgp0->SetParameter( 1, xpk );
-    fgp0->SetParameter( 2, hdxAB.GetBinWidth(1) ); // sigma
-    fgp0->SetParameter( 3, hdxAB.GetBinContent( hdxAB.FindBin(xpk-1) ) ); // BG
-    hdxAB.Fit( "fgp0", "q", "", xpk-1, xpk+1 ); // fit range around peak
+    fgp0->SetParameter( 2, hdxAB->GetBinWidth(1) ); // sigma
+    fgp0->SetParameter( 3, hdxAB->GetBinContent( hdxAB->FindBin(xpk-1) ) ); // BG
+    hdxAB->Fit( "fgp0", "q", "", xpk-1, xpk+1 ); // fit range around peak
     cout << "  Fit Gauss + BG:"
 	 << endl << "  area " << fgp0->GetParameter(0)
 	 << endl << "  mean " << fgp0->GetParameter(1)
@@ -1378,10 +1344,10 @@ int main( int argc, char* argv[] )
 
   double newalignyA = alignyA;
 
-  cout << endl << hdyAB.GetTitle() << " entries " << hdyAB.GetEntries() << endl;
-  if( hdyAB.GetEntries() > 999 ) {
-    cout << "  y correction " << hdyAB.GetMean() << endl;
-    newalignyA += hdyAB.GetMean();
+  cout << endl << hdyAB->GetTitle() << " entries " << hdyAB->GetEntries() << endl;
+  if( hdyAB->GetEntries() > 999 ) {
+    cout << "  y correction " << hdyAB->GetMean() << endl;
+    newalignyA += hdyAB->GetMean();
   }
   else
     cout << "  not enough" << endl;
@@ -1390,10 +1356,10 @@ int main( int argc, char* argv[] )
 
   double newalignfA = alignfA;
 
-  cout << endl << dxvsyAB.GetTitle() << " entries " << dxvsyAB.GetEntries() << endl;
-  if( aligniteration > 0 && dxvsyAB.GetEntries() > 999 ) {
-    dxvsyAB.Fit( "pol1", "q", "", -3, 3 );
-    TF1 * fdxvsy = dxvsyAB.GetFunction( "pol1" );
+  cout << endl << dxvsyAB->GetTitle() << " entries " << dxvsyAB->GetEntries() << endl;
+  if( aligniteration > 0 && dxvsyAB->GetEntries() > 999 ) {
+    dxvsyAB->Fit( "pol1", "q", "", -3, 3 );
+    TF1 * fdxvsy = dxvsyAB->GetFunction( "pol1" );
     cout << "  extra rot " << fdxvsy->GetParameter(1) << endl;
     newalignfA += fdxvsy->GetParameter(1);
   }
@@ -1404,16 +1370,16 @@ int main( int argc, char* argv[] )
 
   double newalignxC = alignxC;
 
-  cout << endl << hdxCB.GetTitle() << " entries " << hdxCB.GetEntries() << endl;
-  if( hdxCB.GetEntries() > 999 ) {
+  cout << endl << hdxCB->GetTitle() << " entries " << hdxCB->GetEntries() << endl;
+  if( hdxCB->GetEntries() > 999 ) {
 
     TF1 * fgp0 = new TF1( "fgp0", "[0]*exp(-0.5*((x-[1])/[2])^2)+[3]", -10, 10 );
-    double xpk = hdxCB.GetBinCenter( hdxCB.GetMaximumBin() );
-    fgp0->SetParameter( 0, hdxCB.GetMaximum() ); // amplitude
+    double xpk = hdxCB->GetBinCenter( hdxCB->GetMaximumBin() );
+    fgp0->SetParameter( 0, hdxCB->GetMaximum() ); // amplitude
     fgp0->SetParameter( 1, xpk );
-    fgp0->SetParameter( 2, hdxCB.GetBinWidth(1) ); // sigma
-    fgp0->SetParameter( 3, hdxCB.GetBinContent( hdxCB.FindBin(xpk-1) ) ); // BG
-    hdxCB.Fit( "fgp0", "q", "", xpk-1, xpk+1 ); // fit range around peak
+    fgp0->SetParameter( 2, hdxCB->GetBinWidth(1) ); // sigma
+    fgp0->SetParameter( 3, hdxCB->GetBinContent( hdxCB->FindBin(xpk-1) ) ); // BG
+    hdxCB->Fit( "fgp0", "q", "", xpk-1, xpk+1 ); // fit range around peak
     cout << "  Fit Gauss + BG:"
 	 << endl << "  area " << fgp0->GetParameter(0)
 	 << endl << "  mean " << fgp0->GetParameter(1)
@@ -1429,10 +1395,10 @@ int main( int argc, char* argv[] )
 
   double newalignyC = alignyC;
 
-  cout << endl << hdyCB.GetTitle() << " entries " << hdyCB.GetEntries() << endl;
-  if( hdyCB.GetEntries() > 999 ) {
-    cout << "  y correction " << hdyCB.GetMean() << endl;
-    newalignyC += hdyCB.GetMean();
+  cout << endl << hdyCB->GetTitle() << " entries " << hdyCB->GetEntries() << endl;
+  if( hdyCB->GetEntries() > 999 ) {
+    cout << "  y correction " << hdyCB->GetMean() << endl;
+    newalignyC += hdyCB->GetMean();
   }
   else
     cout << "  not enough" << endl;
@@ -1441,10 +1407,10 @@ int main( int argc, char* argv[] )
 
   double newalignfC = alignfC;
 
-  cout << endl << dxvsyCB.GetTitle() << " entries " << dxvsyCB.GetEntries() << endl;
-  if( aligniteration > 0 && dxvsyCB.GetEntries() > 999 ) {
-    dxvsyCB.Fit( "pol1", "q", "", -3, 3 );
-    TF1 * fdxvsy = dxvsyCB.GetFunction( "pol1" );
+  cout << endl << dxvsyCB->GetTitle() << " entries " << dxvsyCB->GetEntries() << endl;
+  if( aligniteration > 0 && dxvsyCB->GetEntries() > 999 ) {
+    dxvsyCB->Fit( "pol1", "q", "", -3, 3 );
+    TF1 * fdxvsy = dxvsyCB->GetFunction( "pol1" );
     cout << "  extra rot " << fdxvsy->GetParameter(1) << endl;
     newalignfC += fdxvsy->GetParameter(1);
   }
@@ -1484,6 +1450,8 @@ int main( int argc, char* argv[] )
   // }
 
   cout << endl << histoFile->GetName() << endl;
+  histoFile->Close();
+  if(PRINT) cout << " closed the hist file" << endl;
 
   cout << endl;
 
@@ -2009,5 +1977,299 @@ void getGain( string gainfile, double (*p0)[r4sColumns][r4sRows], double (*p1)[r
     gainFile >> p3[plane][icol][irow];
     
   } // while
+
+}
+
+
+void bookHists()
+{
+
+  int nbx =  80; //number of bins x
+  int nby = 320; //number of bins y
+  if( fifty ) {
+    nbx = 160;
+    nby = 160;
+  }
+
+  for( unsigned ipl = 0; ipl < DreiMasterPlanes; ++ipl ) {
+
+    phvsprev[ipl] = TProfile( Form( "phvsprev%s", PN[ipl].c_str() ),
+			      Form( "%s Tsunami;previous PH [ADC];%s <PH> [ADC]",
+				    PN[ipl].c_str(), PN[ipl].c_str() ),
+			      80, 0, 800, -999, 1999 );
+    dphvsprev[ipl] = TProfile( Form( "dphvsprev%s", PN[ipl].c_str() ),
+			      Form( "%s Tsunami;previous #DeltaPH [ADC];%s <#DeltaPH> [ADC]",
+				    PN[ipl].c_str(), PN[ipl].c_str() ),
+			       80, 0, 800, -999, 1999 );
+
+    hph[ipl] = TH1I( Form( "ph%s", PN[ipl].c_str() ),
+		     Form("%s PH;ADC-PED [ADC];%s pixels",
+			  PN[ipl].c_str(), PN[ipl].c_str() ),
+		     500, -100, 900 );
+    hdph[ipl] = TH1I( Form( "dph%s", PN[ipl].c_str() ),
+		      Form( "%s #DeltaPH;#DeltaPH [ADC];%s pixels",
+			    PN[ipl].c_str(), PN[ipl].c_str() ),
+		      500, -100, 900 );
+    hnpx[ipl] = TH1I( Form( "npx%s", PN[ipl].c_str() ),
+		      Form( "%s ROI pixels per event;ROI pixels;%s events",
+			    PN[ipl].c_str(), PN[ipl].c_str() ),
+		      200, 0, 1000 );
+    hnht[ipl] = TH1I( Form( "nht%s", PN[ipl].c_str() ),
+		      Form( "%s pixel hits per event;pixel hits;%s events",
+			    PN[ipl].c_str(), PN[ipl].c_str() ),
+		      50, 0.5, 50.5 );
+    hpxmap[ipl] = new TH2I( Form( "pxmap%s", PN[ipl].c_str() ),
+			    Form( "%s pixel map, PH > cut;col;row;%s PH pixels",
+				  PN[ipl].c_str(), PN[ipl].c_str() ),
+			    r4sColumns, -0.5, 154.5, r4sRows, -0.5, 159.5 );
+
+    hncl[ipl] = TH1I( Form( "ncl%s", PN[ipl].c_str() ),
+		      Form( "%s cluster per event;clusters;%s events",
+			    PN[ipl].c_str(), PN[ipl].c_str() ),
+		      21, -0.5, 20.5 );
+    hclmap[ipl] = new TH2I( Form( "clmap%s", PN[ipl].c_str() ),
+			    Form( "%s cluster map;col;row;%s clusters",
+				  PN[ipl].c_str(), PN[ipl].c_str() ),
+			    nbx, 0, nbx, nby, 0, nby );
+    hclsz[ipl] = TH1I( Form( "clsz%s", PN[ipl].c_str() ),
+		       Form( "%s cluster size;cluster size [pixels];%s clusters",
+			     PN[ipl].c_str(), PN[ipl].c_str() ),
+		       20, 0.5, 20.5 );
+    hclph[ipl] = TH1I( Form( "clph%s", PN[ipl].c_str() ),
+		       Form( "%s cluster PH;cluster ph [ADC];%s clusters",
+			     PN[ipl].c_str(), PN[ipl].c_str() ),
+		       200, 0, 1000 );
+    hclq[ipl] = TH1I( Form( "clq%s", PN[ipl].c_str() ),
+		      Form( "%s cluster charge;cluster charge [ke];%s clusters",
+			    PN[ipl].c_str(), PN[ipl].c_str() ),
+		      100, 0, 50 );
+
+  } // ipl
+
+  hdt = new TH1I( "dt", "time between events;log_{10}(#Deltat [s]);events", 100, -4, 1 );
+  hddtAB = new TH1I( "ddtAB", "dtA - dtB;A-B #delta#Deltat [clocks];events", 100, -1000, 1000 );
+    hddtCB = new TH1I( "ddtCB", "dtC - dtB;C-B #delta#Deltat [clocks];events", 100, -1000, 1000 );
+    hddtCA = new TH1I( "ddtCA", "dtC - dtA;C-A #delta#Deltat [clocks];events", 100, -1000, 1000 );
+    ddtvsdtAB = new  TProfile( "ddtvsdtAB",		      "A-B time lag vs intervall;log_{10} = new  (#Deltat [s]);<#delta#Deltat> [clocks]",		      100, -4, 1,-1e99, 1e99 );
+
+    // correlations:
+
+     hxA = new TH1I( "xA", "x A;x [mm];clusters A", 100, -5, 5 );
+     hyA = new  TH1I( "yA", "y A;y [mm];clusters A", 100, -5, 5 ); 
+   hxAi = new  TH1I( "xAi", "x A isolated;x [mm];isolated clusters A", 100, -5, 5 );
+   hyAi = new  TH1I( "yAi", "y A isolated;y [mm];isolated clusters A", 100, -5, 5 ); 
+   hclqAi = new  TH1I( "clqAi", "A isolated cluster charge;cluster charge [ke];A isolatewd clusters",
+	       100, 0, 50 );
+
+   hxxAB = new TH2I( "xxAB", "B vs A;row A;row B;clusters", 320, -4, 4, 320, -4, 4 );
+   hyyAB = new TH2I( "yyAB", "B vs A;col A;col B;clusters",  80, -4, 4,  80, -4, 4 );
+
+   hdxAB = new  TH1I( "dxAB", "Bx-Ax;x-x [mm];cluster pairs", 800, -2, 2 );
+   hdyAB = new  TH1I( "dyAB", "By-Ay;y-y [mm];cluster pairs", 400, -2, 2 );
+   dxvsxAB = new  TProfile( "dxvsxAB", "dx vs x A-B;x [mm];<dx> [mm]", 320, -4, 4, -f, f );
+ dxvsyAB = new  TProfile( "dxvsyAB", "dx vs y A-B;y [mm];<dx> [mm]",  80, -4, 4, -f, f );
+
+  hdxvsev = new    TH2I( "dxvsev", "Bx-Ax vs events;events;#Deltax [px];clusters",	  100, 0, 10000, 100, -f, f );
+
+   nmvsevAB = new  TProfile( "nmvsevAB", "AB matches vs time;time [events];AB matches",		     3100, 0, 3100*1000, -1, 99 );
+
+   hxB = new  TH1I( "xB", "x B;x [mm];clusters B", 100, -5, 5 );
+ hyB = new  TH1I( "yB", "y B;y [mm];clusters B", 100, -5, 5 ); 
+   hxBi = new  TH1I( "xBi", "x B isolated;x [mm];isolated clusters B", 100, -5, 5 );
+ hyBi = new  TH1I( "yBi", "y B isolated;y [mm];isolated clusters B", 100, -5, 5 ); 
+   hclqBi = new  TH1I( "clqBi", "B isolated cluster charge;cluster charge [ke];B isolatewd clusters",100, 0, 50 );
+
+  hxxCB = new TH2I( "xxCB", "C vs B;row B;row C;clusters", 320, -4, 4, 320, -4, 4 );
+  hyyCB = new TH2I( "yyCB", "C vs B;col B;col C;clusters",  80, -4, 4,  80, -4, 4 );
+
+hdxCB = new  TH1I( "dxCB", "Cx-Bx;x-x [mm];cluster pairs", 800, -2, 2 );
+ hdyCB = new  TH1I( "dyCB", "Cy-By;y-y [mm];cluster pairs", 400, -2, 2 );
+   dxvsxCB = new  TProfile( "dxvsxCB", "dx vs x C-B;x [mm];<dx> [mm]", 320, -4, 4, -f, f );
+ dxvsyCB = new  TProfile( "dxvsyCB", "dx vs y C-B;y [mm];<dx> [mm]",  80, -4, 4, -f, f );
+ nmvsevCB = new  TProfile( "nmvsevCB", "CB matches vs time;time [events];CB matches",
+		     3100, 0, 3100*1000, -1, 99 );
+
+  // triplets:
+
+   hxC = new  TH1I( "xC", "x C;x [mm];clusters C", 100, -5, 5 );
+ hyC = new  TH1I( "yC", "y C;y [mm];clusters C", 100, -5, 5 ); 
+ hxCi = new  TH1I( "xCi", "x C isolated;x [mm];isolated clusters C", 100, -5, 5 );
+ hyCi = new  TH1I( "yCi", "y C isolated;y [mm];isolated clusters C", 100, -5, 5 ); 
+ hclqCi = new  TH1I( "clqCi", "C isolated cluster charge;cluster charge [ke];C isolatewd clusters",
+	       100, 0, 50 );
+
+  hxxCA = new TH2I( "xxCA", "C vs A;row A;row C;clusters", 320, -4, 4, 320, -4, 4 );
+  hyyCA = new TH2I( "yyCA", "C vs A;col A;col C;clusters",  80, -4, 4,  80, -4, 4 );
+
+ hdxCA = new  TH1I( "dxCA", "Cx-Ax;x-x [mm];cluster pairs", 400, -1, 1 );
+ hdyCA = new  TH1I( "dyCA", "Cy-Ay;y-y [mm];cluster pairs", 200, -1, 1 );
+
+ dxvsxCA = new  TProfile( "dxvsxCA", "dx vs x C-A;x [mm];<dx> [mm]", 320, -4, 4, -f, f );
+ dxvsyCA = new  TProfile( "dxvsyCA", "dx vs y C-A;y [mm];<dx> [mm]",  80, -4, 4, -f, f );
+  hdyCAc = new  TH1I( "dyCAc", "Cy-Ay, cut dx;y-y [mm];cluster pairs", 200, -1, 1 );
+ dyvsyCA = new  TProfile( "dyvsyCA", "dy vs y C-A;y [mm];<dy> [mm]",  80, -4, 4, -f, f );
+ nmvsevCA = new  TProfile( "nmvsevCA", "CA matches vs time;time [events];CA matches",
+		     3100, 0, 3100*1000, -1, 99 );
+
+  hdx3 = new  TH1I( "dx3", "triplet dx;dx [mm];triplets", 500, -0.5, 0.5 );
+  hdy3 = new  TH1I( "dy3", "triplet dy;dy [mm];triplets", 200, -1, 1 );
+
+  hdx3c = new  TH1I( "dx3c", "triplet dx, cut dy;dx [mm];triplets", 500, -0.25, 0.25 );
+  hdx3ci = new  TH1I( "dx3ci", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+  hdx3cii = new  TH1I( "dx3cii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+  hdx3ciii = new  TH1I( "dx3ciii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+
+  hdx3c1 = new  TH1I( "dx3c1", "triplet dx, cut dy, npx 1;dx [mm];triplets, B npx 1",
+	       500, -0.25, 0.25 );
+  hdx3c2 = new  TH1I( "dx3c2", "triplet dx, cut dy, npx 2;dx [mm];triplets, B npx 2",
+	       500, -0.25, 0.25 );
+  hdx3c3 = new TH1I( "dx3c3", "triplet dx, cut dy, npx 3;dx [mm];triplets, B npx 3",
+	       500, -0.25, 0.25 );
+  hdx3c4 = new TH1I( "dx3c4", "triplet dx, cut dy, npx 4;dx [mm];triplets, B npx 4",
+	       500, -0.25, 0.25 );
+  hdx3c5 = new TH1I( "dx3c5", "triplet dx, cut dy, npx 5;dx [mm];triplets, B npx 5",
+	       500, -0.25, 0.25 );
+  hdx3c6 = new TH1I( "dx3c6", "triplet dx, cut dy, npx 6;dx [mm];triplets, B npx 6",
+	       500, -0.25, 0.25 );
+  hdx3c7 = new TH1I( "dx3c7", "triplet dx, cut dy, npx > 6;dx [mm];triplets, B npx > 6",
+	       500, -0.25, 0.25 );
+
+  hdx3m = new TH1I( "dx3m", "triplet dx, x < 0;dx [mm];triplets", 500, -0.5, 0.5 );
+  hdx3p = new TH1I( "dx3p", "triplet dx, x > 0;dx [mm];triplets", 500, -0.5, 0.5 );
+  hdx3ct = new TH1I( "dx3ct", "triplet dx, cut dy, tx;dx [mm];triplets",
+	       500, -0.25, 0.25 );
+ madx3vsq = new TProfile( "madx3vsq", "MAD = new  (dx) vs Q;B cluster charge [ke];MAD dx [mm]",
+		     100, 0, 100, 0, 0.1 );
+ madx3vsn = new TProfile( "madx3vsn", "MAD = new  (dx) vs cluster size;B cluster size [pixels];MAD dx [mm]",
+		     20, 0.5, 20.5, 0, 0.1 );
+
+  hdx3cq = new TH1I( "dx3cq", "triplet dx, Landau peak;dx [mm];Landau peak triplets",
+	       500, -0.25, 0.25 );
+  hdx3cqi = new TH1I( "dx3cqi", "triplet dx, Landau peak, isolated;dx [mm];isolated Landau peak triplets",
+		500, -0.25, 0.25 );
+  hdx3cq3 = new TH1I( "dx3cq3", "triplet dx, 3 Landau peak;dx [mm];Landau peak triplets",
+		500, -0.25, 0.25 );
+  hdx3nocq3 = new TH1I( "dx3nocq3", "triplet dx, no 3 Landau peak;dx [mm];no Landau peak triplets",
+		500, -0.25, 0.25 );
+  hdx3cq3i = new TH1I( "dx3cq3i", "triplet dx, 3 Landau peak, isolated;dx [mm];isolated Landau peak triplets",
+		 500, -0.25, 0.25 );
+
+ dx3vsev = new TProfile( "dx3vsev", "dx3 vs time;trigger;<dx3> [mm]",
+		    310, 0, 3100*1000, -0.5, 0.5 );
+
+ dx3vsx = new TProfile( "dx3vsx", "dx vs x;x [mm];<dx3> [mm]", 320, -4, 4, -0.5, 0.5 );
+ dx3vsy = new TProfile( "dx3vsy", "dx vs y;y [mm];<dx3> [mm]",  80, -4, 4, -0.5, 0.5 );
+ dx3vsxm = new TProfile( "dx3vsxm", "dx vs x mod 50 um;x mod 50 [#mum];<dx3> [mm]",
+		    50, 0, 50, -0.5, 0.5 );
+
+madx3vsdx = new TProfile( "madx3vsdx", "MAD = new  (dx3) vs dx C-A;C-A dx [#mum];MAD dx3 [mm]",
+		      100, -100, 100, 0, 0.1 );
+
+  hdx3cq3t = new TH1I( "dx3cq3t",
+		 "triplet dx, 3 Landau peak, forward;dx [mm];Landau peak forward triplets",
+		 500, -0.25, 0.25 );
+ madx3vsx = new TProfile( "madx3vsx", "MAD = new  (dx3) vs x;x [mm];MAD dx3 [mm]", 320, -4, 4, 0, 0.1 );
+ madx3vsy = new TProfile( "madx3vsy", "MAD = new  (dx3) vs y;y [mm];MAD dx3 [mm]",  80, -4, 4, 0, 0.1 );
+ madx3vsxm = new TProfile( "madx3vsxm", "MAD = new  (dx3) vs xmod;x mod 50 [#mum];MAD dx3 [mm]",		      50, 0, 50, 0, 0.1 );
+
+ etavsxmB3 = new TProfile( "etavsxmB3", "eta vs xmod;x mod 50 [#mum];B <eta>",
+		      50, 0, 50, -1.1, 1.1 );
+ madx3vseta = new TProfile( "madx3vseta", "MAD = new  (dx3) vs eta;eta;MAD dx3 [mm]",
+		       100, -1, 1, 0, 0.1 );
+  hdx3cq3t2 = new TH1I( "dx3cq3t2",
+		  "triplet dx, 3 Landau peak, forward, 2-px;dx [mm];Landau peak forward triplets",
+		  500, -0.25, 0.25 );
+
+  hclmapB3 = new  TH2I( "clmapB3", "linked cluster map B;col;row;B clusters on tracks",
+	  80, 0, 80, 320, 0, 320 );
+
+  hxA3 = new TH1I( "xA3", "x A linked;x [mm];A clusters on tracks", 100, -5, 5 );
+  hyA3 = new TH1I( "yA3", "y A linked;y [mm];A clusters on tracks", 100, -5, 5 ); 
+  hxB3 = new TH1I( "xB3", "x B linked;x [mm];B clusters on tracks", 100, -5, 5 );
+  hyB3 = new TH1I( "yB3", "y B linked;y [mm];B clusters on tracks", 100, -5, 5 ); 
+  hxC3 = new TH1I( "xC3", "x C linked;x [mm];C clusters on tracks", 100, -5, 5 );
+  hyC3 = new TH1I( "yC3", "y C linked;y [mm];C clusters on tracks", 100, -5, 5 ); 
+
+  hclszA3 = new TH1I( "clszA3", "A cluster size on tracks;cluster size [pixels];Aclusters on tracks",
+		40, 0.5, 40.5 );
+  hclphA3 = new TH1I( "clphA3", "A cluster PH on tracks;cluster ph [ADC];A clusters on tracks",
+		200, 0, 1000 );
+  hclqA3 = new TH1I( "clqA3", "A cluster charge on tracks;cluster charge [ke];A clusters on tracks",
+	       160, 0, 80 );
+
+  hclszB3 = new TH1I( "clszB3", "B cluster size on tracks;cluster size [pixels];B clusters on tracks",
+		40, 0.5, 40.5 );
+  hncolB3 = new TH1I( "ncolB3", "B cluster size on tracks;cluster size [columns];B clusters on tracks",
+		20, 0.5, 20.5 );
+  hnrowB3 = new TH1I( "nrowB3", "B cluster size on tracks;cluster size [rows];B clusters on tracks",
+		20, 0.5, 20.5 );
+  hclphB3 = new TH1I( "clphB3", "B cluster PH on tracks;cluster ph [ADC];B clusters on tracks",
+		200, 0, 1000 );
+  hclqB3 = new TH1I( "clqB3", "B cluster charge on tracks;cluster charge [ke];B clusters on tracks",
+	       160, 0, 80 );
+  hclqB3i = new TH1I( "clqB3i", "B cluster charge on tracks;cluster charge [ke];B clusters on tracks",
+	       80, 0, 20 );
+  hclqB3n = new TH1I( "clqB3n",
+		"B cluster charge on tracks, npx < 4;cluster charge [ke];B clusters on tracks, npx < 4",
+		160, 0, 80 );
+
+  hclszC3 = new TH1I( "clszC3", "C cluster size on tracks;cluster size [pixels];C clusters on tracks",
+		40, 0.5, 40.5 );
+  hclphC3 = new TH1I( "clphC3", "C cluster PH on tracks;cluster ph [ADC];C clusters on tracks",
+		200, 0, 1000 );
+  hclqC3 = new TH1I( "clqC3", "C cluster charge on tracks;cluster charge [ke];C clusters on tracks",
+	       160, 0, 80 );
+
+ nrowvsxmB3 = new TProfile( "nrowvsxmB3",
+		       "B rows vs xmod;x mod 50 [#mum];<B cluster size [rows]>",
+		       50, 0, 50, 0.5, 10.5 );
+   clqvsxmB3 = new TProfile( "clqvsxmB3",
+		      "B cluster charge vs xmod;x mod 50 [#mum];<B cluster charge [ke]>",
+		      50, 0, 50, 0, 50 );
+
+  hetaA3 = new TH1I( "etaA3", "A cluster eta;eta;A 2-pix clusters on tracks",
+	       100, -1, 1 );
+  hetaB3 = new TH1I( "etaB3", "B cluster eta;eta;B 2-pix clusters on tracks",
+	       100, -1, 1 );
+  hetaC3 = new TH1I( "etaC3", "C cluster eta;eta;C 2-pix clusters on tracks",
+	       100, -1, 1 );
+
+  hpxqA3 = new TH1I( "pxqA3", "A pixel charge;pixel charge [ke];A pixels on tracks",
+	       100, 0, 20 );
+  hpxqB3 = new TH1I( "pxqB3", "B pixel charge;pixel charge [ke];B pixels on tracks",
+	       100, 0, 20 );
+   hpxqC3 = new TH1I( "pxqC3", "C pixel charge;pixel charge [ke];C pixels on tracks",
+	       100, 0, 20 );
+
+   hpxpA3 = new TH1I( "pxpA3", "A pixel PH;pixel PH [ADC];A pixels on tracks", 250, 0, 500 );
+   hpxpB3 = new TH1I( "pxpB3", "B pixel PH;pixel PH [ADC];B pixels on tracks", 250, 0, 500 );
+   hpxpC3 = new TH1I( "pxpC3", "C pixel PH;pixel PH [ADC];C pixels on tracks", 250, 0, 500 );
+
+  hpxq1stB3 = new TH1I( "pxq1stB3", "B 1st pixel charge;pixel charge [ke];B `st pixels on tracks",		  100, 0, 20 );
+  hpxq2ndB3 = new TH1I( "pxq2ndB3", "B 2nd pixel charge;pixel charge [ke];B `st pixels on tracks",		  100, 0, 20 );
+
+  effvsdxy = new TProfile( "effvsdxy",		     "DUT efficiency vs triplet dxy;xy match radius [mm];DUT efficiency",		     1000, 0, 10, -0.1, 1.1 );
+
+effvsxy =
+    new TProfile2D( "effvsxy",
+		    "DUT efficiency map;x [mm];y[mm];DUT efficiency",
+		    80, -4, 4, 80, -4, 4, -0.1, 1.1 );
+ effvsx = new TProfile( "effvsx", "eff vs x;x [mm];DUT efficiency",
+		   320, -4, 4, -0.1, 1.1 );
+ effvsy = new TProfile( "effvsy", "eff vs y;y [mm];DUT efficiency",
+		   80, -4, 4, -0.1, 1.1 );
+ effvsxm = new TProfile( "effvsxm", "eff vs x mod 50;x mod 50 [#mum];DUT efficiency",
+		    50, 0, 50, -0.1, 1.1 );
+
+ effvsev = new TProfile( "effvsev", "eff vs time;trigger;DUT efficiency",
+		    3100, 0, 3100*1000, -0.1, 1.1 );
+ effvsiev = new TProfile( "effvsiev", "eff vs event;event mod 200;DUT efficiency",
+		     100, -0.5, 199.5, -0.1, 1.1 );
+effvsmpxA = new TProfile( "effvsmpxA", "eff vs occupancy A;occupancy A [pixels];DUT efficiency",
+		      50, 0.5, 50.5, -0.1, 1.1 );
+ effvsqA = new TProfile( "effvsqA", "eff vs charge A;cluster charge A [ke];DUT efficiency",
+		    100, 0, 100, -0.1, 1.1 );
+   effvstxy = new TProfile("effvstxy", "eff vs angle;dxy CA [mm];DUT efficiency",
+		     100, 0, 0.2, -0.1, 1.1 );
 
 }
