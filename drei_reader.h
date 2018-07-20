@@ -1,5 +1,64 @@
 #define DreiMasterPlanes 3
 bool fifty = false;
+#define r4sRows 160
+#define r4sColumns 155
+
+#define halfSensorX 4.0
+#define halfSensorY 3.9
+#define ACspacing 40 //[mm] distance between planes A and C in the dreimaster
+
+using namespace std;
+bool PRINT = false;
+
+struct evInfo {
+  uint64_t evtime;
+  bool skip;
+  string filled;
+};
+
+struct pixel {
+  int col;
+  int row;
+  double ph;
+  double q;
+};
+
+struct cluster {
+  vector <pixel> vpix;
+  int size; // [px]
+  double sum; // [ADC]
+  double q; // [ke]
+  double col, row; // [px]
+  bool iso;
+};
+
+const int A{0};
+const int B{1};
+const int C{2};
+string PN[]{"A","B","C"};
+string datapath = "/mnt/pixeldata/";
+double p0[DreiMasterPlanes][r4sColumns][r4sRows]; // Fermi
+double p1[DreiMasterPlanes][r4sColumns][r4sRows];
+double p2[DreiMasterPlanes][r4sColumns][r4sRows];
+double p3[DreiMasterPlanes][r4sColumns][r4sRows];
+double ke[DreiMasterPlanes];
+
+
+list < evInfo > infoA;
+list < evInfo > infoB;
+list < evInfo > infoC;
+
+
+double nSigmaTolerance = 3;
+double beamDivergence = 0.001; //1 mrad
+double straightTracks = ACspacing*beamDivergence*nSigmaTolerance;
+
+
+//functions definition
+vector<cluster> getClus( vector <pixel> pb, int fCluCut = 1 ); // 1 = no gap
+list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bool fifty );
+void getGain( string gainfile, double (*p0)[r4sColumns][r4sRows], double (*p1)[r4sColumns][r4sRows], double (*p2)[r4sColumns][r4sRows], double (*p3)[r4sColumns][r4sRows], int plane);
+void bookHists();
 
 TProfile phvsprev[DreiMasterPlanes];
 TProfile dphvsprev[DreiMasterPlanes];

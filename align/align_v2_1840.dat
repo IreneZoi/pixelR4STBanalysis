@@ -14,3 +14,7 @@ keB 0.0385 // 11 ke 108
 keC 0.0463 // c109 with warm 108
 beamEnergy 5.6
 pitch 25
+qL  9
+qR 15
+qLB 9
+qRB 15

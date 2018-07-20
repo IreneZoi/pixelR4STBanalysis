@@ -40,66 +40,7 @@
 #include "./drei_reader.h"
 
 
-#define r4sRows 160
-#define r4sColumns 155
 
-#define halfSensorX 4.0
-#define halfSensorY 3.9
-#define ACspacing 40 //[mm] distance between planes A and C in the dreimaster
-
-
-using namespace std;
-bool PRINT = false;
-
-struct evInfo {
-  uint64_t evtime;
-  bool skip;
-  string filled;
-};
-
-struct pixel {
-  int col;
-  int row;
-  double ph;
-  double q;
-};
-
-struct cluster {
-  vector <pixel> vpix;
-  int size; // [px]
-  double sum; // [ADC]
-  double q; // [ke]
-  double col, row; // [px]
-  bool iso;
-};
-
-const int A{0};
-const int B{1};
-const int C{2};
-string PN[]{"A","B","C"};
-
-double p0[DreiMasterPlanes][r4sColumns][r4sRows]; // Fermi
-double p1[DreiMasterPlanes][r4sColumns][r4sRows];
-double p2[DreiMasterPlanes][r4sColumns][r4sRows];
-double p3[DreiMasterPlanes][r4sColumns][r4sRows];
-double ke[DreiMasterPlanes];
-
-
-list < evInfo > infoA;
-list < evInfo > infoB;
-list < evInfo > infoC;
-
-
-double nSigmaTolerance = 3;
-double beamDivergence = 0.001; //1 mrad
-double straightTracks = ACspacing*beamDivergence*nSigmaTolerance;
-
-
-//functions definition
-vector<cluster> getClus( vector <pixel> pb, int fCluCut = 1 ); // 1 = no gap
-list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bool fifty );
-void getGain( string gainfile, double (*p0)[r4sColumns][r4sRows], double (*p1)[r4sColumns][r4sRows], double (*p2)[r4sColumns][r4sRows], double (*p3)[r4sColumns][r4sRows], int plane);
-void bookHists();
 //------------------------------------------------------------------------------
 
 int main( int argc, char* argv[] )
@@ -142,6 +83,7 @@ int main( int argc, char* argv[] )
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   //ALIGN
+  //read from ALIGN file, now containing also calibration, pitch, beam energy, etc.
   
   string alignpath = "align/";
   int aligniteration = 0;
@@ -163,7 +105,11 @@ int main( int argc, char* argv[] )
   double ptchc = 0.0;// 0.100; // [mm] col size
   double ptchr = 0.0;//0.025; // [mm] row size
   double beamEnergy = -1.0; // [GeV]
-  
+  double qL =  0;
+  double qR = 0;
+  double qLB = 0;
+  double qRB = 0;
+ 
   string alignFileName = "0";
   if(alignversion == 1)  
     alignFileName = alignpath+"align_" + runnum + ".dat";
@@ -197,6 +143,10 @@ int main( int argc, char* argv[] )
     string KEC( "keC" );
     string BEAMENERGY( "beamEnergy" );
     string PITCH( "pitch" );
+    string QL( "qL" );
+    string QR( "qR" );
+    string QLB( "qLB" );
+    string QRB( "qRB" );
     
     while( ! alignFile.eof() ) {
 
@@ -243,7 +193,14 @@ int main( int argc, char* argv[] )
 	tokenizer >>  beamEnergy;
       else if( tag == PITCH )
 	tokenizer >> pitch;
-
+      else if( tag == QL )
+	tokenizer >> qL;
+      else if( tag == QR )
+	tokenizer >> qR;
+      else if( tag == QLB )
+	tokenizer >> qLB;
+      else if( tag == QRB )
+	tokenizer >> qRB;
 
       // anything else on the line and in the file gets ignored
 
@@ -284,7 +241,7 @@ int main( int argc, char* argv[] )
     }
 
   double beamDivergenceScaled = 5/beamEnergy; // 5sigma/energy
-
+  //---------------------------------------------------------------------------------- 
   
   // (re-)create root file:
 
@@ -297,23 +254,6 @@ int main( int argc, char* argv[] )
 
   const double log10 = log(10);
   string ADD {"A"}; // added flag
-
-  //selection for Landau peak
-  double qL =  9;
-  double qR = 15;
-
-  double qLB = qL;
-  double qRB = qR;
-
-  if( run >= 1789 && run <= 1822 ) { // 130i peak at 4
-    qLB = 2;
-    qRB = 7;
-  }
-
-  if( run >= 1842 && run <= 1864 ) { // 133i peak at 5
-    qLB = 3;
-    qRB = 8;
-  }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -329,17 +269,6 @@ int main( int argc, char* argv[] )
   double zeit1 = 0;
   double zeit2 = 0;
 
-  // simulate n-bit ADC: run 884
-
-  //int nb = pow( 2, 8 ); // 885 dx3cq3  3.04
-  //int nb = pow( 2, 7 ); // 885 dx3cq3  3.05
-  //int nb = pow( 2, 6 ); // 885 dx3cq3  3.07
-  //int nb = pow( 2, 5 ); // 885 dx3cq3  3.11
-  //int nb = pow( 2, 4 ); // 885 dx3cq3  3.29
-  //int nb = pow( 2, 3 ); // 885 dx3cq3  3.895
-  //int nb = pow( 2, 2 ); // 885 dx3cq3  4.95
-  //int nb = pow( 2, 1 ); // 885 dx3cq3  6.78
-
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // Read and process the run for each plane in parallel:
 
@@ -352,7 +281,7 @@ int main( int argc, char* argv[] )
   {
 #pragma omp section
     {
-      //cout << "A " << sched_getcpu() << endl << flush; // changes
+      if(PRINT) cout << "A " << sched_getcpu() << endl << flush; // changes
       if(PRINT) cout << "***** Plane A ***********" << endl;
 
       evlistA = oneplane( A, runnum, Nev, fifty );
@@ -364,7 +293,7 @@ int main( int argc, char* argv[] )
 
 #pragma omp section
     {
-      //cout << "B " << sched_getcpu() << endl << flush; // different from A
+      if(PRINT) cout << "B " << sched_getcpu() << endl << flush; // different from A
       if(PRINT) cout << "***** Plane B ***********" << endl;
 
       evlistB = oneplane( B, runnum, Nev, fifty );
@@ -376,7 +305,7 @@ int main( int argc, char* argv[] )
 
 #pragma omp section
     {
-      //cout << "C " << sched_getcpu() << endl << flush; // different from A and B
+      if(PRINT)cout << "C " << sched_getcpu() << endl << flush; // different from A and B
       if(PRINT) cout << "***** Plane C ***********" << endl;
 
       evlistC = oneplane( C, runnum, Nev, fifty );
@@ -1553,23 +1482,16 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
   int run = stoi( runnum );
 
   list < vector < cluster > > evlist;
-  string datapath = "/mnt/pixeldata/";
+  string datadir;
   string Xfile;
-  if( plane == A ) {
-    Xfile = datapath+"a/roi000" + runnum + ".txt";
-    if( run > 999 )
-      Xfile = datapath+"a/roi00" + runnum + ".txt";
-  }
-  if( plane == B ) {
-    Xfile = datapath+"b/roi000" + runnum + ".txt";
-    if( run > 999 )
-      Xfile = datapath+"b/roi00" + runnum + ".txt";
-  }
-  if( plane == C ) {
-    Xfile = datapath+"c/roi000" + runnum + ".txt";
-    if( run > 999 )
-      Xfile = datapath+"c/roi00" + runnum + ".txt";
-  }
+  string runpath = "roi000";
+  if(run > 999)
+    runpath = "roi00";
+  if(plane == A) datadir="a/";
+  if(plane == B) datadir="b/";
+  if(plane == C) datadir="c/";
+  
+  Xfile = datapath+datadir+runpath + runnum + ".txt";
   // cout << "FOK " << access(Xfile.c_str(),F_OK) << endl;
   // cout << "ROK " << access(Xfile.c_str(),R_OK) << endl;
   cout << "try to open  " << Xfile;
