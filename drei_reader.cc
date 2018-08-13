@@ -1511,6 +1511,7 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
     cout << "  " << hd << endl;
   }
 
+  //empty and filled event flag
   string F {"F"}; // filled flag
   string E {"E"}; // empty flag
   string BLANK{" "};
@@ -1537,12 +1538,7 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
     iss >> iblk;
 
     uint64_t evtime = prevtime;
-
-    if( filled == F )
-      iss >> evtime; // from run 456
-
-    else if( filled == E )
-      iss >> evtime; // from run 456
+    iss >> evtime; // from run 456
 
     vector <pixel> pb; // for clustering
     vector <cluster> vcl;
@@ -1552,60 +1548,64 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
     evinf.skip = 0;
     prevtime = evtime;
 
-    if( filled == F ) {
-
-      string roi;
-      getline( Xstream, roi );
-
-      size_t start = 0;
-      size_t gap = 0;
-      unsigned ng = 0; // 3 per pix
-      string BLANK{" "};
-      while( gap < roi.size()-1 ) { // data have trailing blank
-	gap = roi.find( BLANK, start );
-	start = gap + BLANK.size();
-	++ng;
-      }
-      hnpx[plane].Fill( ng/3 );
-
-      vector <pixel> vpx;
-
-      if( ng/3 < 400 ) {
-
-	vpx.reserve(ng/3);
-
+    //do the analysis only for filled events
+    if( filled == F )
+      {
+	if(PRINT)  cout << "Analayzing filled data" << endl; 
+	string roi;
+	getline( Xstream, roi );
+	cout << "roi: " << roi << endl;
+	cout << "roi size: " << roi.size() << endl;
 	size_t start = 0;
 	size_t gap = 0;
+	unsigned ng = 0; // 3 per pix
+	string BLANK{" "};
 	while( gap < roi.size()-1 ) { // data have trailing blank
-
 	  gap = roi.find( BLANK, start );
-	  string s1( roi.substr( start, gap - start ) );
-	  //cout << " " << s1 << "(" << gap << ")";
-	  //int col = stoi(s1);
-	  int col = atoi( s1.c_str() ); // 4% faster
-	  //int col = fast_atoi( s1.c_str() ); // another 6% faster
 	  start = gap + BLANK.size();
-
-	  gap = roi.find( BLANK, start );
-	  string s2( roi.substr( start, gap - start ) );
-	  //cout << " " << s2 << "(" << gap << ")";
-	  //int row = stoi(s2);
-	  int row = atoi( s2.c_str() );
-	  //int row = fast_atoi( s2.c_str() );
-	  start = gap + BLANK.size();
-
-	  gap = roi.find( BLANK, start );
-	  string s3( roi.substr( start, gap - start ) );
-	  //cout << " " << s1 << "(" << gap << ")";
-	  //double ph = stod(s3);
-	  double ph = atof(s3.c_str());
-	  hph[plane].Fill( ph );
-	  start = gap + BLANK.size();
-
-	  pixel px { col, row, ph, ph };
-	  vpx.push_back(px); // comment out = no clustering
-
+	  ++ng;
 	}
+	hnpx[plane].Fill( ng/3 );
+	
+	vector <pixel> vpx;
+	
+	if( ng/3 < 400 ) {
+	  
+	  vpx.reserve(ng/3);
+	  
+	  size_t start = 0;
+	  size_t gap = 0;
+	  while( gap < roi.size()-1 )
+	    { // data have trailing blank
+	    
+	    gap = roi.find( BLANK, start );
+	    string s1( roi.substr( start, gap - start ) );
+	    if(print) cout << " " << s1 << "(" << gap << ")";
+	    //int col = stoi(s1);
+	    int col = atoi( s1.c_str() ); // 4% faster
+	    //int col = fast_atoi( s1.c_str() ); // another 6% faster
+	    start = gap + BLANK.size();
+	    
+	    gap = roi.find( BLANK, start );
+	    string s2( roi.substr( start, gap - start ) );
+	    //cout << " " << s2 << "(" << gap << ")";
+	    //int row = stoi(s2);
+	    int row = atoi( s2.c_str() );
+	    //int row = fast_atoi( s2.c_str() );
+	    start = gap + BLANK.size();
+	    
+	    gap = roi.find( BLANK, start );
+	    string s3( roi.substr( start, gap - start ) );
+	    //cout << " " << s1 << "(" << gap << ")";
+	    //double ph = stod(s3);
+	    double ph = atof(s3.c_str());
+	    hph[plane].Fill( ph );
+	    start = gap + BLANK.size();
+
+	    pixel px { col, row, ph, ph };
+	    vpx.push_back(px); // comment out = no clustering
+	    
+	    }
 	/* slower
 	  istringstream css( roi ); // tokenize string
 	  while( ! css.eof() ) {
