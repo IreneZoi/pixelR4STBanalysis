@@ -544,3 +544,88 @@
 	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
 	  if( run == 1905 )
 	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+
+
+//in oneplane
+        if( run >= 1873 && run <= 1905 ) { // fresh
+	if( plane == A )
+	ph4 -= 0.17*phprev; // Tsunami
+	if( plane == B )
+	 ph4 -= 0.14*phprev; // Tsunami
+	  if( plane == C )
+	  ph4 -= 0.15*phprev; // Tsunami
+	   } 
+
+
+            double dphcut = 12; // sig 4.5
+
+            if( run >= 1747 ) {
+
+          dphcut = 40; // gain_2
+
+          if( plane == B )
+	              dphcut = 30; // 136i
+		                //dphcut = 40; // 136i
+
+        }
+
+        if( run >= 1757 ) { // fresh
+
+          //dphcut = 30; // gain_2 1767 dx3cq3 3.39
+	            dphcut = 40; // gain_2 1767 dx3cq3 3.18
+		              //dphcut = 50; // gain_2 1767 dx3cq3 3.31
+			                //dphcut = 60; // gain_2 1767 dx3cq3
+
+          if( plane == B )
+	              //dphcut = 30; // 1783 dx3cq3 3.10
+		                  dphcut = 40; // 1783 dx3cq3 3.03
+				            //dphcut = 50; // 1767 dx3cq3 3.31
+
+        }
+
+        if( run >= 1789 ) {
+
+          dphcut = 30; // gain_2, 1820: dx3cq3 5.07
+
+          if( plane == B )
+	              //dphcut = 20; // 130i, 1820: dx3cq3 5.41
+		                  dphcut = 30; // 130i, 1820: dx3cq3 5.07
+				            //dphcut = 40; // 130i, 1820: dx3cq3 5.2307
+
+        }
+
+        if( run >= 1823 ) { // fresh
+
+          //dphcut = 20; // gain_2 1840: dx3cq3 4.6
+	            //dphcut = 30; // gain_2 1840: dx3cq3 4.04
+		              //dphcut = 40; // gain_2 1840: dx3cq3 3.91
+			                //dphcut = 50; // gain_2 1840: dx3cq3 3.99
+
+          //dphcut = 20; // gain_2 1840: dx3cq3 3.92
+	            dphcut = 30; // gain_2 1840: dx3cq3 3.88
+		              if( plane == B )
+			                  dphcut = 40; // gain_2 1840: dx3cq3 3.88
+					          }
+
+        if( run >= 1842 ) {
+
+          dphcut = 20; // gain_2 7.5
+	            //dphcut = 30; // gain_2 7.5
+		              //dphcut = 40; // gain_2 7.6
+
+          if( plane == B )
+	              //dphcut = 15; // 133i 8.8
+		                  //dphcut = 20; // 133i 7.7
+				              dphcut = 25; // 133i 7.5
+					                //dphcut = 30; // 133i 7.6
+							        }
+
+        if( run >= 1865 ) { // fresh
+
+          //dphcut = 15; // gain_2, 1894 dx3cq3 4.85 Tsunami corrected
+	            dphcut = 20; // gain_2, 1894 dx3cq3 4.65 Tsunami corrected
+		              //dphcut = 25; // gain_2, 1894 dx3cq3 4.74 Tsunami
+			                //dphcut = 30; // gain_2,
+
+        }
+	

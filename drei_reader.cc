@@ -109,7 +109,9 @@ int main( int argc, char* argv[] )
   double qR = 0;
   double qLB = 0;
   double qRB = 0;
- 
+  double Tsunami[DreiMasterPlanes];
+  double dphcut[DreiMasterPlanes];
+  
   string alignFileName = "0";
   if(alignversion == 1)  
     alignFileName = alignpath+"align_" + runnum + ".dat";
@@ -147,6 +149,12 @@ int main( int argc, char* argv[] )
     string QR( "qR" );
     string QLB( "qLB" );
     string QRB( "qRB" );
+    string TSUNAMIA( "TsunamiA" );    
+    string TSUNAMIB( "TsunamiB" );    
+    string TSUNAMIC( "TsunamiC" );
+    string DPHCUTA( "dphcutA" );    
+    string DPHCUTB( "dphcutB" );    
+    string DPHCUTC( "dphcutC" );
     
     while( ! alignFile.eof() ) {
 
@@ -201,6 +209,18 @@ int main( int argc, char* argv[] )
 	tokenizer >> qLB;
       else if( tag == QRB )
 	tokenizer >> qRB;
+      else if( tag == TSUNAMIA )
+	tokenizer >> Tsunami[0];
+      else if( tag == TSUNAMIB )
+	tokenizer >> Tsunami[1];
+      else if( tag == TSUNAMIC )
+	tokenizer >> Tsunami[2];
+      else if( tag == DPHCUTA )
+	tokenizer >> dphcut[0];
+      else if( tag == DPHCUTB )
+	tokenizer >> dphcut[1];
+      else if( tag == DPHCUTC )
+	tokenizer >> dphcut[2];
 
       // anything else on the line and in the file gets ignored
 
@@ -284,7 +304,7 @@ int main( int argc, char* argv[] )
       if(PRINT) cout << "A " << sched_getcpu() << endl << flush; // changes
       if(PRINT) cout << "***** Plane A ***********" << endl;
 
-      evlistA = oneplane( A, runnum, Nev, fifty );
+      evlistA = oneplane( A, runnum, Nev, fifty, Tsunami[A],dphcut[A] );
 
     } //omp section
 
@@ -296,7 +316,7 @@ int main( int argc, char* argv[] )
       if(PRINT) cout << "B " << sched_getcpu() << endl << flush; // different from A
       if(PRINT) cout << "***** Plane B ***********" << endl;
 
-      evlistB = oneplane( B, runnum, Nev, fifty );
+      evlistB = oneplane( B, runnum, Nev, fifty, Tsunami[B],dphcut[B]  );
 
     } // omp section
 
@@ -308,7 +328,7 @@ int main( int argc, char* argv[] )
       if(PRINT)cout << "C " << sched_getcpu() << endl << flush; // different from A and B
       if(PRINT) cout << "***** Plane C ***********" << endl;
 
-      evlistC = oneplane( C, runnum, Nev, fifty );
+      evlistC = oneplane( C, runnum, Nev, fifty, Tsunami[C],dphcut[C]  );
 
     } // omp section
 
@@ -1477,7 +1497,7 @@ vector<cluster> getClus( vector <pixel> pb, int fCluCut ) // 1 = no gap
 }//getClus
 
 
-list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bool fifty )
+list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bool fifty, double Tsunami, double dphcut )
 {
   int run = stoi( runnum );
 
@@ -1554,262 +1574,180 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 	if(PRINT)  cout << "Analayzing filled data" << endl; 
 	string roi;
 	getline( Xstream, roi );
-	cout << "roi: " << roi << endl;
-	cout << "roi size: " << roi.size() << endl;
+	if(PRINT)  cout << "roi: " << roi << endl;
+	if(PRINT) cout << "roi size: " << roi.size() << endl;
 	size_t start = 0;
 	size_t gap = 0;
-	unsigned ng = 0; // 3 per pix
+	unsigned ng = 0; // 3 entries per pixel (col, row and ph)
 	string BLANK{" "};
-	while( gap < roi.size()-1 ) { // data have trailing blank
-	  gap = roi.find( BLANK, start );
-	  start = gap + BLANK.size();
-	  ++ng;
-	}
+	while( gap < roi.size()-1 )
+	  { // data have trailing blank
+	    gap = roi.find( BLANK, start );
+	    start = gap + BLANK.size();
+	    ++ng;
+	  }
 	hnpx[plane].Fill( ng/3 );
 	
 	vector <pixel> vpx;
 	
-	if( ng/3 < 400 ) {
+	if( ng/3 < 400 )
+	  { //if there are more than 400 hits, it is a noisy event and takes a lot!
 	  
-	  vpx.reserve(ng/3);
+	    vpx.reserve(ng/3); //pixels in the event
 	  
-	  size_t start = 0;
-	  size_t gap = 0;
-	  while( gap < roi.size()-1 )
-	    { // data have trailing blank
+	    size_t start = 0;
+	    size_t gap = 0;
+	    while( gap < roi.size()-1 )
+	      { // data have trailing blank
 	    
-	    gap = roi.find( BLANK, start );
-	    string s1( roi.substr( start, gap - start ) );
-	    if(print) cout << " " << s1 << "(" << gap << ")";
-	    //int col = stoi(s1);
-	    int col = atoi( s1.c_str() ); // 4% faster
-	    //int col = fast_atoi( s1.c_str() ); // another 6% faster
-	    start = gap + BLANK.size();
+		//getting pixel column
+		gap = roi.find( BLANK, start );
+		string s1( roi.substr( start, gap - start ) );
+		if(PRINT) cout << " " << s1 << "(" << gap << ")"<<endl;
+		int col = atoi( s1.c_str() ); // 4% faster
+		start = gap + BLANK.size();
 	    
-	    gap = roi.find( BLANK, start );
-	    string s2( roi.substr( start, gap - start ) );
-	    //cout << " " << s2 << "(" << gap << ")";
-	    //int row = stoi(s2);
-	    int row = atoi( s2.c_str() );
-	    //int row = fast_atoi( s2.c_str() );
-	    start = gap + BLANK.size();
+		//getting pixel row
+		gap = roi.find( BLANK, start );
+		string s2( roi.substr( start, gap - start ) );
+		if(PRINT) cout << " " << s2 << "(" << gap << ")";
+		int row = atoi( s2.c_str() );
+		start = gap + BLANK.size();
+
+		//getting pixel puls height
+		gap = roi.find( BLANK, start );
+		string s3( roi.substr( start, gap - start ) );
+		if(PRINT) cout << " " << s1 << "(" << gap << ")";
+		double ph = atof(s3.c_str());
+		start = gap + BLANK.size();
+
+		hph[plane].Fill( ph );
+
+		pixel px { col, row, ph, ph };
+		vpx.push_back(px); // comment out = no clustering
 	    
-	    gap = roi.find( BLANK, start );
-	    string s3( roi.substr( start, gap - start ) );
-	    //cout << " " << s1 << "(" << gap << ")";
-	    //double ph = stod(s3);
-	    double ph = atof(s3.c_str());
-	    hph[plane].Fill( ph );
-	    start = gap + BLANK.size();
+	      }//while 
+	  } // size (less than 400 hits!)
+      else
+	{
+	  evinf.skip = 1;
+	  cout << " (" << iev << ": B ROI " << ng/3 << " skip)";
+	}
+	
+	// column-wise common mode correction:
+	// 4 = central pixel, 1 lower rows, 7 upper rows
+	double phprev = 0; //pulse height of previuos pixel
+	double dphprev = 0; //ph difference
 
-	    pixel px { col, row, ph, ph };
-	    vpx.push_back(px); // comment out = no clustering
+	for( unsigned ipx = 0; ipx < vpx.size(); ++ipx )
+	  {
+
+	    int col4 = vpx[ipx].col;
+	    int row4 = vpx[ipx].row;
+	    double ph4 = vpx[ipx].ph;
 	    
-	    }
-	/* slower
-	  istringstream css( roi ); // tokenize string
-	  while( ! css.eof() ) {
-	  int col;
-	  int row;
-	  double ph;
-	  css >> col;
-	  css >> row;
-	  css >> ph;
+	    int row1 = row4;
+	    int row7 = row4;
+	    double ph1 = ph4;
+	    double ph7 = ph4;
+	    
+	    for( unsigned jpx = 0; jpx < vpx.size(); ++jpx )
+	      {
+		
+		if( jpx == ipx ) continue;
+		if( vpx[jpx].col != col4 ) continue; // want same column
+		
+		int jrow = vpx[jpx].row;
+	      
+		if( jrow < row1 )
+		{
+		  row1 = jrow;
+		  ph1 = vpx[jpx].ph;
+		}
 
-	  pixel px { col, row, ph, ph };
-	  vpx.push_back(px);
+		if( jrow > row7 )
+		  {
+		    row7 = jrow;
+		    ph7 = vpx[jpx].ph;
+		  }
+	      
+	      } // jpx
 
-	  hph[plane].Fill( ph );
+	    if( row4 == row1 )
+	      {
+		phprev = ph1;
+		continue; // Randpixel
+	      }
+	    if( row4 == row7 ) continue;
 
-	  } // roi px
-	*/
-      } // size
-      else {
-	evinf.skip = 1;
-	cout << " (" << iev << ": B ROI " << ng/3 << " skip)";
-      }
+	    phvsprev[plane].Fill( phprev, ph4 );
 
-      // column-wise common mode correction:
+	    if(PRINT) cout << " ph4 before " << ph4;
+	    ph4 -= Tsunami*phprev; // Tsunami
+	    if(PRINT) cout << " ph4 after " << ph4 << endl;
+	    
+	    phprev = vpx[ipx].ph; // original ph4
 
-      double phprev = 0;
-      double dphprev = 0;
-
-      for( unsigned ipx = 0; ipx < vpx.size(); ++ipx ) {
-
-	int col4 = vpx[ipx].col;
-	int row4 = vpx[ipx].row;
-	double ph4 = vpx[ipx].ph;
-
-	int row1 = row4;
-	int row7 = row4;
-	double ph1 = ph4;
-	double ph7 = ph4;
-
-	for( unsigned jpx = 0; jpx < vpx.size(); ++jpx ) {
-
-	  if( jpx == ipx ) continue;
-	  if( vpx[jpx].col != col4 ) continue; // want same column
-
-	  int jrow = vpx[jpx].row;
-
-	  if( jrow < row1 ) {
-	    row1 = jrow;
-	    ph1 = vpx[jpx].ph;
-	  }
-
-	  if( jrow > row7 ) {
-	    row7 = jrow;
-	    ph7 = vpx[jpx].ph;
-	  }
-
-	} // jpx
-
-	if( row4 == row1 ) {
-	  phprev = ph1;
-	  continue; // Randpixel
-	}
-	if( row4 == row7 ) continue;
-
-	phvsprev[plane].Fill( phprev, ph4 );
-
-	if( run >= 1873 && run <= 1905 ) { // fresh
-	  if( plane == A )
-	    ph4 -= 0.17*phprev; // Tsunami
-	  if( plane == B )
-	    ph4 -= 0.14*phprev; // Tsunami
-	  if( plane == C )
-	    ph4 -= 0.15*phprev; // Tsunami
-	}
-
-	phprev = vpx[ipx].ph; // original ph4
-
-	double dph;
-	if( row4 - row1 < row7 - row4 )
-	  dph = ph4 - ph1;
-	else
-	  dph = ph4 - ph7;
- 
-	hdph[plane].Fill( dph ); // sig 2.7
-
-	dphvsprev[plane].Fill( dphprev, dph );
-	dphprev = dph;
-
-	double dphcut = 12; // sig 4.5
-
-	if( run >= 1747 ) {
-
-	  dphcut = 40; // gain_2
-
-	  if( plane == B )
-	    dphcut = 30; // 136i
-	  //dphcut = 40; // 136i
-
-	}
-
-	if( run >= 1757 ) { // fresh
-
-	  //dphcut = 30; // gain_2 1767 dx3cq3 3.39
-	  dphcut = 40; // gain_2 1767 dx3cq3 3.18
-	  //dphcut = 50; // gain_2 1767 dx3cq3 3.31
-	  //dphcut = 60; // gain_2 1767 dx3cq3 
-
-	  if( plane == B )
-	    //dphcut = 30; // 1783 dx3cq3 3.10
-	    dphcut = 40; // 1783 dx3cq3 3.03
-	  //dphcut = 50; // 1767 dx3cq3 3.31
-
-	}
-
-	if( run >= 1789 ) {
-
-	  dphcut = 30; // gain_2, 1820: dx3cq3 5.07
-
-	  if( plane == B )
-	    //dphcut = 20; // 130i, 1820: dx3cq3 5.41
-	    dphcut = 30; // 130i, 1820: dx3cq3 5.07
-	  //dphcut = 40; // 130i, 1820: dx3cq3 5.2307
-
-	}
-
-	if( run >= 1823 ) { // fresh
-
-	  //dphcut = 20; // gain_2 1840: dx3cq3 4.6
-	  //dphcut = 30; // gain_2 1840: dx3cq3 4.04
-	  //dphcut = 40; // gain_2 1840: dx3cq3 3.91
-	  //dphcut = 50; // gain_2 1840: dx3cq3 3.99
-
-	  //dphcut = 20; // gain_2 1840: dx3cq3 3.92
-	  dphcut = 30; // gain_2 1840: dx3cq3 3.88
-	  if( plane == B )
-	    dphcut = 40; // gain_2 1840: dx3cq3 3.88
-	}
-
-	if( run >= 1842 ) {
-
-	  dphcut = 20; // gain_2 7.5
-	  //dphcut = 30; // gain_2 7.5
-	  //dphcut = 40; // gain_2 7.6
-
-	  if( plane == B )
-	    //dphcut = 15; // 133i 8.8
-	    //dphcut = 20; // 133i 7.7
-	    dphcut = 25; // 133i 7.5
-	  //dphcut = 30; // 133i 7.6
-	}
-
-	if( run >= 1865 ) { // fresh
-
-	  //dphcut = 15; // gain_2, 1894 dx3cq3 4.85 Tsunami corrected
-	  dphcut = 20; // gain_2, 1894 dx3cq3 4.65 Tsunami corrected
-	  //dphcut = 25; // gain_2, 1894 dx3cq3 4.74 Tsunami
-	  //dphcut = 30; // gain_2, 
-
-	}
-
-	if( dph > dphcut ) {
-
-	  hpxmap[plane]->Fill( col4, row4 );
-
-	  pixel px;
-
-	  if( fifty ) {
-	    px.col = col4;
-	    px.row = row4;
-	  }
-	  else{
-	    px.col = (col4+1)/2; // 100 um
-	    if( col4%2 ) 
-	      px.row = 2*row4 + 0;
+	    double dph;
+	    //find closest row to define the difference
+	    if( row4 - row1 < row7 - row4 )
+	      dph = ph4 - ph1;
 	    else
-	      px.row = 2*row4 + 1;
-	  }
-	  /*
-	    int ia = dph/300 * nb; // Landau peak at 200 ADC
-	    if( ia > nb-1 ) ia = nb-1; // overflow
-	    dph = ia * 300.0/nb; // bits
-	  */
-	  px.ph = dph;
+	      dph = ph4 - ph7;
+ 
+	    hdph[plane].Fill( dph ); // sig 2.7
 
-	  // r4scal.C
+	    dphvsprev[plane].Fill( dphprev, dph );
+	    dphprev = dph;
 
-	  double U = ( dph - p3[plane][col4][row4] ) / p2[plane][col4][row4];
 
-	  if( U >= 1 )
-	    U = 0.9999999; // avoid overflow
+	    if( dph > dphcut ) 
+	      {
 
-	  double vcal = p0[plane][col4][row4] - p1[plane][col4][row4] * log( (1-U)/U ); // inverse Fermi
+		hpxmap[plane]->Fill( col4, row4 );
 
-	  px.q = ke[plane]*vcal;
+		pixel px;
+		
+		if( fifty )
+		  {
+		    px.col = col4;
+		    px.row = row4;
+		  }
+		else
+		  {
+		    px.col = (col4+1)/2; // 100 um
+		    if( col4%2 ) 
+		      px.row = 2*row4 + 0;
+		    else
+		      px.row = 2*row4 + 1;
+		  }
+		/*
+		  int ia = dph/300 * nb; // Landau peak at 200 ADC
+		  if( ia > nb-1 ) ia = nb-1; // overflow
+		  dph = ia * 300.0/nb; // bits
+		*/
+		px.ph = dph;
+		
+		// r4scal.C
 
-	  pb.push_back(px);
+		double U = ( dph - p3[plane][col4][row4] ) / p2[plane][col4][row4];
 
-	}
+		if( U >= 1 )
+		  U = 0.9999999; // avoid overflow
+		
+		double vcal = p0[plane][col4][row4] - p1[plane][col4][row4] * log( (1-U)/U ); // inverse Fermi
+		
+		px.q = ke[plane]*vcal;
+		
+		pb.push_back(px);
 
-      } // ipx
-
-      //if( ldb ) cout << " roi " << vpx.size() << ", hits " << pb.size() << endl;
-
-    } // filled
+	      }//cut on dph
+	
+	  } // ipx
+	
+	//if( ldb ) cout << " roi " << vpx.size() << ", hits " << pb.size() << endl;
+	
+      } // filled
 
     // clustering:
 

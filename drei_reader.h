@@ -56,7 +56,7 @@ double straightTracks = ACspacing*beamDivergence*nSigmaTolerance;
 
 //functions definition
 vector<cluster> getClus( vector <pixel> pb, int fCluCut = 1 ); // 1 = no gap
-list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bool fifty );
+list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bool fifty, double Tsunami, double dphcut);
 void getGain( string gainfile, double (*p0)[r4sColumns][r4sRows], double (*p1)[r4sColumns][r4sRows], double (*p2)[r4sColumns][r4sRows], double (*p3)[r4sColumns][r4sRows], int plane);
 void bookHists();
 
