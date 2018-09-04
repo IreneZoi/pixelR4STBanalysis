@@ -9,9 +9,9 @@ alignfC -0.00333106
 gainA /home/cmspix/r4sclient/B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat
 gainB /home/cmspix/r4sclient/B/scm108-scancal2-drei-2018-3-15-hold24.dat
 gainC /home/cmspix/r4sclient/C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat
-keA  0.0511 // 11 ke 148 with warm 108
-keB 0.0385 // 11 ke 108
-keC 0.0463 // c109 with warm 108
+keA  0.0511 
+keB 0.0385 
+keC 0.0463 
 beamEnergy 5.6
 pitch 25
 qL  9
@@ -24,3 +24,4 @@ TsunamiC 0
 dphcutA 30
 dphcutB 40
 dphcutC 30
+dx3c 0.00054
