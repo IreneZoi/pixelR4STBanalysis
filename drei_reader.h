@@ -59,6 +59,8 @@ vector<cluster> getClus( vector <pixel> pb, int fCluCut = 1 ); // 1 = no gap
 list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bool fifty, double Tsunami, double dphcut);
 void getGain( string gainfile, double (*p0)[r4sColumns][r4sRows], double (*p1)[r4sColumns][r4sRows], double (*p2)[r4sColumns][r4sRows], double (*p3)[r4sColumns][r4sRows], int plane);
 void bookHists();
+double xcoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr); 
+double ycoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pichr); 
 
 TProfile phvsprev[DreiMasterPlanes];
 TProfile dphvsprev[DreiMasterPlanes];

@@ -367,14 +367,14 @@ int main( int argc, char* argv[] )
 
   cout << endl << "tracking ev" << flush;
 
-
+  ///////     Big Loop on the event ///////
   for( ; evinfoB != infoB.end() && evA != evlistA.end() && evB != evlistB.end() && evC != evlistC.end();       ++evinfoA, ++evinfoB, ++evinfoC, ++evA, ++evB, ++evC )
     {
 
       vector <cluster> vclA = *evA;
       vector <cluster> vclB = *evB;
       vector <cluster> vclC = *evC;
-
+      
       ++iev;
       if( iev%10000 == 0 )
 	cout << " " << iev << flush;
@@ -383,114 +383,113 @@ int main( int argc, char* argv[] )
       if( evinfoB->filled == ADD ) cout << endl << "ev " << iev << " added B" << endl;
       if( evinfoC->filled == ADD ) cout << endl << "ev " << iev << " added C" << endl;
       
+
       uint64_t dtA = evinfoA->evtime - prevtimeA;
       prevtimeA = evinfoA->evtime;
       
       uint64_t dtB = evinfoB->evtime - prevtimeB;
       prevtimeB = evinfoB->evtime;
-      if( iev > 1 && dtB > 0 ) // added events have same time
-	hdt->Fill( log(dtB/40e6) / log10 ); // MHz -> s
       
       uint64_t dtC = evinfoC->evtime - prevtimeC;
       prevtimeC = evinfoC->evtime;
+
+      if( iev > 1 && dtB > 0 ) // added events have same time
+	hdt->Fill( log(dtB/40e6) / log10 ); // MHz -> s
+      
       
       long ddtAB = dtA - dtB;
       long ddtCB = dtC - dtB;
       long ddtCA = dtC - dtA;
-      if( iev > 1 && dtB > 0 ) {
-	hddtAB->Fill( ddtAB );
-	hddtCB->Fill( ddtCB );
-	hddtCA->Fill( ddtCA );
-	ddtvsdtAB->Fill( log(dtB/40e6) / log10, ddtAB );
-    }
-      // if( abs( ddtAB ) > 1999 )
-      //   cout << endl << "ev " << iev
-      // 	   << " dtA " << dtA
-      // 	   << ", dtB " << dtB << " (" << dtB/40E6 << "s)"
-      // 	   << ", ddtAB " << ddtAB
-      // 	   << endl;
-      // if( abs( ddtCB ) > 1999 )
-      //   cout << endl << "ev " << iev
-      // 	   << " dtC " << dtC
-      // 	   << ", dtB " << dtB << " (" << dtB/40E6 << "s)"
-      // 	   << ", ddtCB " << ddtCB
-      // 	   << endl;
-      // if( abs( ddtCA ) > 1999 )
-      //   cout << endl << "ev " << iev
-      // 	   << " dtC " << dtC
-      // 	   << ", dtA " << dtA << " (" << dtA/40E6 << "s)"
-      // 	   << ", ddtCA " << ddtCA
-      // 	   << endl;
+      if( iev > 1 && dtB > 0 )
+	{
+	  hddtAB->Fill( ddtAB );
+	  hddtCB->Fill( ddtCB );
+	  hddtCA->Fill( ddtCA );
+	  ddtvsdtAB->Fill( log(dtB/40e6) / log10, ddtAB );
+	}
       
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      // A-B cluster correlations:
+
+      ////////////////                A-B cluster correlations:    //////////////////////////
       
       int nm = 0;
-      //      if(PRINT) cout << " nm " << nm << endl;
-      for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ) {
-	if(PRINT) cout << " cluster cA" << endl;
 
-	double xA = cA->row*ptchr - halfSensorX - alignxA; // rot90 Dreimaster
-	double yA = cA->col*ptchc - halfSensorY - alignyA; // 100 um px
-	if( fifty ) {
-	  xA = cA->col*ptchc - halfSensorY - alignxA; // straight
-	  yA = cA->row*ptchr - halfSensorX - alignyA; // PCB
-	}
-	if(PRINT) cout <<  " cA->row " << cA->row << " ptchr " << ptchr << " halfSensorX " << halfSensorX <<  " alignxA " << alignxA << endl;; // rot90 Dreimaster
+
+      
+      for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )
+	{
+	  if(PRINT) cout << " cluster cA" << endl;
+
+
+	  // double xA = cA->row*ptchr - halfSensorX - alignxA; // rot90 Dreimaster
+	  // double yA = cA->col*ptchc - halfSensorY - alignyA; // 100 um px
+	  // if( fifty )
+	  //   {
+	  //     xA = cA->col*ptchc - halfSensorY - alignxA; // straight
+	  //     yA = cA->row*ptchr - halfSensorX - alignyA; // PCB
+	  //   }
+	  // if(PRINT) cout <<  " cA->row " << cA->row << " ptchr " << ptchr << " halfSensorX " << halfSensorX <<  " alignxA " << alignxA << endl;; // rot90 Dreimaster
 	
-	double xAr = xA*cfA - yA*sfA;
-	double yAr = xA*sfA + yA*cfA;
-	//	if(PRINT) cout << " xAr "<< xAr << endl;
+	  double xA = xcoordinate(0, cA, alignxA, ptchc, ptchr);
+	  double yA = ycoordinate(0, cA, alignyA, ptchc, ptchr);
+	  double xAr = xA*cfA - yA*sfA;
+	  double yAr = xA*sfA + yA*cfA;
+	  //	if(PRINT) cout << " xAr "<< xAr << endl;
 
-	hxA->Fill( xAr );
-	hyA->Fill( yAr );
-	if( cA->iso ) {
-	  hxAi->Fill( xAr );
-	  hyAi->Fill( yAr );
-	  hclqAi->Fill( cA->q );
-	}
+	  hxA->Fill( xAr );
+	  hyA->Fill( yAr );
+	  if( cA->iso )
+	    {
+	      hxAi->Fill( xAr );
+	      hyAi->Fill( yAr );
+	      hclqAi->Fill( cA->q );
+	    }
 	
-	for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
+	  for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
+	    {
 	  
-	  double xB = cB->row*ptchr - halfSensorX;
-	  double yB = cB->col*ptchc - halfSensorY;
-	  if( run == 431 ) {
-	    xB = cB->row*ptchr - halfSensorX; // rot90
-	    yB = cB->col*ptchc - halfSensorY; // PCB
-	  }
-	  if( fifty ) {
-	    xB = cB->col*ptchc - halfSensorY; // straight
-	    yB = cB->row*ptchr - halfSensorX; // PCB
-	  }
-
-	  hxxAB->Fill( xAr, xB );
-	  hyyAB->Fill( yAr, yB );
-	  
-	  double dx = xAr - xB;
-	  double dy = yAr - yB;
-	
-	  if( cA->q > qL  && cA->q < qR &&
-	      cB->q > qLB && cB->q < qRB &&
-	      cA->iso && cB->iso ) {
-
-	    hdxAB->Fill( dx );
-	    if(PRINT)   cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
-	  
-	    hdyAB->Fill( dy );
-	    dxvsxAB->Fill( xB, dx );
-	    dxvsyAB->Fill( yB, dx );
+	      // double xB = cB->row*ptchr - halfSensorX;
+	      // double yB = cB->col*ptchc - halfSensorY;
+	      // if( run == 431 )
+	      // 	{
+	      // 	  xB = cB->row*ptchr - halfSensorX; // rot90
+	      // 	  yB = cB->col*ptchc - halfSensorY; // PCB
+	      // 	}
+	      // if( fifty )
+	      // 	{
+	      // 	  xB = cB->col*ptchc - halfSensorY; // straight
+	      // 	  yB = cB->row*ptchr - halfSensorX; // PCB
+	      // 	}
 	    
-	  }
-	  
-	  hdxvsev->Fill( iev, dx );
-	  
-	  if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 &&
-	      fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
-	    ++nm;
+	      double xB = xcoordinate(1, cB, 0, ptchc, ptchr);
+	      double yB = ycoordinate(1, cB, 0, ptchc, ptchr);
 
-	} // clusters
-	
-      } // cl
+	      hxxAB->Fill( xAr, xB );
+	      hyyAB->Fill( yAr, yB );
+	      
+	      double dx = xAr - xB;
+	      double dy = yAr - yB;
+	      
+	      if( cA->q > qL  && cA->q < qR && cB->q > qLB && cB->q < qRB && cA->iso && cB->iso )
+		{
+		  
+		  hdxAB->Fill( dx );
+		  if(PRINT)   cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
+		  
+		  hdyAB->Fill( dy );
+		  dxvsxAB->Fill( xB, dx );
+		  dxvsyAB->Fill( yB, dx );
+		
+		}
+	  
+	      hdxvsev->Fill( iev, dx );
+	    
+	      if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 && fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
+		++nm;
+	      
+	    } // clusters
+	  
+	} // cl
       
       nmvsevAB->Fill( iev, nm );
       
@@ -499,63 +498,67 @@ int main( int argc, char* argv[] )
       
       nm = 0;
       
-      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
+      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
+	{
 	
-	double xB = cB->row*ptchr - halfSensorX;
-	double yB = cB->col*ptchc - halfSensorY;
-	if( run == 431 ) {
-	  xB = cB->row*ptchr - halfSensorX; // rot90
-	  yB = cB->col*ptchc - halfSensorY; // PCB
-	}
-	if( fifty ) {
-	  xB = cB->col*ptchc - halfSensorY; // straight
-	  yB = cB->row*ptchr - halfSensorX; // PCB
-	}
-	
-	hxB->Fill( xB );
-	hyB->Fill( yB );
-	if( cB->iso ) {
-	  hxBi->Fill( xB );
-	  hyBi->Fill( yB );
-	  hclqBi->Fill( cB->q );
-	}
+	  double xB = cB->row*ptchr - halfSensorX;
+	  double yB = cB->col*ptchc - halfSensorY;
+	  if( run == 431 )
+	    {
+	      xB = cB->row*ptchr - halfSensorX; // rot90
+	      yB = cB->col*ptchc - halfSensorY; // PCB
+	    }
+	  if( fifty )
+	    {
+	      xB = cB->col*ptchc - halfSensorY; // straight
+	      yB = cB->row*ptchr - halfSensorX; // PCB
+	    }
+	  
+	  hxB->Fill( xB );
+	  hyB->Fill( yB );
+	  if( cB->iso )
+	    {
+	      hxBi->Fill( xB );
+	      hyBi->Fill( yB );
+	      hclqBi->Fill( cB->q );
+	    }
 
-	for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ) {
+	  for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC )
+	    {
 	  
-	  double xC = cC->row*ptchr - halfSensorX - alignxC; // rot90 Dreimaster
-	  double yC = cC->col*ptchc - halfSensorY - alignyC; // down
-	  if( fifty ) {
-	    xC = cC->col*ptchc - halfSensorY - alignxC; // straight
-	    yC = cC->row*ptchr - halfSensorX - alignyC; // PCB
-	  }
+	      double xC = cC->row*ptchr - halfSensorX - alignxC; // rot90 Dreimaster
+	      double yC = cC->col*ptchc - halfSensorY - alignyC; // down
+	      if( fifty )
+		{
+		  xC = cC->col*ptchc - halfSensorY - alignxC; // straight
+		  yC = cC->row*ptchr - halfSensorX - alignyC; // PCB
+		}
 
-	  double xCr = xC*cfC - yC*sfC;
-	  double yCr = xC*sfC + yC*cfC;
+	      double xCr = xC*cfC - yC*sfC;
+	      double yCr = xC*sfC + yC*cfC;
+	      
+	      hxxCB->Fill( xB, xCr );
+	      hyyCB->Fill( yB, yCr );
+	      
+	      double dx = xCr - xB;
+	      double dy = yCr - yB;
 	  
-	  hxxCB->Fill( xB, xCr );
-	  hyyCB->Fill( yB, yCr );
-	  
-	  double dx = xCr - xB;
-	  double dy = yCr - yB;
-	  
-	  if( cC->q > qL  && cC->q < qR &&
-	      cB->q > qLB && cB->q < qRB &&
-	      cC->iso && cB->iso ) {
+	  if( cC->q > qL  && cC->q < qR && cB->q > qLB && cB->q < qRB && cC->iso && cB->iso )
+	    {
 	    
-	    hdxCB->Fill( dx );
-	    hdyCB->Fill( dy );
-	    dxvsxCB->Fill( xB, dx );
-	    dxvsyCB->Fill( yB, dx );
-	    
-	  }
+	      hdxCB->Fill( dx );
+	      hdyCB->Fill( dy );
+	      dxvsxCB->Fill( xB, dx );
+	      dxvsyCB->Fill( yB, dx );
+	      
+	    }
 	  
-	  if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 &&
-	      fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
+	  if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 && fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
 	    ++nm;
 	  
-	} // clusters B
-	
-      } // cl C
+	    } // clusters B
+	  
+	} // cl C
       
       nmvsevCB->Fill( iev, nm );
       
@@ -564,127 +567,135 @@ int main( int argc, char* argv[] )
       
       nm = 0;
       
-      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ) {
+      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC )
+	{
 	
-	double xC = cC->row*ptchr - halfSensorX - alignxC;
-	double yC = cC->col*ptchc - halfSensorY - alignyC;
-	if( fifty ) {
-	  xC = cC->col*ptchc - halfSensorY - alignxC; // straight
-	  yC = cC->row*ptchr - halfSensorX - alignyC; // PCB
-	}
-
-	double xCr = xC*cfC - yC*sfC;
-	double yCr = xC*sfC + yC*cfC;
-	
-	hxC->Fill( xCr );
-	hyC->Fill( yCr );
-	if( cC->iso ) {
-	  hxCi->Fill( xCr );
-	  hyCi->Fill( yCr );
-	  hclqCi->Fill( cC->q );
-	}
-      
-	double etaC = -2;
-	if( cC->size == 2 ) {
-	  double q0 = cC->vpix[0].q;
-	  double q1 = cC->vpix[1].q;
-	  etaC = (q1-q0)/(q1+q0);
-	}
-	
-	for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ) {
-	
-	  double xA = cA->row*ptchr - halfSensorX - alignxA; // rot90 Dreimaster
-	  double yA = cA->col*ptchc - halfSensorY - alignyA; // down
-	  if( fifty ) {
-	  xA = cA->col*ptchc - halfSensorY - alignxA; // straight
-	  yA = cA->row*ptchr - halfSensorX - alignyA; // PCB
-	  }
-
-	  double xAr = xA*cfA - yA*sfA;
-	  double yAr = xA*sfA + yA*cfA;
-	  
-	  hxxCA->Fill( xAr, xCr );
-	  hyyCA->Fill( yAr, yCr );
-	  
-	  double dxCA = xCr - xAr;
-	  double dyCA = yCr - yAr;
-	  double dxyCA = sqrt( dxCA*dxCA + dyCA*dyCA );
-	  hdxCA->Fill( dxCA );
-	  hdyCA->Fill( dyCA );
-
-
-	  if(PRINT) cout << " tracks condition " << fabs( dxCA ) << " vs "  << straightTracks * beamDivergenceScaled + 0.02 << endl;
-	  if( fabs( dxCA ) > straightTracks * beamDivergenceScaled + 0.02 ) continue; // includes beam divergence: +-5 sigma
-	  if(PRINT) cout << " dyCA " << dyCA << endl;
-	  hdyCAc->Fill( dyCA );
-	  dyvsyCA->Fill( yAr, dyCA );
-	  
-	  if( fabs( dyCA ) > straightTracks * beamDivergenceScaled + 0.1 ) continue; // [mm]
-
-	  ++nm;
-	  
-	  dxvsyCA->Fill( yAr, dxCA );
-
-	  dxvsxCA->Fill( xAr, dxCA ); // linear trend in run 392, 403: acceptance and beam divergence ?
-	  
-	  double xavg = 0.5 * ( xAr + xCr );
-	  double yavg = 0.5 * ( yAr + yCr );
-	  
-	  double xmod = fmod( xavg + 8, 0.05 ); // [mm] 0..0.05
+	  double xC = cC->row*ptchr - halfSensorX - alignxC;
+	  double yC = cC->col*ptchc - halfSensorY - alignyC;
 	  if( fifty )
-	    xmod = fmod( xavg + 8.025, 0.05 ); // [mm] 0..0.05
+	    {
+	      xC = cC->col*ptchc - halfSensorY - alignxC; // straight
+	      yC = cC->row*ptchr - halfSensorX - alignyC; // PCB
+	    }
 
-	  double etaA = -2;
-	  if( cA->size == 2 ) {
-	    double q0 = cA->vpix[0].q;
-	    double q1 = cA->vpix[1].q;
-	    etaA = (q1-q0)/(q1+q0);
-	  }
-
-	  int eff[999] = {0};
+	  double xCr = xC*cfC - yC*sfC;
+	  double yCr = xC*sfC + yC*cfC;
+	
+	  hxC->Fill( xCr );
+	  hyC->Fill( yCr );
+	  if( cC->iso )
+	    {
+	      hxCi->Fill( xCr );
+	      hyCi->Fill( yCr );
+	      hclqCi->Fill( cC->q );
+	    }
+      
+	  double etaC = -2;
+	  if( cC->size == 2 )
+	    {
+	      double q0 = cC->vpix[0].q;
+	      double q1 = cC->vpix[1].q;
+	      etaC = (q1-q0)/(q1+q0);
+	    }
+	
+	  for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )
+	    {
+	
+	      double xA = cA->row*ptchr - halfSensorX - alignxA; // rot90 Dreimaster
+	      double yA = cA->col*ptchc - halfSensorY - alignyA; // down
+	      if( fifty )
+		{
+		  xA = cA->col*ptchc - halfSensorY - alignxA; // straight
+		  yA = cA->row*ptchr - halfSensorX - alignyA; // PCB
+		}
+	      
+	      double xAr = xA*cfA - yA*sfA;
+	      double yAr = xA*sfA + yA*cfA;
+	      
+	      hxxCA->Fill( xAr, xCr );
+	      hyyCA->Fill( yAr, yCr );
 	  
-	  for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
-	    
-	    double xB = cB->row*ptchr - halfSensorX;
-	    double yB = cB->col*ptchc - halfSensorY;
-	    if( run == 431 ) {
-	      xB = cB->row*ptchr - halfSensorX; // rot90
-	      yB = cB->col*ptchc - halfSensorY; // PCB
-	    }
-	    if( fifty ) {
-	      xB = cB->col*ptchc - halfSensorY; // straight
-	      yB = cB->row*ptchr - halfSensorX; // PCB
-	    }
-	    
-	    double etaB = -2;
-	    if( cB->size == 2 ) {
-	      double q0 = cB->vpix[0].q;
-	      double q1 = cB->vpix[1].q;
-	      etaB = (q1-q0)/(q1+q0);
-	    }
-	    
-	    int rowmin = 999;
-	    int rowmax = 0;
-	    int colmin = 999;
-	    int colmax = 0;
-	    for( int ipx = 0; ipx < cB->size; ++ipx ) {
-	      int row = cB->vpix[ipx].row;
-	      if( row < rowmin ) rowmin = row;
-	      if( row > rowmax ) rowmax = row;
-	      int col = cB->vpix[ipx].col;
-	      if( col < colmin ) colmin = col;
-	      if( col > colmax ) colmax = col;
-	    }
-	    int nrowB = rowmax-rowmin+1;
-	    int ncolB = colmax-colmin+1;
+	      double dxCA = xCr - xAr;
+	      double dyCA = yCr - yAr;
+	      double dxyCA = sqrt( dxCA*dxCA + dyCA*dyCA );
+	      hdxCA->Fill( dxCA );
+	      hdyCA->Fill( dyCA );
 
-	    // triplet residual:
-	    
-	    double dx3 = xB - xavg;
 
-	    if( run == 447 || run == 449 )
-	      dx3 -= 0.00076*xavg; // from -dx3vsx.Fit("pol1")
-	    if( run == 866 )
+	      if(PRINT) cout << " tracks condition " << fabs( dxCA ) << " vs "  << straightTracks * beamDivergenceScaled + 0.02 << endl;
+	      if( fabs( dxCA ) > straightTracks * beamDivergenceScaled + 0.02 ) continue; // includes beam divergence: +-5 sigma
+	      if(PRINT) cout << " dyCA " << dyCA << endl;
+	      hdyCAc->Fill( dyCA );
+	      dyvsyCA->Fill( yAr, dyCA );
+	      
+	      if( fabs( dyCA ) > straightTracks * beamDivergenceScaled + 0.1 ) continue; // [mm]
+	      
+	      ++nm;
+	  
+	      dxvsyCA->Fill( yAr, dxCA );
+	      
+	      dxvsxCA->Fill( xAr, dxCA ); // linear trend in run 392, 403: acceptance and beam divergence ?
+	      
+	      double xavg = 0.5 * ( xAr + xCr );
+	      double yavg = 0.5 * ( yAr + yCr );
+	      
+	      double xmod = fmod( xavg + 8, 0.05 ); // [mm] 0..0.05
+	      if( fifty )
+		xmod = fmod( xavg + 8.025, 0.05 ); // [mm] 0..0.05
+	      
+	      double etaA = -2;
+	      if( cA->size == 2 ) {
+		double q0 = cA->vpix[0].q;
+		double q1 = cA->vpix[1].q;
+		etaA = (q1-q0)/(q1+q0);
+	      }
+
+	      int eff[999] = {0};
+	  
+	      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
+		{
+	    
+		  double xB = cB->row*ptchr - halfSensorX;
+		  double yB = cB->col*ptchc - halfSensorY;
+		  if( run == 431 ) {
+		    xB = cB->row*ptchr - halfSensorX; // rot90
+		    yB = cB->col*ptchc - halfSensorY; // PCB
+		  }
+		  if( fifty ) {
+		    xB = cB->col*ptchc - halfSensorY; // straight
+		    yB = cB->row*ptchr - halfSensorX; // PCB
+		  }
+	    
+		  double etaB = -2;
+		  if( cB->size == 2 ) {
+		    double q0 = cB->vpix[0].q;
+		    double q1 = cB->vpix[1].q;
+		    etaB = (q1-q0)/(q1+q0);
+		  }
+	    
+		  int rowmin = 999;
+		  int rowmax = 0;
+		  int colmin = 999;
+		  int colmax = 0;
+		  for( int ipx = 0; ipx < cB->size; ++ipx )
+		    {
+		      int row = cB->vpix[ipx].row;
+		      if( row < rowmin ) rowmin = row;
+		      if( row > rowmax ) rowmax = row;
+		      int col = cB->vpix[ipx].col;
+		      if( col < colmin ) colmin = col;
+		      if( col > colmax ) colmax = col;
+		    }
+		  int nrowB = rowmax-rowmin+1;
+		  int ncolB = colmax-colmin+1;
+
+		  // triplet residual:
+	    
+		  double dx3 = xB - xavg;
+
+		  if( run == 447 || run == 449 )
+		    dx3 -= 0.00076*xavg; // from -dx3vsx.Fit("pol1")
+		  if( run == 866 )
 	      dx3 += 0.0011*xavg; // from -dx3vsx
 	    if( run == 871 )
 	      dx3 += 0.0018*xavg; // from -dx3vsx
@@ -1422,73 +1433,75 @@ vector<cluster> getClus( vector <pixel> pb, int fCluCut ) // 1 = no gap
 
   unsigned seed = 0;
 
-  while( seed < pb.size() ) {
+  while( seed < pb.size() )
+    {
 
-    // start a new cluster:
+      // start a new cluster:      
+      cluster c;
+      c.vpix.push_back( pb[seed] );
+      gone[seed] = 1;
+      
+      // let it grow as much as possible:
 
-    cluster c;
-    c.vpix.push_back( pb[seed] );
-    gone[seed] = 1;
+      int growing;
+      do{
+	growing = 0;
+	for( unsigned i = 0; i < pb.size(); ++i )
+	  {
+	    if( !gone[i] )
+	      { // unused pixel
+		for( unsigned int p = 0; p < c.vpix.size(); ++p )
+		  { // vpix in cluster so far
+		    int dr = c.vpix.at(p).row - pb[i].row;
+		    int dc = c.vpix.at(p).col - pb[i].col;
+		    if( ( dr >= -fCluCut ) && ( dr <= fCluCut ) && ( dc >= -fCluCut ) && ( dc <= fCluCut ) )//if this condition is satisfied the new pixel c.vpix.at(p) and the old one pb[i] are adjacent
+		      {
+			c.vpix.push_back(pb[i]); //add adjacent pixel to cluster
+			gone[i] = 1; //pixel has been used
+			growing = 1; //cluster is growing
+			break; // p, important!
+		      }
+		  } // p loop over vpix
+	      } // not gone
+	  } // i loop over all pix
+      }
+      while( growing );
 
-    // let it grow as much as possible:
+      // added all I could. determine position and append it to the list of clusters:
+      c.sum = 0;
+      c.q = 0;
+      c.size = 0;
+      c.col = 0;
+      c.row = 0;
+      c.iso = 1;
+      
+      for( vector<pixel>::iterator p = c.vpix.begin();  p != c.vpix.end();  ++p )
+	{
+	  double ph = p->ph;
+	  c.sum += ph; //cluster charge in ph units
+	  double q = p->q;
+	  c.q += q; //cluster charge
+	  //c.col += (*p).col*ph;
+	  //c.row += (*p).row*ph;
+	  c.col += (*p).col*q; //pixel charge is a weight on the pixel position
+	  c.row += (*p).row*q;
+	}
 
-    int growing;
-    do{
-      growing = 0;
-      for( unsigned i = 0; i < pb.size(); ++i ) {
-        if( !gone[i] ) { // unused pixel
-          for( unsigned int p = 0; p < c.vpix.size(); ++p ) { // vpix in cluster so far
-            int dr = c.vpix.at(p).row - pb[i].row;
-            int dc = c.vpix.at(p).col - pb[i].col;
-            if( ( dr >= -fCluCut ) && ( dr <= fCluCut ) &&
-		( dc >= -fCluCut ) && ( dc <= fCluCut ) ) {
-              c.vpix.push_back(pb[i]);
-	      gone[i] = 1;
-              growing = 1;
-              break; // p, important!
-            }
-          } // p loop over vpix
-        } // not gone
-      } // i loop over all pix
-    }
-    while( growing );
+      c.size = c.vpix.size();
 
-    // added all I could. determine position and append it to the list of clusters:
+      if(PRINT) cout << "(cluster with " << c.vpix.size() << " pixels)" << endl;
 
-    c.sum = 0;
-    c.q = 0;
-    c.size = 0;
-    c.col = 0;
-    c.row = 0;
-    c.iso = 1;
+      //cluster coordinates is the average of the pixel coordianates 
+      c.col /= c.q;
+      c.row /= c.q;
+      
+      v.push_back(c); // add cluster to vector
+      
+      // look for a new seed = used pixel:
 
-    for( vector<pixel>::iterator p = c.vpix.begin();  p != c.vpix.end();  ++p ) {
-      double ph = p->ph;
-      c.sum += ph;
-      double q = p->q;
-      c.q += q;
-      //c.col += (*p).col*ph;
-      //c.row += (*p).row*ph;
-      c.col += (*p).col*q;
-      c.row += (*p).row*q;
-    }
-
-    c.size = c.vpix.size();
-
-    //cout << "(cluster with " << c.vpix.size() << " pixels)" << endl;
-
-    //c.col /= c.sum;
-    //c.row /= c.sum;
-    c.col /= c.q;
-    c.row /= c.q;
-
-    v.push_back(c); // add cluster to vector
-
-    // look for a new seed = used pixel:
-
-    while( ( ++seed < pb.size() ) && gone[seed] );
-
-  } // while over seeds
+      while( ( ++seed < pb.size() ) && gone[seed] );
+      
+    }// while over seeds
 
   // nothing left,  return clusters
 
@@ -1673,14 +1686,14 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 	      
 	      } // jpx
 
-	    if( row4 == row1 )
+	    if( row4 == row1 ) //this is possible only when jpx=ipx => nothing happened in the previous loop => ph1 is still storing the ph4 of the previous ipx
 	      {
-		phprev = ph1;
+		phprev = ph1;   
 		continue; // Randpixel
 	      }
 	    if( row4 == row7 ) continue;
 
-	    phvsprev[plane].Fill( phprev, ph4 );
+	    phvsprev[plane].Fill( phprev, ph4 ); //looking at this plot I can see if there are correlections = "tsunami effect"
 
 	    if(PRINT) cout << " ph4 before " << ph4;
 	    ph4 -= Tsunami*phprev; // Tsunami
@@ -1689,6 +1702,7 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 	    phprev = vpx[ipx].ph; // original ph4
 
 	    double dph;
+	    
 	    //find closest row to define the difference
 	    if( row4 - row1 < row7 - row4 )
 	      dph = ph4 - ph1;
@@ -1753,51 +1767,51 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 
     hnht[plane].Fill( pb.size() );
 
-    if( pb.size() > 50 ) pb.clear(); // speed
+    if( pb.size() > 50 ) pb.clear(); // speed because it deletes events with more than 50 hits
 
-    vcl = getClus(pb);
+    vcl = getClus(pb); // this function is doing the clustering
 
     hncl[plane].Fill( vcl.size() );
     if( vcl.size() )
       if( ldb ) cout << "  clusters " << vcl.size() << endl;
 
-    for( unsigned icl = 0; icl < vcl.size(); ++icl ) {
-
-      hclmap[plane]->Fill( vcl[icl].col, vcl[icl].row );
-
-      hclph[plane].Fill( vcl[icl].sum );
-      hclq[plane].Fill( vcl[icl].q );
-
-      if( vcl[icl].sum > 55 ) hclsz[plane].Fill( vcl[icl].size );//55 is historical adc, for noise suppression
+    for( unsigned icl = 0; icl < vcl.size(); ++icl )
+      {
+	//filling some hists about clusters
+	hclmap[plane]->Fill( vcl[icl].col, vcl[icl].row );
+	hclph[plane].Fill( vcl[icl].sum );
+	hclq[plane].Fill( vcl[icl].q );
+	if( vcl[icl].sum > 55 ) hclsz[plane].Fill( vcl[icl].size );//55 is historical adc, for noise suppression
 
       // cluster isolation:
 
-      for( unsigned jcl = icl+1; jcl < vcl.size(); ++jcl ) {
+      for( unsigned jcl = icl+1; jcl < vcl.size(); ++jcl )
+	{
 
-	bool done = 0;
-
-	for( unsigned ipx = 0; ipx < vcl[icl].vpix.size(); ++ipx ) {
+	  bool done = 0;
+	  
+	  for( unsigned ipx = 0; ipx < vcl[icl].vpix.size(); ++ipx ) {
 
 	  for( unsigned jpx = 0; jpx < vcl[jcl].vpix.size(); ++jpx )
-
 	    if( fabs( vcl[icl].vpix[ipx].col - vcl[jcl].vpix[jpx].col ) < 3 &&
-		fabs( vcl[icl].vpix[ipx].row - vcl[jcl].vpix[jpx].row ) < 3 ) {
-	      if( vcl[icl].q < vcl[jcl].q ) // Thu 22.3.2018
-		vcl[icl].iso = 0; // flag smaller cluster
-	      else
-		vcl[jcl].iso = 0;
-	      done = 1;
-	      break; // jpx
-	    }
-
+		fabs( vcl[icl].vpix[ipx].row - vcl[jcl].vpix[jpx].row ) < 3 )
+	      {
+		if( vcl[icl].q < vcl[jcl].q ) // Thu 22.3.2018
+		  vcl[icl].iso = 0; // flag smaller cluster
+		else
+		  vcl[jcl].iso = 0;
+		done = 1;
+		break; // jpx
+	      }
+	  
 	  if( done ) break; // ipx
+	  
+	  } // ipx
 
-	} // ipx
-
-      } // jcl
-
-    } // icl
-
+	} // jcl
+      
+      } // icl
+    
     evlist.push_back(vcl);
     if( plane == A )
       infoA.push_back(evinf);
@@ -1805,7 +1819,7 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
       infoB.push_back(evinf);
     else if( plane == C )
       infoC.push_back(evinf);
-
+    
   } // events
 
   cout << endl;
@@ -1840,6 +1854,32 @@ void getGain( string gainfile, double (*p0)[r4sColumns][r4sRows], double (*p1)[r
 
 }
 
+double xcoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr)
+{
+  double variable;
+  
+  
+  variable = c->row*pitchr - halfSensorX - align;
+  // if( run == 431 && plane == 1 )
+  //   variable = c->row*ptchr - halfSensorX; // rot90
+  if( fifty )
+    variable = c->col*pitchc - halfSensorY - align; // straight
+  
+  return variable;
+}
+      
+double ycoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr)
+{
+  double variable;
+  
+   variable =  c->col*pitchc - halfSensorY - align;
+  // if( run == 431 && plane == 1  )
+  //   variable =  c->col*ptchc - halfSensorY; // PCB
+  if( fifty )
+    variable = c->row*pitchr - halfSensorX - align; // PCB
+
+  return variable;
+}
 
 void bookHists()
 {
