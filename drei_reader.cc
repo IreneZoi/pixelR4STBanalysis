@@ -111,6 +111,7 @@ int main( int argc, char* argv[] )
   double qRB = 0;
   double Tsunami[DreiMasterPlanes];
   double dphcut[DreiMasterPlanes];
+  double dx3corr;
   
   string alignFileName = "0";
   if(alignversion == 1)  
@@ -155,6 +156,7 @@ int main( int argc, char* argv[] )
     string DPHCUTA( "dphcutA" );    
     string DPHCUTB( "dphcutB" );    
     string DPHCUTC( "dphcutC" );
+    string DX3C( "dx3c" );
     
     while( ! alignFile.eof() ) {
 
@@ -221,6 +223,8 @@ int main( int argc, char* argv[] )
 	tokenizer >> dphcut[1];
       else if( tag == DPHCUTC )
 	tokenizer >> dphcut[2];
+      else if( tag == DX3C )
+	tokenizer >> dx3corr;
 
       // anything else on the line and in the file gets ignored
 
@@ -414,27 +418,13 @@ int main( int argc, char* argv[] )
       
       int nm = 0;
 
-
-      
       for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )
 	{
-	  if(PRINT) cout << " cluster cA" << endl;
-
-
-	  // double xA = cA->row*ptchr - halfSensorX - alignxA; // rot90 Dreimaster
-	  // double yA = cA->col*ptchc - halfSensorY - alignyA; // 100 um px
-	  // if( fifty )
-	  //   {
-	  //     xA = cA->col*ptchc - halfSensorY - alignxA; // straight
-	  //     yA = cA->row*ptchr - halfSensorX - alignyA; // PCB
-	  //   }
-	  // if(PRINT) cout <<  " cA->row " << cA->row << " ptchr " << ptchr << " halfSensorX " << halfSensorX <<  " alignxA " << alignxA << endl;; // rot90 Dreimaster
-	
 	  double xA = xcoordinate(0, cA, alignxA, ptchc, ptchr);
 	  double yA = ycoordinate(0, cA, alignyA, ptchc, ptchr);
+
 	  double xAr = xA*cfA - yA*sfA;
 	  double yAr = xA*sfA + yA*cfA;
-	  //	if(PRINT) cout << " xAr "<< xAr << endl;
 
 	  hxA->Fill( xAr );
 	  hyA->Fill( yAr );
@@ -447,20 +437,6 @@ int main( int argc, char* argv[] )
 	
 	  for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
 	    {
-	  
-	      // double xB = cB->row*ptchr - halfSensorX;
-	      // double yB = cB->col*ptchc - halfSensorY;
-	      // if( run == 431 )
-	      // 	{
-	      // 	  xB = cB->row*ptchr - halfSensorX; // rot90
-	      // 	  yB = cB->col*ptchc - halfSensorY; // PCB
-	      // 	}
-	      // if( fifty )
-	      // 	{
-	      // 	  xB = cB->col*ptchc - halfSensorY; // straight
-	      // 	  yB = cB->row*ptchr - halfSensorX; // PCB
-	      // 	}
-	    
 	      double xB = xcoordinate(1, cB, 0, ptchc, ptchr);
 	      double yB = ycoordinate(1, cB, 0, ptchc, ptchr);
 
@@ -501,18 +477,8 @@ int main( int argc, char* argv[] )
       for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
 	{
 	
-	  double xB = cB->row*ptchr - halfSensorX;
-	  double yB = cB->col*ptchc - halfSensorY;
-	  if( run == 431 )
-	    {
-	      xB = cB->row*ptchr - halfSensorX; // rot90
-	      yB = cB->col*ptchc - halfSensorY; // PCB
-	    }
-	  if( fifty )
-	    {
-	      xB = cB->col*ptchc - halfSensorY; // straight
-	      yB = cB->row*ptchr - halfSensorX; // PCB
-	    }
+	  double xB = xcoordinate(1, cB, 0, ptchc, ptchr);
+	  double yB = ycoordinate(1, cB, 0, ptchc, ptchr);
 	  
 	  hxB->Fill( xB );
 	  hyB->Fill( yB );
@@ -525,18 +491,21 @@ int main( int argc, char* argv[] )
 
 	  for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC )
 	    {
-	  
-	      double xC = cC->row*ptchr - halfSensorX - alignxC; // rot90 Dreimaster
-	      double yC = cC->col*ptchc - halfSensorY - alignyC; // down
-	      if( fifty )
-		{
-		  xC = cC->col*ptchc - halfSensorY - alignxC; // straight
-		  yC = cC->row*ptchr - halfSensorX - alignyC; // PCB
-		}
+	      double xC = xcoordinate(2, cC, alignxC, ptchc, ptchr);
+	      double yC = ycoordinate(2, cC, alignyC, ptchc, ptchr);
 
 	      double xCr = xC*cfC - yC*sfC;
 	      double yCr = xC*sfC + yC*cfC;
 	      
+	      hxC->Fill( xCr );
+	      hyC->Fill( yCr );
+	      if( cC->iso )
+		{
+		  hxCi->Fill( xCr );
+		  hyCi->Fill( yCr );
+		  hclqCi->Fill( cC->q );
+		}
+
 	      hxxCB->Fill( xB, xCr );
 	      hyyCB->Fill( yB, yCr );
 	      
@@ -563,51 +532,28 @@ int main( int argc, char* argv[] )
       nmvsevCB->Fill( iev, nm );
       
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      // A-C cluster correlations:
+
+      ///////        A-C cluster correlations: ///////////
       
       nm = 0;
       
       for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC )
 	{
 	
-	  double xC = cC->row*ptchr - halfSensorX - alignxC;
-	  double yC = cC->col*ptchc - halfSensorY - alignyC;
-	  if( fifty )
-	    {
-	      xC = cC->col*ptchc - halfSensorY - alignxC; // straight
-	      yC = cC->row*ptchr - halfSensorX - alignyC; // PCB
-	    }
-
+	  double xC = xcoordinate(2, cC, alignxC, ptchc, ptchr);
+	  double yC = ycoordinate(2, cC, alignyC, ptchc, ptchr);
+	  
 	  double xCr = xC*cfC - yC*sfC;
 	  double yCr = xC*sfC + yC*cfC;
 	
-	  hxC->Fill( xCr );
-	  hyC->Fill( yCr );
-	  if( cC->iso )
-	    {
-	      hxCi->Fill( xCr );
-	      hyCi->Fill( yCr );
-	      hclqCi->Fill( cC->q );
-	    }
       
-	  double etaC = -2;
-	  if( cC->size == 2 )
-	    {
-	      double q0 = cC->vpix[0].q;
-	      double q1 = cC->vpix[1].q;
-	      etaC = (q1-q0)/(q1+q0);
-	    }
-	
+	  double etaC = eta(cC);
+
 	  for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )
 	    {
 	
-	      double xA = cA->row*ptchr - halfSensorX - alignxA; // rot90 Dreimaster
-	      double yA = cA->col*ptchc - halfSensorY - alignyA; // down
-	      if( fifty )
-		{
-		  xA = cA->col*ptchc - halfSensorY - alignxA; // straight
-		  yA = cA->row*ptchr - halfSensorX - alignyA; // PCB
-		}
+              double xA = xcoordinate(0, cA, alignxA, ptchc, ptchr);
+	      double yA = ycoordinate(0, cA, alignyA, ptchc, ptchr);
 	      
 	      double xAr = xA*cfA - yA*sfA;
 	      double yAr = xA*sfA + yA*cfA;
@@ -617,6 +563,7 @@ int main( int argc, char* argv[] )
 	  
 	      double dxCA = xCr - xAr;
 	      double dyCA = yCr - yAr;
+	      
 	      double dxyCA = sqrt( dxCA*dxCA + dyCA*dyCA );
 	      hdxCA->Fill( dxCA );
 	      hdyCA->Fill( dyCA );
@@ -643,35 +590,17 @@ int main( int argc, char* argv[] )
 	      if( fifty )
 		xmod = fmod( xavg + 8.025, 0.05 ); // [mm] 0..0.05
 	      
-	      double etaA = -2;
-	      if( cA->size == 2 ) {
-		double q0 = cA->vpix[0].q;
-		double q1 = cA->vpix[1].q;
-		etaA = (q1-q0)/(q1+q0);
-	      }
+	      double etaA = eta(cA);
 
 	      int eff[999] = {0};
 	  
 	      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
 		{
 	    
-		  double xB = cB->row*ptchr - halfSensorX;
-		  double yB = cB->col*ptchc - halfSensorY;
-		  if( run == 431 ) {
-		    xB = cB->row*ptchr - halfSensorX; // rot90
-		    yB = cB->col*ptchc - halfSensorY; // PCB
-		  }
-		  if( fifty ) {
-		    xB = cB->col*ptchc - halfSensorY; // straight
-		    yB = cB->row*ptchr - halfSensorX; // PCB
-		  }
-	    
-		  double etaB = -2;
-		  if( cB->size == 2 ) {
-		    double q0 = cB->vpix[0].q;
-		    double q1 = cB->vpix[1].q;
-		    etaB = (q1-q0)/(q1+q0);
-		  }
+		  double xB = xcoordinate(1, cB, 0, ptchc, ptchr);
+		  double yB = ycoordinate(1, cB, 0, ptchc, ptchr);
+
+		  double etaB = eta(cB);
 	    
 		  int rowmin = 999;
 		  int rowmax = 0;
@@ -692,539 +621,233 @@ int main( int argc, char* argv[] )
 		  // triplet residual:
 	    
 		  double dx3 = xB - xavg;
+		  dx3 -= dx3corr*xavg; // from -dx3vsx.Fit("pol1")
 
-		  if( run == 447 || run == 449 )
-		    dx3 -= 0.00076*xavg; // from -dx3vsx.Fit("pol1")
-		  if( run == 866 )
-	      dx3 += 0.0011*xavg; // from -dx3vsx
-	    if( run == 871 )
-	      dx3 += 0.0018*xavg; // from -dx3vsx
-	    if( run == 872 )
-	      dx3 += 0.0018*xavg; // from -dx3vsx
-	    if( run == 873 )
-	      dx3 += 0.0017*xavg; // from -dx3vsx
-	    if( run == 875 )
-	      dx3 += 0.0013*xavg; // from -dx3vsx
-	    if( run == 876 )
-	    dx3 += 0.0011*xavg; // from -dx3vsx
-	    if( run == 877 )
-	    dx3 += 0.0011*xavg; // from -dx3vsx
-	    if( run == 878 )
-	      dx3 += 0.0013*xavg; // from -dx3vsx
-	  if( run == 879 )
-	    dx3 += 0.0010*xavg; // from -dx3vsx
-	  if( run == 880 )
-	    dx3 += 0.0012*xavg; // from -dx3vsx
-	  if( run == 881 )
-	    dx3 += 0.0011*xavg; // from -dx3vsx
-	  if( run == 882 )
-	    dx3 += 0.0011*xavg; // from -dx3vsx
-	  if( run == 883 )
-	    dx3 += 0.0013*xavg; // from -dx3vsx
-	  if( run == 884 )
-	    dx3 += 0.0010*xavg; // from -dx3vsx
-	  if( run == 885 )
-	    dx3 += 0.0010*xavg; // from -dx3vsx
-	  if( run == 998 )
-	    dx3 -= 0.0005*xavg; // from -dx3vsx
-	  if( run == 999 )
-	    dx3 -= 0.0005*xavg; // from -dx3vsx
-	  if( run == 1000 )
-	    dx3 -= 0.0010*xavg; // from -dx3vsx
-	  if( run == 1006 )
-	    dx3 -= 0.0005*xavg; // from -dx3vsx
-	  if( run >= 1010 && run <= 1020 )
-	    dx3 -= 0.00086*xavg; // from -dx3vsx
-	  if( run == 1025 )
-	    dx3 -= 0.00084*xavg; // from -dx3vsx
-	  if( run == 1026 )
-	    dx3 -= 0.00082*xavg; // from -dx3vsx
-	  if( run == 1027 )
-	    dx3 -= 0.00072*xavg; // from -dx3vsx
-	  if( run >= 1028 && run <= 1035 )
-	    dx3 -= 0.00082*xavg; // from -dx3vsx
-	  if( run >= 1036 && run <= 1045 )
-	    dx3 -= 0.00085*xavg; // from -dx3vsx
-	  if( run == 1046 )
-	    dx3 += 0.00036*xavg; // from -dx3vsx
-	  if( run == 1047 )
-	    dx3 -= 0.00082*xavg; // from -dx3vsx
-	  if( run == 1764 )
-	    dx3 -= 0.00067*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1765 )
-	    dx3 -= 0.00085*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1766 )
-	    dx3 -= 0.00106*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1767 )
-	    dx3 -= 0.00119*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1768 )
-	    dx3 -= 0.00139*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1769 )
-	    dx3 -= 0.00152*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1770 )
-	    dx3 -= 0.00165*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1771 )
-	    dx3 -= 0.00191*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1772 )
-	    dx3 -= 0.00206*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1773 )
-	    dx3 -= 0.00206*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1774 )
-	    dx3 -= 0.00261*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1775 )
-	    dx3 -= 0.00293*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1776 )
-	    dx3 -= 0.00316*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1777 )
-	    dx3 -= 0.00337*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1778 )
-	    dx3 -= 0.00031*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1779 )
-	    dx3 += 0.00049*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1780 )
-	    dx3 -= 0.00055*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1781 )
-	    dx3 += 0.00027*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1782 )
-	    dx3 += 0.00028*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1783 )
-	    dx3 += 0.00028*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1784 )
-	    dx3 += 0.00028*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1785 )
-	    dx3 += 0.00028*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1786 )
-	    dx3 -= 0.00001*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1787 )
-	    dx3 -= 0.00117*xavg; // from -dx3vsx.Fit("pol1")
+		  double dy3 = yB - yavg;
+		  double dxy = sqrt( dx3*dx3 + dy3*dy3 );
 
-	  if( run == 1789 )
-	    dx3 -= 0.00118*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1789 )
-	    dx3 -= 0.00213*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1799 )
-	    dx3 -= 0.00214*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1800 )
-	    dx3 -= 0.00218*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1801 )
-	    dx3 -= 0.00225*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1802 )
-	    dx3 -= 0.00240*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1803 )
-	    dx3 -= 0.00240*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1804 )
-	    dx3 -= 0.00240*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1805 )
-	    dx3 -= 0.00240*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1806 )
-	    dx3 -= 0.00240*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1807 )
-	    dx3 -= 0.00240*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1808 )
-	    dx3 -= 0.00240*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1809 )
-	    dx3 -= 0.00240*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1810 )
-	    dx3 -= 0.00220*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1811 )
-	    dx3 -= 0.00220*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1812 )
-	    dx3 -= 0.00220*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1813 )
-	    dx3 -= 0.00220*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1814 )
-	    dx3 -= 0.00220*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1815 )
-	    dx3 -= 0.00220*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1816 )
-	    dx3 -= 0.00230*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1817 )
-	    dx3 -= 0.00230*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1818 )
-	    dx3 -= 0.00240*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1819 )
-	    dx3 -= 0.00250*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1820 )
-	    dx3 -= 0.00220*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1822 )
-	    dx3 -= 0.00218*xavg; // from -dx3vsx.Fit("pol1")
+		  hdx3->Fill( dx3 );
+		  hdy3->Fill( dy3 );
+		  
+		  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 ) { // cut on y, look at x, see madx3vsy
+		    
+		    hdx3c->Fill( dx3 );
+		    
+		    if( (cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
+		      hdx3nocq3->Fill( dx3);
+		    
+		    if( dx3 > 0.04 && dx3 < -0.06 ) { // side lobe
+		      cout << endl;
+		      cout << "x: " << xAr << ", " << xB << ", " << xCr << ", dx3 " << dx3 << endl;
+		      cout << "A:";
+		      for( unsigned icl = 0; icl < vclA.size(); ++icl )
+			cout << " (" << vclA[icl].col << ", " << vclA[icl].row << ", " << vclA[icl].q << ")";
+		      cout << endl;
+		      cout << "B:";
+		      for( unsigned icl = 0; icl < vclB.size(); ++icl )
+			cout << " (" << vclB[icl].col << ", " << vclB[icl].row << ", " << vclB[icl].q << ")";
+		      cout << endl;
+		      cout << "C:";
+		      for( unsigned icl = 0; icl < vclC.size(); ++icl )
+			cout << " (" << vclC[icl].col << ", " << vclC[icl].row << ", " << vclC[icl].q << ")";
+		      cout << endl;
+		    } 
+		    
+		    if( cB->iso )
+		      hdx3ci->Fill( dx3 );
+		    
+		    if( cA->iso && cC->iso )
+		      hdx3cii->Fill( dx3 );
+		    
+		    if( cA->iso && cB->iso && cC->iso ) {
+		      
+		      hdx3ciii->Fill( dx3 );
+		      
+		      if( cB->size == 1 )
+			hdx3c1->Fill( dx3 ); // r447 4.4
+		      if( cB->size == 2 )
+			hdx3c2->Fill( dx3 ); // r447 4.4
+		      if( cB->size == 3 )
+			hdx3c3->Fill( dx3 ); // r447 4.8
+		      if( cB->size == 4 )
+			hdx3c4->Fill( dx3 ); // r447 6.5
+		      if( cB->size == 5 )
+			hdx3c5->Fill( dx3 ); // r447 16.6
+		      if( cB->size == 6 )
+			hdx3c6->Fill( dx3 ); // r447 24.5
+		      if( cB->size > 6 )
+			hdx3c7->Fill( dx3 ); // r447 39.9
+		      
+		      if( xB < 0 )
+			hdx3m->Fill( dx3 );
+		      else
+			hdx3p->Fill( dx3 );
+		      
+		      if( fabs( dxCA ) < straightTracks * beamDivergenceScaled ) { // track angle
+			hdx3ct->Fill( dx3 );
+			madx3vsq->Fill( cB->q, fabs(dx3) );
+			madx3vsn->Fill( cB->size, fabs(dx3) );
+		      }
+		      
+		    } // iso
+		    
+		    
+		    if( cB->q > qLB && cB->q < qRB ) {
+		      
+		      hdx3cq->Fill( dx3 );
+		      
+		      if( cA->iso && cB->iso && cC->iso )
+			hdx3cqi->Fill( dx3 );
+		      
+		      if( cA->q > qL && cA->q < qR &&
+			  cC->q > qL && cC->q < qR ) {
 
-	  if( run == 1825 )
-	    dx3 += 0.00043*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1826 )
-	    dx3 += 0.00036*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1827 )
-	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1828 )
-	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1829 )
-	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1830 )
-	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1831 )
-	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1832 )
-	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1833 )
-	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1834 )
-	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1835 )
-	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1836 )
-	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1837 )
-	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1838 )
-	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1839 )
-	    dx3 -= 0.00064*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1840 )
-	    dx3 -= 0.00054*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1843 )
-	    dx3 -= 0.00200*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1845 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1846 )
-	    dx3 -= 0.00251*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1847 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1848 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1849 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1850 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1851 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1852 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1853 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1854 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1855 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1856 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1857 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1858 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1859 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1860 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1861 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1862 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1863 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1864 )
-	    dx3 -= 0.00238*xavg; // from -dx3vsx.Fit("pol1")
+			hdx3cq3->Fill( dx3 );
+			
+			if( cA->iso && cB->iso && cC->iso )
+			  hdx3cq3i->Fill( dx3 );
+			
+			dx3vsev->Fill( iev, dx3 );
+			
+			dx3vsx->Fill( xB, dx3 ); // turn
+			dx3vsy->Fill( yB, dx3 ); // rot
+			dx3vsxm->Fill( xmod*1E3, dx3 );
+			
+			madx3vsdx->Fill( dxCA*1E3, fabs(dx3) ); // dxCA
+			
+			if( fabs( dxCA ) < straightTracks * beamDivergenceScaled ) { // track angle
+			  
+			  hdx3cq3t->Fill( dx3 ); // 447 4.27 um
+			  
+			  madx3vsx->Fill( xB, fabs(dx3) );
+			  madx3vsy->Fill( yB, fabs(dx3) );
+			  madx3vsxm->Fill( xmod*1E3, fabs(dx3) );
+			  if( cB->size == 2 ) {
+			    etavsxmB3->Fill( xmod*1E3, etaB ); // sine
+			    madx3vseta->Fill( etaB, fabs(dx3) ); // flat
+			    hdx3cq3t2->Fill( dx3 ); // 447 4.25 um
+			  }
+			  
+			} // angle
+			
+		      } // Qa, qC
+		      
+		    } // qB
+		    
+		  } // cut dy
+		  
+		  if( fabs( dx3 ) < 0.07 && // hit on track
+		      fabs( dy3 ) < 0.15 &&
+		      cA->iso && cB->iso && cC->iso) {
+		    
+		    hclmapB3->Fill( cB->col, cB->row );
 
-	  if( run == 1865 )
-	    dx3 -= 0.00049*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1866 )
-	    dx3 -= 0.00110*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1868 )
-	    dx3 -= 0.00155*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1869 )
-	    dx3 -= 0.00063*xavg; // from -dx3vsx.Fit("pol1")
+		    hxA3->Fill( xAr );
+		    hyA3->Fill( yAr );
+		    hxB3->Fill( xB  );
+		    hyB3->Fill( yB  );
+		    hxC3->Fill( xCr );
+		    hyC3->Fill( yCr );
+		    
+		    hclszA3->Fill( cA->size );
+		    hclszB3->Fill( cB->size );
+		    hncolB3->Fill( ncolB );
+		    hnrowB3->Fill( nrowB );
+		    hclszC3->Fill( cC->size );
+		    
+		    hclphA3->Fill( cA->sum );
+		    hclphB3->Fill( cB->sum );
+		    hclphC3->Fill( cC->sum );
+		    
+		    hclqA3->Fill( cA->q );
+		    hclqB3->Fill( cB->q );
+		    hclqB3i->Fill( cB->q );
+		    hclqC3->Fill( cC->q );
+		    if( cB->size < 4 )
+		      hclqB3n->Fill( cB->q );
+		    
+		    if( fifty )
+		      nrowvsxmB3->Fill( xmod*1E3, ncolB );
+		    else
+		      nrowvsxmB3->Fill( xmod*1E3, nrowB );
+		    
+		    clqvsxmB3->Fill( xmod*1E3, cB->q );
 
-	  if( run == 1873 )
-	    dx3  = 0.000000018*xavg; // from -dx3vsx.Fit("pol1") - opposite of the slope from a linear fit has to be added as correction
-	  if( run == 1874 )
-	    dx3 -= 0.00067*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1875 )
-	    dx3 -= 0.00098*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1876 )
-	    dx3 -= 0.00137*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1877 )
-	    dx3 -= 0.00163*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1878 )
-	    dx3 -= 0.00170*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1879 )
-	    dx3 -= 0.00178*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1880 )
-	    dx3 -= 0.00200*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1881 )
-	    dx3 -= 0.00224*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1882 )
-	    dx3 -= 0.00242*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1883 )
-	    dx3 -= 0.00257*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1884 )
-	    dx3 -= 0.00275*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1885 )
-	    dx3 -= 0.00300*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1886 )
-	    dx3 -= 0.00323*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1887 )
-	    dx3 -= 0.00341*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1888 )
-	    dx3 -= 0.00367*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1889 )
-	    dx3 -= 0.00374*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1890 )
-	    dx3 -= 0.00400*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1891 )
-	    dx3 -= 0.00088*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1892 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1893 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1894 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1895 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1896 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1897 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1898 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1899 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1900 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1901 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1902 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1903 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1904 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
-	  if( run == 1905 )
-	    dx3 -= 0.00068*xavg; // from -dx3vsx.Fit("pol1")
+		    if( cA->size == 2 )
+		      hetaA3->Fill( etaA );
+		    
+		    if( cB->size == 2 )
+		      hetaB3->Fill( etaB );
+		    
+		    if( cC->size == 2 )
+		      hetaC3->Fill( etaC );
+		    
+		    for( int ipx = 0; ipx < cA->size; ++ipx ) {
+		      hpxpA3->Fill( cA->vpix[ipx].ph );
+		      hpxqA3->Fill( cA->vpix[ipx].q );
+		    }
+		    for( int ipx = 0; ipx < cB->size; ++ipx ) {
+		      hpxpB3->Fill( cB->vpix[ipx].ph );
+		      hpxqB3->Fill( cB->vpix[ipx].q );
+		    }
+		    for( int ipx = 0; ipx < cC->size; ++ipx ) {
+		      hpxpC3->Fill( cC->vpix[ipx].ph );
+		      hpxqC3->Fill( cC->vpix[ipx].q );
+		    }
+		    
+		    if( cB->size == 2 ) {
+		      hpxq1stB3->Fill( cB->vpix[0].q );
+		      hpxq2ndB3->Fill( cB->vpix[1].q ); // identical
+		    }
+		    
+		    // task: store track
+		    
+		  } // linked, iso
 
-	  double dy3 = yB - yavg;
-	  double dxy = sqrt( dx3*dx3 + dy3*dy3 );
+		  for( int iw = 1; iw < 999; ++iw )
+		    if( dxy < iw*0.010 )
+		      eff[iw] = 1; // eff
+		  
+		} // clusters B
 
-	  hdx3->Fill( dx3 );
-	  hdy3->Fill( dy3 );
-
-	  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 ) { // cut on y, look at x, see madx3vsy
-
-	    hdx3c->Fill( dx3 );
-
-	    if( (cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
-	      hdx3nocq3->Fill( dx3);
-
-	    if( dx3 > 0.04 && dx3 < -0.06 ) { // side lobe
-	      cout << endl;
-	      cout << "x: " << xAr << ", " << xB << ", " << xCr << ", dx3 " << dx3 << endl;
-	      cout << "A:";
-	      for( unsigned icl = 0; icl < vclA.size(); ++icl )
-		cout << " (" << vclA[icl].col << ", " << vclA[icl].row << ", " << vclA[icl].q << ")";
-	      cout << endl;
-	      cout << "B:";
-	      for( unsigned icl = 0; icl < vclB.size(); ++icl )
-		cout << " (" << vclB[icl].col << ", " << vclB[icl].row << ", " << vclB[icl].q << ")";
-	      cout << endl;
-	      cout << "C:";
-	      for( unsigned icl = 0; icl < vclC.size(); ++icl )
-		cout << " (" << vclC[icl].col << ", " << vclC[icl].row << ", " << vclC[icl].q << ")";
-	      cout << endl;
-	    } 
-
-	    if( cB->iso )
-	      hdx3ci->Fill( dx3 );
- 
-	    if( cA->iso && cC->iso )
-	      hdx3cii->Fill( dx3 );
-
-	    if( cA->iso && cB->iso && cC->iso ) {
-
-	      hdx3ciii->Fill( dx3 );
-
-	      if( cB->size == 1 )
-		hdx3c1->Fill( dx3 ); // r447 4.4
-	      if( cB->size == 2 )
-		hdx3c2->Fill( dx3 ); // r447 4.4
-	      if( cB->size == 3 )
-		hdx3c3->Fill( dx3 ); // r447 4.8
-	      if( cB->size == 4 )
-		hdx3c4->Fill( dx3 ); // r447 6.5
-	      if( cB->size == 5 )
-		hdx3c5->Fill( dx3 ); // r447 16.6
-	      if( cB->size == 6 )
-		hdx3c6->Fill( dx3 ); // r447 24.5
-	      if( cB->size > 6 )
-		hdx3c7->Fill( dx3 ); // r447 39.9
-
-	      if( xB < 0 )
-		hdx3m->Fill( dx3 );
-	      else
-		hdx3p->Fill( dx3 );
-
-	      if( fabs( dxCA ) < straightTracks * beamDivergenceScaled ) { // track angle
-		hdx3ct->Fill( dx3 );
-		madx3vsq->Fill( cB->q, fabs(dx3) );
-		madx3vsn->Fill( cB->size, fabs(dx3) );
-	      }
-
-	    } // iso
-
-	    
-	    if( cB->q > qLB && cB->q < qRB ) {
-
-	      hdx3cq->Fill( dx3 );
-
-	      if( cA->iso && cB->iso && cC->iso )
-		hdx3cqi->Fill( dx3 );
+	      if( fabs( dyCA ) > straightTracks*beamDivergenceScaled ) continue; // clean reference "tracks"
 	      
-	      if( cA->q > qL && cA->q < qR &&
-		  cC->q > qL && cC->q < qR ) {
-
-		hdx3cq3->Fill( dx3 );
-
-		if( cA->iso && cB->iso && cC->iso )
-		  hdx3cq3i->Fill( dx3 );
-
-		dx3vsev->Fill( iev, dx3 );
-
-		dx3vsx->Fill( xB, dx3 ); // turn
-		dx3vsy->Fill( yB, dx3 ); // rot
-		dx3vsxm->Fill( xmod*1E3, dx3 );
-
-		madx3vsdx->Fill( dxCA*1E3, fabs(dx3) ); // dxCA
-
-		if( fabs( dxCA ) < straightTracks * beamDivergenceScaled ) { // track angle
-
-		  hdx3cq3t->Fill( dx3 ); // 447 4.27 um
-
-		  madx3vsx->Fill( xB, fabs(dx3) );
-		  madx3vsy->Fill( yB, fabs(dx3) );
-		  madx3vsxm->Fill( xmod*1E3, fabs(dx3) );
-		  if( cB->size == 2 ) {
-		    etavsxmB3->Fill( xmod*1E3, etaB ); // sine
-		    madx3vseta->Fill( etaB, fabs(dx3) ); // flat
-		    hdx3cq3t2->Fill( dx3 ); // 447 4.25 um
-		  }
-
-		} // angle
-
-	      } // Qa, qC
-
-	    } // qB
-
-	  } // cut dy
-
-	  if( fabs( dx3 ) < 0.07 && // hit on track
-	      fabs( dy3 ) < 0.15 &&
-	      cA->iso && cB->iso && cC->iso) {
-
-	    hclmapB3->Fill( cB->col, cB->row );
-
-	    hxA3->Fill( xAr );
-	    hyA3->Fill( yAr );
-	    hxB3->Fill( xB  );
-	    hyB3->Fill( yB  );
-	    hxC3->Fill( xCr );
-	    hyC3->Fill( yCr );
-
-	    hclszA3->Fill( cA->size );
-	    hclszB3->Fill( cB->size );
-	    hncolB3->Fill( ncolB );
-	    hnrowB3->Fill( nrowB );
-	    hclszC3->Fill( cC->size );
-
-	    hclphA3->Fill( cA->sum );
-	    hclphB3->Fill( cB->sum );
-	    hclphC3->Fill( cC->sum );
-
-	    hclqA3->Fill( cA->q );
-	    hclqB3->Fill( cB->q );
-	    hclqB3i->Fill( cB->q );
-	    hclqC3->Fill( cC->q );
-	    if( cB->size < 4 )
-	      hclqB3n->Fill( cB->q );
-
-	    if( fifty )
-	      nrowvsxmB3->Fill( xmod*1E3, ncolB );
-	    else
-	      nrowvsxmB3->Fill( xmod*1E3, nrowB );
-
-	    clqvsxmB3->Fill( xmod*1E3, cB->q );
-
-	    if( cA->size == 2 )
-	      hetaA3->Fill( etaA );
-
-	    if( cB->size == 2 )
-	      hetaB3->Fill( etaB );
-
-	    if( cC->size == 2 )
-	      hetaC3->Fill( etaC );
-
-	    for( int ipx = 0; ipx < cA->size; ++ipx ) {
-	      hpxpA3->Fill( cA->vpix[ipx].ph );
-	      hpxqA3->Fill( cA->vpix[ipx].q );
-	    }
-	    for( int ipx = 0; ipx < cB->size; ++ipx ) {
-	      hpxpB3->Fill( cB->vpix[ipx].ph );
-	      hpxqB3->Fill( cB->vpix[ipx].q );
-	    }
-	    for( int ipx = 0; ipx < cC->size; ++ipx ) {
-	      hpxpC3->Fill( cC->vpix[ipx].ph );
-	      hpxqC3->Fill( cC->vpix[ipx].q );
-	    }
-
-	    if( cB->size == 2 ) {
-	      hpxq1stB3->Fill( cB->vpix[0].q );
-	      hpxq2ndB3->Fill( cB->vpix[1].q ); // identical
-	    }
-
-	    // task: store track
-
-	  } // linked, iso
-
-	  for( int iw = 1; iw < 999; ++iw )
-	    if( dxy < iw*0.010 )
-	      eff[iw] = 1; // eff
-
-	} // clusters B
-
-	if( fabs( dyCA ) > straightTracks*beamDivergenceScaled ) continue; // clean reference "tracks"
-
-	if( evinfoB->filled == ADD ) continue; // padded event in B
-	if( evinfoB->skip ) continue; // fat event in B
-
-	if( cA->iso == 0 ) continue;
-	if( cC->iso == 0 ) continue;
-
-	effvsxy->Fill( xavg, yavg, eff[50] );
-
-	if( yavg > -3.7 && yavg < 3.5 )
-	  effvsx->Fill( xavg, eff[50] );
-
-	if( xavg > -3.3 && xavg < 3.6 )
-	  effvsy->Fill( yavg, eff[50] );
-
-	if( xavg > -3.3 && xavg < 3.6 &&
-	    yavg > -3.7 && yavg < 3.5 ) {
-
-	  for( int iw = 1; iw < 999; ++iw )
-	    effvsdxy->Fill( iw*0.010+0.005, eff[iw] );
-
-	  effvsxm->Fill( xmod*1E3, eff[50] ); // bias dot
-	  effvsev->Fill( iev, eff[50] );
-	  effvsiev->Fill( iev%200, eff[50] );
-	  //effvsmpxA->Fill( pbA.size(), eff[50] );
-	  effvsqA->Fill( cA->q, eff[50] );
-	  effvstxy->Fill( dxyCA, eff[50] ); // flat
-
-	} // fiducial x, y
-
-      } // clusters A
-
-    } // cl C
-
-    nmvsevCA->Fill( iev, nm );
-
-    // task: track correlations, intersects
+	      if( evinfoB->filled == ADD ) continue; // padded event in B
+	      if( evinfoB->skip ) continue; // fat event in B
+	      
+	      if( cA->iso == 0 ) continue;
+	      if( cC->iso == 0 ) continue;
+	      
+	      effvsxy->Fill( xavg, yavg, eff[50] );
+	      
+	      if( yavg > -3.7 && yavg < 3.5 )
+		effvsx->Fill( xavg, eff[50] );
+	      
+	      if( xavg > -3.3 && xavg < 3.6 )
+		effvsy->Fill( yavg, eff[50] );
+	      
+	      if( xavg > -3.3 && xavg < 3.6 &&
+		  yavg > -3.7 && yavg < 3.5 ) {
+		
+		for( int iw = 1; iw < 999; ++iw )
+		  effvsdxy->Fill( iw*0.010+0.005, eff[iw] );
+		
+		effvsxm->Fill( xmod*1E3, eff[50] ); // bias dot
+		effvsev->Fill( iev, eff[50] );
+		effvsiev->Fill( iev%200, eff[50] );
+		//effvsmpxA->Fill( pbA.size(), eff[50] );
+		effvsqA->Fill( cA->q, eff[50] );
+		effvstxy->Fill( dxyCA, eff[50] ); // flat
+		
+	      } // fiducial x, y
+	      
+	    } // clusters A
+	  
+	} // cl C
+      
+      nmvsevCA->Fill( iev, nm );
+      
+      // task: track correlations, intersects
 
     
     } // events
@@ -1854,11 +1477,23 @@ void getGain( string gainfile, double (*p0)[r4sColumns][r4sRows], double (*p1)[r
 
 }
 
+double eta(vector<cluster>::iterator c)
+{
+  double eta = -2;
+  if( c->size == 2 )
+    {
+      double q0 = c->vpix[0].q;
+      double q1 = c->vpix[1].q;
+      eta = (q1-q0)/(q1+q0);
+    }
+  return eta;
+}
+
+	  
+
 double xcoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr)
 {
   double variable;
-  
-  
   variable = c->row*pitchr - halfSensorX - align;
   // if( run == 431 && plane == 1 )
   //   variable = c->row*ptchr - halfSensorX; // rot90

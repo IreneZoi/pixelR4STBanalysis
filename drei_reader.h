@@ -61,6 +61,7 @@ void getGain( string gainfile, double (*p0)[r4sColumns][r4sRows], double (*p1)[r
 void bookHists();
 double xcoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr); 
 double ycoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pichr); 
+double eta(vector<cluster>::iterator c); 
 
 TProfile phvsprev[DreiMasterPlanes];
 TProfile dphvsprev[DreiMasterPlanes];
