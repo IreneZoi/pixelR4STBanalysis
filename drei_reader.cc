@@ -39,6 +39,8 @@
 #include <TF1.h>
 #include "./drei_reader.h"
 
+bool PRINT = false;
+bool DOALIGNMENT = false;
 
 
 //------------------------------------------------------------------------------
@@ -635,23 +637,26 @@ int main( int argc, char* argv[] )
 		    
 		    if( (cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
 		      hdx3nocq3->Fill( dx3);
-		    
-		    if( dx3 > 0.04 && dx3 < -0.06 ) { // side lobe
-		      cout << endl;
-		      cout << "x: " << xAr << ", " << xB << ", " << xCr << ", dx3 " << dx3 << endl;
-		      cout << "A:";
-		      for( unsigned icl = 0; icl < vclA.size(); ++icl )
-			cout << " (" << vclA[icl].col << ", " << vclA[icl].row << ", " << vclA[icl].q << ")";
-		      cout << endl;
-		      cout << "B:";
-		      for( unsigned icl = 0; icl < vclB.size(); ++icl )
-			cout << " (" << vclB[icl].col << ", " << vclB[icl].row << ", " << vclB[icl].q << ")";
-		      cout << endl;
-		      cout << "C:";
-		      for( unsigned icl = 0; icl < vclC.size(); ++icl )
-			cout << " (" << vclC[icl].col << ", " << vclC[icl].row << ", " << vclC[icl].q << ")";
-		      cout << endl;
+
+		    //this is probably not needed anymore
+		    if( dx3 > 0.04 && dx3 < -0.06 )
+		      { // side lobe
+			cout << endl;
+			cout << "x: " << xAr << ", " << xB << ", " << xCr << ", dx3 " << dx3 << endl;
+			cout << "A:";
+			for( unsigned icl = 0; icl < vclA.size(); ++icl )
+			  cout << " (" << vclA[icl].col << ", " << vclA[icl].row << ", " << vclA[icl].q << ")";
+			cout << endl;
+			cout << "B:";
+			for( unsigned icl = 0; icl < vclB.size(); ++icl )
+			  cout << " (" << vclB[icl].col << ", " << vclB[icl].row << ", " << vclB[icl].q << ")";
+			cout << endl;
+			cout << "C:";
+			for( unsigned icl = 0; icl < vclC.size(); ++icl )
+			  cout << " (" << vclC[icl].col << ", " << vclC[icl].row << ", " << vclC[icl].q << ")";
+			cout << endl;
 		    } 
+
 		    
 		    if( cB->iso )
 		      hdx3ci->Fill( dx3 );
@@ -659,80 +664,83 @@ int main( int argc, char* argv[] )
 		    if( cA->iso && cC->iso )
 		      hdx3cii->Fill( dx3 );
 		    
-		    if( cA->iso && cB->iso && cC->iso ) {
-		      
-		      hdx3ciii->Fill( dx3 );
-		      
-		      if( cB->size == 1 )
-			hdx3c1->Fill( dx3 ); // r447 4.4
-		      if( cB->size == 2 )
-			hdx3c2->Fill( dx3 ); // r447 4.4
-		      if( cB->size == 3 )
-			hdx3c3->Fill( dx3 ); // r447 4.8
-		      if( cB->size == 4 )
-			hdx3c4->Fill( dx3 ); // r447 6.5
-		      if( cB->size == 5 )
-			hdx3c5->Fill( dx3 ); // r447 16.6
-		      if( cB->size == 6 )
-			hdx3c6->Fill( dx3 ); // r447 24.5
-		      if( cB->size > 6 )
-			hdx3c7->Fill( dx3 ); // r447 39.9
-		      
-		      if( xB < 0 )
-			hdx3m->Fill( dx3 );
-		      else
-			hdx3p->Fill( dx3 );
-		      
-		      if( fabs( dxCA ) < straightTracks * beamDivergenceScaled ) { // track angle
-			hdx3ct->Fill( dx3 );
-			madx3vsq->Fill( cB->q, fabs(dx3) );
-			madx3vsn->Fill( cB->size, fabs(dx3) );
-		      }
-		      
-		    } // iso
-		    
-		    
-		    if( cB->q > qLB && cB->q < qRB ) {
-		      
-		      hdx3cq->Fill( dx3 );
-		      
-		      if( cA->iso && cB->iso && cC->iso )
-			hdx3cqi->Fill( dx3 );
-		      
-		      if( cA->q > qL && cA->q < qR &&
-			  cC->q > qL && cC->q < qR ) {
-
-			hdx3cq3->Fill( dx3 );
+		    if( cA->iso && cB->iso && cC->iso )
+		      {	      
+			hdx3ciii->Fill( dx3 ); //resolution histo (better require isolation than cut on the charge)
 			
-			if( cA->iso && cB->iso && cC->iso )
-			  hdx3cq3i->Fill( dx3 );
+			if( cB->size == 1 )
+			  hdx3c1->Fill( dx3 ); // r447 4.4
+			if( cB->size == 2 )
+			  hdx3c2->Fill( dx3 ); // r447 4.4
+			if( cB->size == 3 )
+			  hdx3c3->Fill( dx3 ); // r447 4.8
+			if( cB->size == 4 )
+			  hdx3c4->Fill( dx3 ); // r447 6.5
+			if( cB->size == 5 )
+			  hdx3c5->Fill( dx3 ); // r447 16.6
+			if( cB->size == 6 )
+			  hdx3c6->Fill( dx3 ); // r447 24.5
+			if( cB->size > 6 )
+			  hdx3c7->Fill( dx3 ); // r447 39.9
 			
-			dx3vsev->Fill( iev, dx3 );
-			
-			dx3vsx->Fill( xB, dx3 ); // turn
-			dx3vsy->Fill( yB, dx3 ); // rot
-			dx3vsxm->Fill( xmod*1E3, dx3 );
-			
-			madx3vsdx->Fill( dxCA*1E3, fabs(dx3) ); // dxCA
+			if( xB < 0 )
+			  hdx3m->Fill( dx3 );
+			else
+			  hdx3p->Fill( dx3 );
 			
 			if( fabs( dxCA ) < straightTracks * beamDivergenceScaled ) { // track angle
-			  
-			  hdx3cq3t->Fill( dx3 ); // 447 4.27 um
-			  
-			  madx3vsx->Fill( xB, fabs(dx3) );
-			  madx3vsy->Fill( yB, fabs(dx3) );
-			  madx3vsxm->Fill( xmod*1E3, fabs(dx3) );
-			  if( cB->size == 2 ) {
-			    etavsxmB3->Fill( xmod*1E3, etaB ); // sine
-			    madx3vseta->Fill( etaB, fabs(dx3) ); // flat
-			    hdx3cq3t2->Fill( dx3 ); // 447 4.25 um
-			  }
-			  
-			} // angle
+			  hdx3ct->Fill( dx3 );
+			  madx3vsq->Fill( cB->q, fabs(dx3) );
+			  madx3vsn->Fill( cB->size, fabs(dx3) );
+			}
 			
-		      } // Qa, qC
+		      } // iso
+		    
+		    
+		    if( cB->q > qLB && cB->q < qRB )
+		      {
 		      
-		    } // qB
+			hdx3cq->Fill( dx3 );
+		      
+			if( cA->iso && cB->iso && cC->iso )
+			  hdx3cqi->Fill( dx3 );
+			
+			if( cA->q > qL && cA->q < qR &&
+			    cC->q > qL && cC->q < qR ) {
+			  
+			  hdx3cq3->Fill( dx3 );
+			
+			  if( cA->iso && cB->iso && cC->iso )
+			    hdx3cq3i->Fill( dx3 );
+			  
+			  dx3vsev->Fill( iev, dx3 );
+			
+			  dx3vsx->Fill( xB, dx3 ); // turn
+			  dx3vsy->Fill( yB, dx3 ); // rot
+			  dx3vsxm->Fill( xmod*1E3, dx3 );
+			  
+			  madx3vsdx->Fill( dxCA*1E3, fabs(dx3) ); // dxCA
+			  
+			  if( fabs( dxCA ) < straightTracks * beamDivergenceScaled )
+			    { // track angle
+			  
+			      hdx3cq3t->Fill( dx3 ); // 447 4.27 um
+			      
+			      madx3vsx->Fill( xB, fabs(dx3) );
+			      madx3vsy->Fill( yB, fabs(dx3) );
+			      madx3vsxm->Fill( xmod*1E3, fabs(dx3) );
+			      if( cB->size == 2 )
+				{
+				  etavsxmB3->Fill( xmod*1E3, etaB ); // sine
+				  madx3vseta->Fill( etaB, fabs(dx3) ); // flat
+				  hdx3cq3t2->Fill( dx3 ); // 447 4.25 um
+				}
+			  
+			    } // angle
+			  
+			} // Qa, qC
+		      
+		      } // qB
 		    
 		  } // cut dy
 		  
@@ -741,7 +749,7 @@ int main( int argc, char* argv[] )
 		      cA->iso && cB->iso && cC->iso) {
 		    
 		    hclmapB3->Fill( cB->col, cB->row );
-
+		    
 		    hxA3->Fill( xAr );
 		    hyA3->Fill( yAr );
 		    hxB3->Fill( xB  );
@@ -851,7 +859,7 @@ int main( int argc, char* argv[] )
 
     
     } // events
-
+  /////////    end of the big loop on the events!!! //////////////////
   cout << endl;
   if(PRINT) cout << " after big loop on events!!!************************" << endl;
   if(PRINT)cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
@@ -897,141 +905,128 @@ int main( int argc, char* argv[] )
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // alignment fits:
 
-  double newalignxA = alignxA;
-  if(PRINT) cout << " newalignxA " << newalignxA << " alignxA " << alignxA << endl;
+  if(DOALIGNMENT)
+    {
+      double newalignxA = alignxA;
+      if(PRINT) cout << " newalignxA " << newalignxA << " alignxA " << alignxA << endl;
+      
+      cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
+      
+      if( hdxAB->GetEntries() > 999 )
+	{
+	  
+	  newalignxA += alignx(hdxAB);
+	}
+      else
+	cout << "  not enough statistics" << endl;
+      
+      // y:
 
-  cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
-  cout << hdt->GetTitle() << " entries " << hdt->GetEntries() << endl;
+      double newalignyA = alignyA;
+      
+      cout << endl << hdyAB->GetTitle() << " entries " << hdyAB->GetEntries() << endl;
+      if( hdyAB->GetEntries() > 999 ) {
+	cout << "  y correction " << hdyAB->GetMean() << endl;
+	newalignyA += aligny(hdyAB);
+      }
+      else
+	cout << "  not enough statistics" << endl;
+      
+      // dxvsy -> -rot
+      
+      double newalignfA = alignfA;
+      
+      cout << endl << dxvsyAB->GetTitle() << " entries " << dxvsyAB->GetEntries() << endl;
+      if( aligniteration > 0 && dxvsyAB->GetEntries() > 999 ) {
+	newalignfA += alignangle(dxvsyAB);
+      }
+      else
+	cout << "  not enough" << endl;
+      
+      // C:
 
-  if( hdxAB->GetEntries() > 999 ) {
+      double newalignxC = alignxC;
+  
+      cout << endl << hdxCB->GetTitle() << " entries " << hdxCB->GetEntries() << endl;
+      if( hdxCB->GetEntries() > 999 ) {   
+	newalignxC += alignx(hdxCB);
+      }
+      else
+	cout << "  not enough" << endl;
 
-    TF1 * fgp0 = new TF1( "fgp0", "[0]*exp(-0.5*((x-[1])/[2])^2)+[3]", -10, 10 );
-    double xpk = hdxAB->GetBinCenter( hdxAB->GetMaximumBin() );
-    fgp0->SetParameter( 0, hdxAB->GetMaximum() ); // amplitude
-    fgp0->SetParameter( 1, xpk );
-    fgp0->SetParameter( 2, hdxAB->GetBinWidth(1) ); // sigma
-    fgp0->SetParameter( 3, hdxAB->GetBinContent( hdxAB->FindBin(xpk-1) ) ); // BG
-    hdxAB->Fit( "fgp0", "q", "", xpk-1, xpk+1 ); // fit range around peak
-    cout << "  Fit Gauss + BG:"
-	 << endl << "  area " << fgp0->GetParameter(0)
-	 << endl << "  mean " << fgp0->GetParameter(1)
-	 << endl << "  sigm " << fgp0->GetParameter(2)
-	 << endl << "  offs " << fgp0->GetParameter(3)
-	 << endl;
-    newalignxA += fgp0->GetParameter(1);
-  }
-  else
-    cout << "  not enough" << endl;
+      // y:
+      
+      double newalignyC = alignyC;
 
-  // y:
+      cout << endl << hdyCB->GetTitle() << " entries " << hdyCB->GetEntries() << endl;
+      if( hdyCB->GetEntries() > 999 ) {
+	cout << "  y correction " << hdyCB->GetMean() << endl;
+	newalignyC += aligny(hdyCB);
+      }
+      else
+	cout << "  not enough" << endl;
+      
+      // dxvsy -> -rot
 
-  double newalignyA = alignyA;
+      double newalignfC = alignfC;
+      
+      cout << endl << dxvsyCB->GetTitle() << " entries " << dxvsyCB->GetEntries() << endl;
+      if( aligniteration > 0 && dxvsyCB->GetEntries() > 999 ) {
+	newalignfC += alignangle(dxvsyCB);
+      }
+      else
+	cout << "  not enough" << endl;
+      
+      ++aligniteration;
+      cout << endl
+	   << "for " << alignFileName << endl
+	   << "iteration " << aligniteration << endl
+	   << "alignxA " << setw(11) << newalignxA << endl
+	   << "alignyA " << setw(11) << newalignyA << endl
+	   << "alignfA " << setw(11) << newalignfA << endl
+	   << "alignxC " << setw(11) << newalignxC << endl
+	   << "alignyC " << setw(11) << newalignyC << endl
+	   << "alignfC " << setw(11) << newalignfC << endl
+	;
 
-  cout << endl << hdyAB->GetTitle() << " entries " << hdyAB->GetEntries() << endl;
-  if( hdyAB->GetEntries() > 999 ) {
-    cout << "  y correction " << hdyAB->GetMean() << endl;
-    newalignyA += hdyAB->GetMean();
-  }
-  else
-    cout << "  not enough" << endl;
-
-  // dxvsy -> -rot
-
-  double newalignfA = alignfA;
-
-  cout << endl << dxvsyAB->GetTitle() << " entries " << dxvsyAB->GetEntries() << endl;
-  if( aligniteration > 0 && dxvsyAB->GetEntries() > 999 ) {
-    dxvsyAB->Fit( "pol1", "q", "", -3, 3 );
-    TF1 * fdxvsy = dxvsyAB->GetFunction( "pol1" );
-    cout << "  extra rot " << fdxvsy->GetParameter(1) << endl;
-    newalignfA += fdxvsy->GetParameter(1);
-  }
-  else
-    cout << "  not enough" << endl;
-
-  // C:
-
-  double newalignxC = alignxC;
-
-  cout << endl << hdxCB->GetTitle() << " entries " << hdxCB->GetEntries() << endl;
-  if( hdxCB->GetEntries() > 999 ) {
-
-    TF1 * fgp0 = new TF1( "fgp0", "[0]*exp(-0.5*((x-[1])/[2])^2)+[3]", -10, 10 );
-    double xpk = hdxCB->GetBinCenter( hdxCB->GetMaximumBin() );
-    fgp0->SetParameter( 0, hdxCB->GetMaximum() ); // amplitude
-    fgp0->SetParameter( 1, xpk );
-    fgp0->SetParameter( 2, hdxCB->GetBinWidth(1) ); // sigma
-    fgp0->SetParameter( 3, hdxCB->GetBinContent( hdxCB->FindBin(xpk-1) ) ); // BG
-    hdxCB->Fit( "fgp0", "q", "", xpk-1, xpk+1 ); // fit range around peak
-    cout << "  Fit Gauss + BG:"
-	 << endl << "  area " << fgp0->GetParameter(0)
-	 << endl << "  mean " << fgp0->GetParameter(1)
-	 << endl << "  sigm " << fgp0->GetParameter(2)
-	 << endl << "  offs " << fgp0->GetParameter(3)
-	 << endl;
-    newalignxC += fgp0->GetParameter(1);
-  }
-  else
-    cout << "  not enough" << endl;
-
-  // y:
-
-  double newalignyC = alignyC;
-
-  cout << endl << hdyCB->GetTitle() << " entries " << hdyCB->GetEntries() << endl;
-  if( hdyCB->GetEntries() > 999 ) {
-    cout << "  y correction " << hdyCB->GetMean() << endl;
-    newalignyC += hdyCB->GetMean();
-  }
-  else
-    cout << "  not enough" << endl;
-
-  // dxvsy -> -rot
-
-  double newalignfC = alignfC;
-
-  cout << endl << dxvsyCB->GetTitle() << " entries " << dxvsyCB->GetEntries() << endl;
-  if( aligniteration > 0 && dxvsyCB->GetEntries() > 999 ) {
-    dxvsyCB->Fit( "pol1", "q", "", -3, 3 );
-    TF1 * fdxvsy = dxvsyCB->GetFunction( "pol1" );
-    cout << "  extra rot " << fdxvsy->GetParameter(1) << endl;
-    newalignfC += fdxvsy->GetParameter(1);
-  }
-  else
-    cout << "  not enough" << endl;
-
-  ++aligniteration;
-  cout << endl
-       << "for " << alignFileName << endl
-       << "iteration " << aligniteration << endl
-       << "alignxA " << setw(11) << newalignxA << endl
-       << "alignyA " << setw(11) << newalignyA << endl
-       << "alignfA " << setw(11) << newalignfA << endl
-       << "alignxC " << setw(11) << newalignxC << endl
-       << "alignyC " << setw(11) << newalignyC << endl
-       << "alignfC " << setw(11) << newalignfC << endl
-    ;
-
-  // cout << "update alignment file? (y/n)" << endl;
-  // string ans;
-  // cin >> ans;
-  // string YES{"y"};
-  // if( ans == YES ) {
-
-  //   ofstream alignFile( alignFileName );
-
-  //   alignFile << "# alignment for run " << run << endl;
-  //   alignFile << "iteration " << aligniteration << endl;
-  //   alignFile << "alignxA " << setw(11) << newalignxA << endl;
-  //   alignFile << "alignyA " << setw(11) << newalignyA << endl;
-  //   alignFile << "alignfA " << setw(11) << newalignfA << endl;
-  //   alignFile << "alignxC " << setw(11) << newalignxC << endl;
-  //   alignFile << "alignyC " << setw(11) << newalignyC << endl;
-  //   alignFile << "alignfC " << setw(11) << newalignfC << endl;
-
-  //   alignFile.close();
-  // }
-
+      cout << "update alignment file? (y/n)" << endl;
+      string ans;
+      cin >> ans;
+      string YES{"y"};
+      if( ans == YES ) {
+      
+        ofstream alignFile( alignFileName );
+      
+        alignFile << "# alignment for run " << run << endl;
+        alignFile << "iteration " << aligniteration << endl;
+        alignFile << "alignxA " << setw(11) << newalignxA << endl;
+        alignFile << "alignyA " << setw(11) << newalignyA << endl;
+        alignFile << "alignfA " << setw(11) << newalignfA << endl;
+        alignFile << "alignxC " << setw(11) << newalignxC << endl;
+        alignFile << "alignyC " << setw(11) << newalignyC << endl;
+        alignFile << "alignfC " << setw(11) << newalignfC << endl;
+	alignFile << "gainA " << setw(11) << gainA << endl;
+	alignFile << "gainB " << setw(11) << gainB << endl;
+	alignFile << "gainC " << setw(11) << gainC << endl;
+	alignFile << "keA " << setw(11) << keA << endl;
+	alignFile << "keB " << setw(11) << keB << endl;
+	alignFile << "keC " << setw(11) << keC << endl;
+	alignFile << "beamEnergy " << setw(11) << beamEnergy << endl;
+	alignFile << "pitch " << setw(11) << pitch << endl;
+	alignFile << "qL " << setw(11) << qL << endl;
+	alignFile << "qR " << setw(11) << qR << endl;
+	alignFile << "qLB " << setw(11) << qLB << endl;
+	alignFile << "qRB " << setw(11) << qRB << endl;
+	alignFile << "TsunamiA " << setw(11) << Tsunami[A] << endl;
+	alignFile << "TsunamiB " << setw(11) << Tsunami[B] << endl;
+	alignFile << "TsunamiC " << setw(11) << Tsunami[C] << endl;
+	alignFile << "dphcutA " << setw(11) << dphcut[A] << endl;
+	alignFile << "dphcutB " << setw(11) << dphcut[B] << endl;
+	alignFile << "dphcutC " << setw(11) << dphcut[C] << endl;
+	alignFile << "dx3c " << setw(11) << dx3corr << endl;
+        alignFile.close();
+      }
+    }//DOALIGNMENT
   cout << endl << histoFile->GetName() << endl;
   histoFile->Close();
   if(PRINT) cout << " closed the hist file" << endl;
@@ -1042,8 +1037,44 @@ int main( int argc, char* argv[] )
 }
 
 
+/////// end of main code
+
+
 
 //------------------------------------------------------------------------------
+
+double alignx(TH1I * h)
+{
+  TF1 * fgp0 = new TF1( "fgp0", "[0]*exp(-0.5*((x-[1])/[2])^2)+[3]", -10, 10 );
+  double xpk = h->GetBinCenter( h->GetMaximumBin() );
+  fgp0->SetParameter( 0, h->GetMaximum() ); // amplitude
+  fgp0->SetParameter( 1, xpk ); //mean
+  fgp0->SetParameter( 2, h->GetBinWidth(1) ); // sigma
+  fgp0->SetParameter( 3, h->GetBinContent( hdxAB->FindBin(xpk-1) ) ); // BG
+  h->Fit( "fgp0", "q", "", xpk-1, xpk+1 ); // fit range around peak
+  cout << "  Fit Gauss + BG:"
+       << endl << "  area " << fgp0->GetParameter(0)
+       << endl << "  mean " << fgp0->GetParameter(1)
+       << endl << "  sigm " << fgp0->GetParameter(2)
+       << endl << "  offs " << fgp0->GetParameter(3)
+       << endl;
+  return fgp0->GetParameter(1);
+}
+
+
+double aligny(TH1I * h)
+{
+  return h->GetMean();
+}
+
+double alignangle(TProfile * h)
+{
+  h->Fit( "pol1", "q", "", -3, 3 );
+  TF1 * fdxvsy = h->GetFunction( "pol1" );
+  return fdxvsy->GetParameter(1);
+}
+
+
 vector<cluster> getClus( vector <pixel> pb, int fCluCut ) // 1 = no gap
 {
   // returns clusters with local coordinates

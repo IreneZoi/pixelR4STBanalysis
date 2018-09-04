@@ -8,7 +8,8 @@ bool fifty = false;
 #define ACspacing 40 //[mm] distance between planes A and C in the dreimaster
 
 using namespace std;
-bool PRINT = false;
+/* bool PRINT = false; */
+/* bool DOALIGNMENT = false; */
 
 struct evInfo {
   uint64_t evtime;
@@ -62,6 +63,10 @@ void bookHists();
 double xcoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr); 
 double ycoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pichr); 
 double eta(vector<cluster>::iterator c); 
+double alignx(TH1I * h);
+double aligny(TH1I * h);
+double alignangle(TProfile * h);
+
 
 TProfile phvsprev[DreiMasterPlanes];
 TProfile dphvsprev[DreiMasterPlanes];
