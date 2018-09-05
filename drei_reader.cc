@@ -1362,7 +1362,9 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 	      dph = ph4 - ph1;
 	    else
 	      dph = ph4 - ph7;
- 
+
+	    //dph = ph4 - (ph1 + ph7)/2;  // Finn's common mode, try and give feedback
+	    
 	    hdph[plane].Fill( dph ); // sig 2.7
 
 	    dphvsprev[plane].Fill( dphprev, dph );
@@ -1404,8 +1406,14 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 		  U = 0.9999999; // avoid overflow
 		
 		double vcal = p0[plane][col4][row4] - p1[plane][col4][row4] * log( (1-U)/U ); // inverse Fermi
+		// subtract Vcal offset:
+
+		double U0 = -p3[plane][col4][row4] / p2[plane][col4][row4]; // dph = 0
+		double v0 = p0[plane][col4][row4] - p1[plane][col4][row4] * log( (1-U0)/U0 ); // inverse Fermi
+
+		double q = ke[plane] * ( vcal - v0 );
 		
-		px.q = ke[plane]*vcal;
+		px.q = q;//ke[plane]*vcal;
 		
 		pb.push_back(px);
 
