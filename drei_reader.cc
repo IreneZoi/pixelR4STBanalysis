@@ -1135,6 +1135,7 @@ vector<cluster> getClus( vector <pixel> pb, int fCluCut ) // 1 = no gap
 	  c.sum += ph; //cluster charge in ph units
 	  double q = p->q;
 	  c.q += q; //cluster charge
+	  if(c.q < 0)	  cout << "negative cluster charge " << c.q << endl;
 	  //c.col += (*p).col*ph;
 	  //c.row += (*p).row*ph;
 	  c.col += (*p).col*q; //pixel charge is a weight on the pixel position
@@ -1358,12 +1359,12 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 	    double dph;
 	    
 	    //find closest row to define the difference
-	    if( row4 - row1 < row7 - row4 )
-	      dph = ph4 - ph1;
-	    else
-	      dph = ph4 - ph7;
+	    // if( row4 - row1 < row7 - row4 )
+	    //   dph = ph4 - ph1;
+	    // else
+	    //   dph = ph4 - ph7;
 
-	    //dph = ph4 - (ph1 + ph7)/2;  // Finn's common mode, try and give feedback
+	    dph = ph4 - (ph1 + ph7)/2;  // Finn's common mode, try and give feedback
 	    
 	    hdph[plane].Fill( dph ); // sig 2.7
 
@@ -1451,21 +1452,29 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 	{
 
 	  bool done = 0;
-	  
-	  for( unsigned ipx = 0; ipx < vcl[icl].vpix.size(); ++ipx ) {
-
+	  double isolationCut = 0.3; // [mm]
+	  double pitchc = 0.100; // [mm]
+	  double pitchr = 0.025; // [mm]
+	  if(fifty)
+	    {
+	      pitchc = 0.050;
+	      pitchr = 0.050;
+	    }
+	  for( unsigned ipx = 0; ipx < vcl[icl].vpix.size(); ++ipx ){
 	  for( unsigned jpx = 0; jpx < vcl[jcl].vpix.size(); ++jpx )
-	    if( fabs( vcl[icl].vpix[ipx].col - vcl[jcl].vpix[jpx].col ) < 3 &&
-		fabs( vcl[icl].vpix[ipx].row - vcl[jcl].vpix[jpx].row ) < 3 )
-	      {
-		if( vcl[icl].q < vcl[jcl].q ) // Thu 22.3.2018
-		  vcl[icl].iso = 0; // flag smaller cluster
-		else
-		  vcl[jcl].iso = 0;
-		done = 1;
-		break; // jpx
-	      }
-	  
+	    {
+	      double dcol = fabs( vcl[icl].vpix[ipx].col - vcl[jcl].vpix[jpx].col)*pitchc;
+	      double drow = fabs( vcl[icl].vpix[ipx].row - vcl[jcl].vpix[jpx].row )*pitchr; 
+	      if(  dcol  < isolationCut && drow < isolationCut )
+		{
+		  if( vcl[icl].q < vcl[jcl].q ) // Thu 22.3.2018
+		    vcl[icl].iso = 0; // flag smaller cluster
+		  else
+		    vcl[jcl].iso = 0;
+		  done = 1;
+		  break; // jpx
+		}
+	    }
 	  if( done ) break; // ipx
 	  
 	  } // ipx
