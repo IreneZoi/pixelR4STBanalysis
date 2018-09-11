@@ -1,0 +1,27 @@
+iteration 3
+    alignxA   0.229 // [mm] same sign as dx
+    alignyA  -0.05  // [mm] same sign as dy
+    alignfA  -0.0017 // [rad] same sign dxvsy
+
+    alignxC   0.465 // [mm] same sign as dx
+    alignyC  -0.20  // [mm] same sign as dy
+    alignfC   0.0050 // [rad] same sign dxvsy
+gainA 
+gainB 
+gainC 
+keA 
+keB 
+keC 
+beamEnergy 
+pitch 
+qL 
+qR 
+qLB 
+qRB 
+TsunamiA 
+TsunamiB 
+TsunamiC 
+dphcutA 
+dphcutB 
+dphcutC 
+dx3c 

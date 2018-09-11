@@ -1,0 +1,27 @@
+# alignment for run 1873
+iteration 10
+alignxA    0.400905
+alignyA   -0.183667
+alignfA -0.00128712
+alignxC    0.408529
+alignyC     1.10899
+alignfC  -0.0127359
+gainA 
+gainB 
+gainC 
+keA 
+keB 
+keC 
+beamEnergy 
+pitch 
+qL 
+qR 
+qLB 
+qRB 
+TsunamiA 
+TsunamiB 
+TsunamiC 
+dphcutA 
+dphcutB 
+dphcutC 
+dx3c 
