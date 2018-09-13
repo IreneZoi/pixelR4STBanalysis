@@ -12,7 +12,7 @@ gainC /home/cmspix/r4sclient/C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13
 keA  0.0511
 keB 0.0385
 keC 0.0463
-beamEnergy 5.6
+beamEnergy 6
 pitch 25
 qL  9
 qR 15
@@ -22,6 +22,6 @@ TsunamiA 0.08 #approximated
 TsunamiB 0.075 #from Finn's table
 TsunamiC 0.093 #from Finn's table
 dphcutA 30
-dphcutB 40
+dphcutB 15 #40 Daniel
 dphcutC 30
 dx3c 0.00054

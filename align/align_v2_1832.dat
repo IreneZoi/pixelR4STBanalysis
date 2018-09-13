@@ -6,22 +6,19 @@ alignfA -8.62096e-05
 alignxC   0.0290269
 alignyC   -0.024504
 alignfC -0.00331264
-gainA 
-gainB 
-gainC 
-keA 
-keB 
-keC 
-beamEnergy 
-pitch 
-qL 
-qR 
-qLB 
-qRB 
-TsunamiA 
-TsunamiB 
-TsunamiC 
-dphcutA 
-dphcutB 
-dphcutC 
-dx3c 
+keA  0.0511
+keB 0.0385
+keC 0.0463
+beamEnergy 4.0
+pitch 25
+qL  9
+qR 15
+qLB 9
+qRB 15
+TsunamiA 0.08 #approximated
+TsunamiB 0.075 #from Finn's table
+TsunamiC 0.093 #from Finn's table
+dphcutA 30
+dphcutB 15 #40 Daniel
+dphcutC 30
+dx3c 0.00064
