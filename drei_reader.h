@@ -154,6 +154,12 @@ TH1I * hdx3c;// ( "dx3c", "triplet dx, cut dy;dx [mm];triplets", 500, -0.25, 0.2
 TH1I * hdx3ci;// ( "dx3ci", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
 TH1I * hdx3cii;// ( "dx3cii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
 TH1I * hdx3ciii;// ( "dx3ciii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+TH1I * hdx3ciiiqr;// ( "dx3ciiiqr", "triplet dx, cut dy, isolated, qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+TH1I * hdx3ciiiq;// ( "dx3ciiiq", "triplet dx, cut dy, isolated, qL < qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+TH1I * hdx3ciiiqr3;// ( "dx3ciiiqr3", "triplet dx, cut dy, isolated, q3 < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+TH1I * hdx3ciiiq3;// ( "dx3ciiiq3", "triplet dx, cut dy, isolated, qL < q3 < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+
+
 
 TH1I * hdx3c1;// ( "dx3c1", "triplet dx, cut dy, npx 1;dx [mm];triplets, B npx 1",500, -0.25, 0.25 );
 TH1I * hdx3c2;// ( "dx3c2", "triplet dx, cut dy, npx 2;dx [mm];triplets, B npx 2",500, -0.25, 0.25 );
@@ -200,6 +206,21 @@ TH1I * hxB3;// ( "xB3", "x B linked;x [mm];B clusters on tracks", 100, -5, 5 );
 TH1I * hyB3;// ( "yB3", "y B linked;y [mm];B clusters on tracks", 100, -5, 5 ); 
 TH1I * hxC3;// ( "xC3", "x C linked;x [mm];C clusters on tracks", 100, -5, 5 );
 TH1I * hyC3;// ( "yC3", "y C linked;y [mm];C clusters on tracks", 100, -5, 5 ); 
+
+TH1I * hclszAiii;// ( "clszA3", "A cluster size on tracks;cluster size [pixels];Aclusters on tracks",		40, 0.5, 40.5 );
+TH1I * hclphAiii;// ( "clphA3", "A cluster PH on tracks;cluster ph [ADC];A clusters on tracks",		200, 0, 1000 );
+TH1I * hclqAiii;// ( "clqA3", "A cluster charge on tracks;cluster charge [ke];A clusters on tracks",	       160, 0, 80 );
+TH1I * hclszBiii;// ( "clszB3", "B cluster size on tracks;cluster size [pixels];B clusters on tracks",		40, 0.5, 40.5 );
+TH1I * hncolBiii;// ( "ncolB3", "B cluster size on tracks;cluster size [columns];B clusters on tracks",		20, 0.5, 20.5 );
+TH1I * hnrowBiii;// ( "nrowB3", "B cluster size on tracks;cluster size [rows];B clusters on tracks",		20, 0.5, 20.5 );
+TH1I * hclphBiii;// ( "clphB3", "B cluster PH on tracks;cluster ph [ADC];B clusters on tracks",		200, 0, 1000 );
+TH1I * hclqBiii;// ( "clqB3", "B cluster charge on tracks;cluster charge [ke];B clusters on tracks",	       160, 0, 80 );
+TH1I * hclszCiii;// ( "clszC3", "C cluster size on tracks;cluster size [pixels];C clusters on tracks",		40, 0.5, 40.5 );
+TH1I * hclphCiii;// ( "clphC3", "C cluster PH on tracks;cluster ph [ADC];C clusters on tracks",		200, 0, 1000 );
+TH1I * hclqCiii;// ( "clqC3", "C cluster charge on tracks;cluster charge [ke];C clusters on tracks",	       160, 0, 80 );
+
+
+
 
 TH1I * hclszA3;// ( "clszA3", "A cluster size on tracks;cluster size [pixels];Aclusters on tracks",		40, 0.5, 40.5 );
 TH1I * hclphA3;// ( "clphA3", "A cluster PH on tracks;cluster ph [ADC];A clusters on tracks",		200, 0, 1000 );

@@ -693,7 +693,29 @@ int main( int argc, char* argv[] )
 			  madx3vsq->Fill( cB->q, fabs(dx3) );
 			  madx3vsn->Fill( cB->size, fabs(dx3) );
 			}
+
+		    
+			hclszAiii->Fill( cA->size );
+			hclszBiii->Fill( cB->size );
+			hncolBiii->Fill( ncolB );
+			hnrowBiii->Fill( nrowB );
+			hclszCiii->Fill( cC->size );
+		    
+			hclphAiii->Fill( cA->sum );
+			hclphBiii->Fill( cB->sum );
+			hclphCiii->Fill( cC->sum );
 			
+			hclqAiii->Fill( cA->q );
+			hclqBiii->Fill( cB->q );
+			hclqCiii->Fill( cC->q );
+			
+			
+			if(cB->q < qRB)  hdx3ciiiqr->Fill( dx3);
+			if( cB->q > qLB && cB->q < qRB ) hdx3ciiiq->Fill( dx3);
+			if(cB->q < qRB && cA->q < qR && cC->q < qR)  hdx3ciiiqr3->Fill( dx3);
+			if( cB->q > qLB && cB->q < qRB && cA->q > qL && cA->q < qR && cC->q > qL && cC->q < qR) hdx3ciiiq3 ->Fill( dx3);
+
+			  
 		      } // iso
 		    
 		    
@@ -1701,7 +1723,11 @@ hdxCB = new  TH1I( "dxCB", "Cx-Bx;x-x [mm];cluster pairs", 800, -2, 2 );
   hdx3ci = new  TH1I( "dx3ci", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
   hdx3cii = new  TH1I( "dx3cii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
   hdx3ciii = new  TH1I( "dx3ciii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
-
+  hdx3ciiiqr = new  TH1I( "dx3ciiiqr", "triplet dx, cut dy, isolated, qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+  hdx3ciiiq = new  TH1I( "dx3ciiiq", "triplet dx, cut dy, isolated, qL < qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+  hdx3ciiiqr3 = new  TH1I( "dx3ciiiqr3", "triplet dx, cut dy, isolated, q3 < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+  hdx3ciiiq3 = new  TH1I( "dx3ciiiq3", "triplet dx, cut dy, isolated, qL < q3 < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+  
   hdx3c1 = new  TH1I( "dx3c1", "triplet dx, cut dy, npx 1;dx [mm];triplets, B npx 1",
 	       500, -0.25, 0.25 );
   hdx3c2 = new  TH1I( "dx3c2", "triplet dx, cut dy, npx 2;dx [mm];triplets, B npx 2",
@@ -1772,6 +1798,21 @@ madx3vsdx = new TProfile( "madx3vsdx", "MAD = new  (dx3) vs dx C-A;C-A dx [#mum]
   hyB3 = new TH1I( "yB3", "y B linked;y [mm];B clusters on tracks", 100, -5, 5 ); 
   hxC3 = new TH1I( "xC3", "x C linked;x [mm];C clusters on tracks", 100, -5, 5 );
   hyC3 = new TH1I( "yC3", "y C linked;y [mm];C clusters on tracks", 100, -5, 5 ); 
+
+  hclszAiii = new TH1I( "clszAiii", "A cluster size on tracks;cluster size [pixels];Aclusters isolated",40, 0.5, 40.5 );
+  hclphAiii = new TH1I( "clphAiii", "A cluster PH on tracks;cluster ph [ADC];A clusters isolated", 200, 0, 1000 );
+  hclqAiii = new TH1I( "clqAiii", "A cluster charge on tracks;cluster charge [ke];A clusters isolated", 160, 0, 80 );
+
+  hclszBiii = new TH1I( "clszBiii", "B cluster size on tracks;cluster size [pixels];B clusters isolated", 40, 0.5, 40.5 );
+  hncolBiii = new TH1I( "ncolBiii", "B cluster size on tracks;cluster size [columns];B clusters isolated", 20, 0.5, 20.5 );
+  hnrowBiii = new TH1I( "nrowBiii", "B cluster size on tracks;cluster size [rows];B clusters isolated", 20, 0.5, 20.5 );
+  hclphBiii = new TH1I( "clphBiii", "B cluster PH on tracks;cluster ph [ADC];B clusters isolated", 200, 0, 1000 );
+  hclqBiii = new TH1I( "clqBiii", "B cluster charge on tracks;cluster charge [ke];B clusters isolated", 160, 0, 80 );
+  hclszCiii = new TH1I( "clszCiii", "C cluster size on tracks;cluster size [pixels];C clusters isolated", 40, 0.5, 40.5 );
+  hclphCiii = new TH1I( "clphCiii", "C cluster PH on tracks;cluster ph [ADC];C clusters isolated", 200, 0, 1000 );
+  hclqCiii = new TH1I( "clqCiii", "C cluster charge on tracks;cluster charge [ke];C clusters isoalted", 160, 0, 80 );
+
+
 
   hclszA3 = new TH1I( "clszA3", "A cluster size on tracks;cluster size [pixels];Aclusters on tracks",
 		40, 0.5, 40.5 );
