@@ -8,8 +8,8 @@ iteration 0
     alignyC   0 // [mm] same sign as dy
     alignfC   0 // [rad] same sign dxvsy
 gainA /home/cmspix/r4sclient/A/scm148-scancal1-drei-2018-06-21-ia82-hold33.dat # /home/cmspix/r4sclient/A/scm148-scancal1-2018-06-12-ia71-hold40.dat /home/cmspix/r4sclient/A/scm148-scancal1-drei-2018-06-18-ia99-hold33.dat /home/cmspix/r4sclient/A/scm148-scancal1-drei-2018-06-21-ia85-hold33.dat /home/cmspix/r4sclient/A/scm148-scancal1-tb21-pr900-sh670-ia125-vb120-hold24.dat
-gainB /home/cmspix/r4sclient/A/scm120i-scancal1-icy-ia50-vb800-pr600-sh300-hold36-2018-05-13.dat # /home/cmspix/r4sclient/A/scm120i-scancal1-icy-ia51-vb800-pr600-sh300-hold36.dat
-gainC 
+gainB /home/cmspix/r4sclient/A/scm150-scancal1-tb21-2018-06-14-ia127-hold36.dat
+gainC #missing
 keA 0  
 keB 0 
 keC 0 
