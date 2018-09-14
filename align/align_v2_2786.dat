@@ -1,0 +1,28 @@
+#run 2786, A = 148, B= 120i, C=163
+iteration 0
+    alignxA   0 // [mm] same sign as dx
+    alignyA  0 // [mm] same sign as dy
+    alignfA   0 // [rad] same sign dxvsy
+
+    alignxC  0 // [mm] same sign as dx
+    alignyC   0 // [mm] same sign as dy
+    alignfC   0 // [rad] same sign dxvsy
+gainA /home/cmspix/r4sclient/A/scm148-scancal1-drei-2018-06-21-ia82-hold33.dat # /home/cmspix/r4sclient/A/scm148-scancal1-2018-06-12-ia71-hold40.dat /home/cmspix/r4sclient/A/scm148-scancal1-drei-2018-06-18-ia99-hold33.dat /home/cmspix/r4sclient/A/scm148-scancal1-drei-2018-06-21-ia85-hold33.dat /home/cmspix/r4sclient/A/scm148-scancal1-tb21-pr900-sh670-ia125-vb120-hold24.dat
+gainB /home/cmspix/r4sclient/A/scm120i-scancal1-icy-ia50-vb800-pr600-sh300-hold36-2018-05-13.dat # /home/cmspix/r4sclient/A/scm120i-scancal1-icy-ia51-vb800-pr600-sh300-hold36.dat
+gainC 
+keA 0  
+keB 0 
+keC 0 
+beamEnergy 5.6 
+pitch 25
+qL 9
+qR 15
+qLB 9
+qRB 15
+TsunamiA 0
+TsunamiB 0
+TsunamiC 0
+dphcutA 0
+dphcutB 0 
+dphcutC 0 
+dx3c 0 #not given
