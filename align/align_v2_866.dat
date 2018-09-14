@@ -1,3 +1,4 @@
+#run 866 A= 109, B=148, C=110
 iteration 3
     alignxA   0.634 // [mm] same sign as dx
     alignyA  -0.05  // [mm] same sign as dy
@@ -6,22 +7,22 @@ iteration 3
     alignxC   1.078 // [mm] same sign as dx
     alignyC   0.15  // [mm] same sign as dy
     alignfC   0.0047 // [rad] same sign dxvsy
-gainA 
-gainB 
-gainC 
-keA 
-keB 
-keC 
-beamEnergy 
-pitch 
-qL 
-qR 
-qLB 
-qRB 
-TsunamiA 
-TsunamiB 
-TsunamiC 
-dphcutA 
-dphcutB 
-dphcutC 
-dx3c 
+gainA r109-scancal-tb21-1112.dat #missing
+gainB /home/cmspix/psi/r4s/tst10/B/r148-scancal-tb21-1112.dat
+gainC r110-scancal-tb21-1112.dat #missing
+keA 0.038; # r109
+keB 0.029; # c148
+keC 0.034; // c110
+beamEnergy 5.6
+pitch 25
+qL 9
+qR 15
+qLB 9
+qRB 15
+TsunamiA 0
+TsunamiB 0
+TsunamiC 0
+dphcutA 12
+dphcutB 12
+dphcutC 12
+dx3c -0.0011
