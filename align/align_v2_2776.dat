@@ -1,11 +1,11 @@
-#run 2775, A = 148, B= 150, C=163
-iteration 3
-alignxA   -0.324199
-alignyA   -0.112192
-alignfA  0.00263618
-alignxC    0.679755
-alignyC   -0.348633
-alignfC  0.00937629
+#run 2776, A = 148, B= 150, C=163
+iteration 5
+alignxA   -0.427468
+alignyA   -0.107837
+alignfA  0.00287742
+alignxC    0.781044
+alignyC    -0.34508
+alignfC  0.00981303
 gainA /home/cmspix/r4sclient/A/scm148-scancal1-2018-06-12-ia71-hold40.dat 
 gainB /home/cmspix/r4sclient/A/scm150-scancal1-tb21-2018-06-14-ia127-hold36.dat
 gainC /mnt/pixeldata/c/scm163-scancal1-drei-2018-06-16-ia91-hold33.dat
@@ -24,4 +24,4 @@ TsunamiC 0
 dphcutA 12
 dphcutB 12
 dphcutC 12
-dx3c 0.00126
+dx3c 0.00130
