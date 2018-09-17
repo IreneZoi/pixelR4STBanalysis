@@ -1,12 +1,11 @@
-#run 2786, A = 148, B= 120i, C=163 NB: this run is problematic, modification in the code are required
-iteration 10
-    alignxA   -1.1883 # [mm] same sign as dx
-    alignyA  -0.23128 # [mm] same sign as dy
-    alignfA   0.00138984 # [rad] same sign dxvsy
-
-    alignxC  -0.710075 # [mm] same sign as dx
-    alignyC   -0.843531 # [mm] same sign as dy
-    alignfC   -0.00413322 # [rad] same sign dxvsy
+#run 2791, A = 148, B= 120i, C=163
+iteration 6
+alignxA    -1.18905
+alignyA   -0.247482
+alignfA  0.00245582
+alignxC   -0.717736
+alignyC   -0.833675
+alignfC  -0.0022626
 gainA /home/cmspix/r4sclient/A/scm148-scancal1-drei-2018-06-18-ia99-hold33.dat 
 gainB /mnt/pixeldata/b/scm120i-scancal1-drei-cold-2018-06-18-ia40-vb800-hold33.dat
 gainC /mnt/pixeldata/c/scm163-scancal1-drei-2018-06-18-ia89-hold33.dat
@@ -17,12 +16,12 @@ beamEnergy 5.6
 pitch 25
 qL 9
 qR 15
-qLB 9
-qRB 15
+qLB 4
+qRB 7
 TsunamiA 0
 TsunamiB 0
 TsunamiC 0
 dphcutA 12
 dphcutB 20 
 dphcutC 12 
-dx3c 0.00034
+dx3c -0.00004
