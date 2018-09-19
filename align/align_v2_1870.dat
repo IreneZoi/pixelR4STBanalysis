@@ -1,11 +1,11 @@
-# alignment for run 1866 A=152, B=102,	C=159
-iteration 14
-alignxA    0.147838
-alignyA    -1.25269
-alignfA   0.0015806
-alignxC   -0.263383
-alignyC    -1.24647
-alignfC    0.019403
+# alignment for run 1869 A=152, B=102, C=159
+iteration 20
+alignxA    0.167427
+alignyA    -1.26413
+alignfA  0.00158441
+alignxC   -0.283546
+alignyC    -1.21558
+alignfC    0.018934
 gainA /mnt/pixeldata/a/scm152-scancal2-drei-2018-03-16-hold20.dat
 gainB /mnt/pixeldata/b/scm102-scancal2-drei-warm-2018-03-16-hold20.dat
 gainC /mnt/pixeldata/c/scm159-scancal2-drei-2018-3-16-hold20.dat
@@ -24,4 +24,4 @@ TsunamiC 8 #irene
 dphcutA 20
 dphcutB 20
 dphcutC 20
-dx3c 0.00110
+dx3c 0 #missing
