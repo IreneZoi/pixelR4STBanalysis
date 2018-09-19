@@ -6,6 +6,7 @@ alignfA -0.00253758
 alignxC    0.463908
 alignyC     1.11768
 alignfC  -0.0135045
+gainA /mnt/pixeldata/a/scm160-scancal2-drei-warm-2018-03-17-hold20.dat
 gainB /mnt/pixeldata/b/scm159-scancal2-drei-warm-2018-03-17-pr650-sh700-hold20.dat
 gainC /mnt/pixeldata/c/scm102-scanhold-drei-warm-2018-03-17-hold20.dat
 keA 0.0624
