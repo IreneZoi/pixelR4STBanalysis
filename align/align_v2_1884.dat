@@ -6,22 +6,22 @@ alignfA -0.00223833
 alignxC     0.46074
 alignyC     1.11434
 alignfC   -0.013558
-gainA 
-gainB 
-gainC 
-keA 
-keB 
-keC 
-beamEnergy 
-pitch 
-qL 
-qR 
-qLB 
-qRB 
-TsunamiA 
-TsunamiB 
-TsunamiC 
-dphcutA 
-dphcutB 
-dphcutC 
-dx3c 
+gainA /mnt/pixeldata/a/scm160-scancal2-drei-warm-2018-03-17-hold20.dat
+gainB /mnt/pixeldata/b/scm159-scancal2-drei-warm-2018-03-17-pr650-sh700-hold20.dat
+gainC /mnt/pixeldata/c/scm102-scanhold-drei-warm-2018-03-17-hold20.dat
+keA 0.0624
+keB 0.0401
+keC 0.0429
+beamEnergy 5.6
+pitch 50
+qL 9
+qR 15
+qLB 9
+qRB 15
+TsunamiA 0.17 #daniel
+TsunamiB 0.15 #daniel
+TsunamiC 0.14 #daniel
+dphcutA 20
+dphcutB 20
+dphcutC 20
+dx3c 0.00275 
