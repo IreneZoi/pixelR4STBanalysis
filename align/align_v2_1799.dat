@@ -6,7 +6,7 @@ alignfA -0.00917238
 alignxC   -0.168192
 alignyC   -0.247765
 alignfC -0.00397291
-gainA scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat #missing
+gainA /mnt/pixeldata/b/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat 
 gainB /home/cmspix/r4sclient/B/scm130i-scancal2-drei-icy-pr800-sh600-ia125-2018-03-13-hold16.dat
 gainC /home/cmspix/r4sclient/C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat
 keA 0.0505 # 11 ke 148 with cold 130i

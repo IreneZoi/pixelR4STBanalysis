@@ -6,7 +6,7 @@ alignfA -0.00516217
 alignxC -0.00502366
 alignyC   -0.318978
 alignfC -9.69787e-05
-gainA /home/cmspix/r4sclient/A/scm148-scancal1-drei-2018-06-18-ia99-hold33.dat 
+gainA /mnt/pixeldata/a/scm148-scancal1-drei-2018-06-18-ia99-hold33.dat 
 gainB /mnt/pixeldata/b/scm146-scancal1-drei-2018-06-16-ia90-hold33.dat
 gainC /mnt/pixeldata/c/scm163-scancal1-drei-2018-06-16-ia91-hold33.dat
 keA 0.0450  
