@@ -16,8 +16,8 @@ beamEnergy 5.2
 pitch 25
 qL 9
 qR 15
-qLB 1 #to be checked
-qRB 10 #to be checked
+qLB 2 #to be checked
+qRB 7 #to be checked
 TsunamiA 0.09 #irene, tbc
 TsunamiB 0.09 #irene tbc
 TsunamiC 0.093 #finn

@@ -6,22 +6,22 @@ alignfA  -0.0148812
 alignxC     -0.1767
 alignyC  -0.0334776
 alignfC -0.00553767
-gainA 
-gainB 
-gainC 
-keA 
-keB 
-keC 
-beamEnergy 
-pitch 
-qL 
-qR 
-qLB 
-qRB 
-TsunamiA 
-TsunamiB 
-TsunamiC 
-dphcutA 
-dphcutB 
-dphcutC 
-dx3c 
+gainA /mnt/pixeldata/b/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat
+gainB /home/cmspix/r4sclient/B/scm130i-scancal2-drei-icy-pr800-sh600-ia125-2018-03-13-hold16.dat
+gainC /home/cmspix/r4sclient/C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat
+keA 0.0505 # 11 ke 148 with cold 130i
+keB 0.035; # default
+keC 0.0422; # c109 turn
+beamEnergy 5.2
+pitch 25
+qL 9
+qR 15
+qLB 2 #to be checked
+qRB 7 #to be checked
+TsunamiA 0.09 #irene, tbc
+TsunamiB 0.09 #irene tbc
+TsunamiC 0.093 #finn
+dphcutA 30
+dphcutB 30
+dphcutC 30
+dx3c 0.00240
