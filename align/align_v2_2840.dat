@@ -6,3 +6,23 @@ alignfA -0.00715045
 alignxC    0.121311
 alignyC    0.198895
 alignfC  -0.0142243
+gainA /mnt/pixeldata/a/scm148-scancal1-drei-2018-06-21-ia82-hold33.dat
+gainB /mnt/pixeldata/b/scm163-scancal1-2018-06-21-ia83-hold33.dat
+gainC /mnt/pixeldata/c/scm150-scancal1-drei-2018-06-21-ia97-hold33.dat
+keA 0.0475
+keB 0.0486
+keC 0.0434
+beamEnergy 5.4
+pitch 25
+qL 9
+qR 15
+qLB 9
+qRB 15
+TsunamiA 0
+TsunamiB 0
+TsunamiC 0
+dphcutA 12
+dphcutB 12
+dphcutC 12
+dx3c 0.00075
+
