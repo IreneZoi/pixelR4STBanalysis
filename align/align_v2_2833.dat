@@ -1,28 +1,8 @@
-#run 2833, A = 148, B= 163, C=150
-iteration 0
-    alignxA   0 // [mm] same sign as dx
-    alignyA  0 // [mm] same sign as dy
-    alignfA   0 // [rad] same sign dxvsy
-
-    alignxC  0 // [mm] same sign as dx
-    alignyC   0 // [mm] same sign as dy
-    alignfC   0 // [rad] same sign dxvsy
-gainA /home/cmspix/r4sclient/A/scm148-scancal1-drei-2018-06-21-ia82-hold33.dat # /home/cmspix/r4sclient/A/scm148-scancal1-2018-06-12-ia71-hold40.dat /home/cmspix/r4sclient/A/scm148-scancal1-drei-2018-06-18-ia99-hold33.dat /home/cmspix/r4sclient/A/scm148-scancal1-drei-2018-06-21-ia85-hold33.dat /home/cmspix/r4sclient/A/scm148-scancal1-tb21-pr900-sh670-ia125-vb120-hold24.dat
-gainB #missing
-gainC /home/cmspix/r4sclient/A/scm150-scancal1-tb21-2018-06-14-ia127-hold36.dat #gussing
-keA 0  
-keB 0 
-keC 0 
-beamEnergy 4.8 
-pitch 25
-qL 9
-qR 15
-qLB 9
-qRB 15
-TsunamiA 0
-TsunamiB 0
-TsunamiC 0
-dphcutA 0
-dphcutB 0 
-dphcutC 0 
-dx3c 0 #not given
+# alignment for run 2833
+iteration 18
+alignxA    0.476686
+alignyA    0.189502
+alignfA -0.00708447
+alignxC    0.121212
+alignyC    0.200807
+alignfC  -0.0141854
