@@ -21,7 +21,7 @@ qRB 15
 TsunamiA 0
 TsunamiB 0
 TsunamiC 0
-dphcutA 30 #irene
-dphcutB 30 #irene
-dphcutC 30 #irene
+dphcutA 12
+dphcutB 12
+dphcutC 12
 dx3c 0.00082
