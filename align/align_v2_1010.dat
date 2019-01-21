@@ -3,11 +3,10 @@ iteration 3
     alignxA   0.639 // [mm] same sign as dx
     alignyA  -0.250 // [mm] same sign as dy
     alignfA   0.0097 // [rad] same sign dxvsy
-
     alignxC  -0.007 // [mm] same sign as dx
     alignyC  -0.050 // [mm] same sign as dy
     alignfC   0.0078 // [rad] same sign dxvsy
-gainA r163-scancal-tb21-1209.dat #missing
+gainA /mnt/pixeldata/a/r163-scancal-tb21-1209.dat 
 gainB /home/cmspix/psi/r4s/tst10/B/r146-scancal-tb21-1208.dat
 gainC r148-scancal-tb21-1208.dat #missing 
 keA 0.0356 # r163

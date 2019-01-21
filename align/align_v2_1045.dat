@@ -6,9 +6,9 @@ iteration 3
     alignxC   0.475 // [mm] same sign as dx
     alignyC  -0.080 // [mm] same sign as dy
     alignfC   0.0119 // [rad] same sign dxvsy
-gainA r152-scancal-tb21-1211.dat # missing
+gainA /mnt/pixeldata/a/r152-scancal-tb21-1211.dat
 gainB /mnt/pixeldata/b/r160-scancal-tb21-2017-12-11.dat
-gainC r159-scancal-tb21-1210.dat #missing
+gainC /mnt/pixeldata/c/r159-scancal-tb21-1210.dat
 keA 0.0283
 keB 0.029
 keC 0.039

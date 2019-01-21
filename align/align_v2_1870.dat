@@ -19,9 +19,9 @@ qR 15
 qLB 9
 qRB 15
 TsunamiA 0.08 #irene
-TsunamiB 0.08 #irene
-TsunamiC 0.08 #irene
+TsunamiB 0.14 #daniel
+TsunamiC 0.15 #daniel
 dphcutA 20
 dphcutB 20
 dphcutC 20
-dx3c 0 #missing
+dx3 0.00063
