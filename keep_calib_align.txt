@@ -1,4 +1,3 @@
-  //string gainA{ "A/r113-scancal-tb21-0921.dat"}; // lots of negative q
   string gainA{ "/home/cmspix/A/r113-scancal-tb21-0923.dat"};
   if( run >=  423 ) gainA = "A/r113-scancal-tb21-0923.dat";
   if( run >=  430 ) gainA = "A/r112-scancal-tb21-0925.dat";
@@ -6,7 +5,6 @@
   if( run >=  866 ) gainA = "A/r109-scancal-tb21-1112.dat";
   if( run >=  998 ) gainA = "A/r146-scancal-tb21-1208.dat";
   if( run >= 1010 ) gainA = "A/r163-scancal-tb21-1209.dat";
-  if( run >= 1024 ) gainA = "A/r158-scancal-tb21-1210.dat";
   if( run >= 1037 ) gainA = "A/r152-scancal-tb21-1211.dat";
   if( run >= 1037 ) gainA = "A/r152-scancal-tb21-1211.dat";
   if( run >= 1747 ) gainA = "A/scm108-scancal-tb21-drei-2018-03-11-hold20.dat";
@@ -24,7 +22,6 @@
   if( run >= 866 ) ke[A] = 0.038; // r109
   if( run >= 998 ) ke[A] = 0.0354; // r146
   if( run >= 1010 ) ke[A] = 0.0356; // r163
-  if( run >= 1024 ) ke[A] = 0.0285; // r158 thicker deep diff at 11 ke
   if( run >= 1037 ) ke[A] = 0.0283; // r152 thicker deep diff at 11 ke
   if( run >= 1747 ) ke[A] = 0.035;
   //if( run >= 1757 ) ke[A] = 0.0374; // 11 ke dphcut 30
@@ -57,31 +54,8 @@
   if( run >= 1872 ) ke[A] = 0.0605; // 11 ke 160 dph>25
   if( run >= 1872 ) ke[A] = 0.0624; // 11 ke 160 Tsunami
 
-  ifstream gainFileA( gainA );
-
-  if( ! gainFileA ) {
-    cout << "gain file for A not found" << endl;
-    return 1;
-  }
-
-  while( ! gainFileA.eof() ) {
-
-    int icol;
-    int irow;
-    gainFileA >> icol;
-    gainFileA >> irow;
-    gainFileA >> p0[A][icol][irow];
-    gainFileA >> p1[A][icol][irow];
-    gainFileA >> p2[A][icol][irow];
-    gainFileA >> p3[A][icol][irow];
-
-  } // while
-
   // B:
 
-  string gainB{ "B/r108-scancal-tb21-0921.dat" };
-  //if( run >= 423 ) gainB = "B/r108-scancal-tb21-0923-hold24.dat";
-  if( run >=  423 ) gainB = "B/r108-scancal-tb21-0923-hold25.dat";
   if( run >=  430 ) gainB = "A/r117-scancal-tb21-1005.dat";
   if( run >=  432 ) gainB = "B/r110-scancal-tb21-0925-hold25.dat"; // 12.6 ke
   //if( run >= 432 ) gainB = "B/r110-scancal-tb21-0925-hold26.dat"; // 12.0 ke
@@ -89,7 +63,6 @@
   if( run >=  866 ) gainB = "B/r148-scancal-tb21-1112.dat";
   if( run >=  998 ) gainB = "B/r150-scancal-tb21-1208.dat";
   if( run >= 1010 ) gainB = "B/r146-scancal-tb21-1208.dat";
-  if( run >= 1024 ) gainB = "B/r152-scancal-tb21-1210.dat";
   if( run >= 1037 ) gainB = "B/r160-scancal-tb21-2017-12-11.dat";
   if( run >= 1747 ) gainB = "B/scm136i-scancal2-tb21-icy-drei-2018-03-11-hold20.dat";
   if( run >= 1757 ) gainB = "B/scm148-scancal2-2018-03-12-hold16.dat";
@@ -105,14 +78,12 @@
   if( run >= 1872 ) gainB = "/home/cmspix/r4sclient/B/scm159-scancal2-drei-warm-2018-03-17-pr650-sh700-hold20.dat";
   //  if( run >= 1872 ) gainB = "/home/cmspix/r4sclient/A/scm159-scancal1-tb21-pr900-sh670-ia125-vb120-hold24.dat";
 
-  ke[B] = 0.0276; // Landau peak at 11 ke
   if( run >= 423 ) ke[B] = 0.026;
   if( run >= 432 ) ke[B] = 0.0326; // r110
   if( run >= 443 ) ke[B] = 0.036; // cmspixel-daq
   if( run >= 866 ) ke[B] = 0.029; // c148
   if( run >= 998 ) ke[B] = 0.0264; // c150 clcut 2
   if( run >= 1010 ) ke[B] = 0.033; // r146
-  if( run >= 1024 ) ke[B] = 0.0228; // r152 thicker deep diff at 11 ke
   if( run >= 1037 ) ke[B] = 0.029; // r160
   if( run >= 1747 ) ke[B] = 0.035; // default
   //if( run >= 1757 ) ke[B] = 0.0289; // 11 ke 148 dphcut 30
@@ -147,25 +118,6 @@
   if( run >= 1872 ) ke[B] = 0.0377; // 11 ke 159 dph>25
   if( run >= 1872 ) ke[B] = 0.0401; // 11 ke 159 Tsunami
 
-  ifstream gainFileB( gainB );
-
-  if( ! gainFileB ) {
-    cout << "gain file for B not found" << endl;
-    return 1;
-  }
-
-  while( ! gainFileB.eof() ) {
-
-    int icol;
-    int irow;
-    gainFileB >> icol;
-    gainFileB >> irow;
-    gainFileB >> p0[B][icol][irow];
-    gainFileB >> p1[B][icol][irow];
-    gainFileB >> p2[B][icol][irow];
-    gainFileB >> p3[B][icol][irow];
-
-  } // while
 
   // C:
 
@@ -176,7 +128,6 @@
   //if( run >= 432 ) gainC = "C/r114-scancal-tb21-0925-hold26.dat"; // 14.9
   if( run >= 866 ) gainC = "C/r110-scancal-tb21-1112.dat";
   if( run >= 998 ) gainC = "C/r148-scancal-tb21-1208.dat";
-  if( run >= 1024 ) gainC = "C/r159-scancal-tb21-1210.dat";
   if( run >= 1747 ) gainC = "C/scm109-scancal2-tb21-drei-2018-03-11-hold20.dat";
   if( run >= 1757 ) gainC = "C/scm109-scancal2-tb21-drei-2018-03-12-hold20.dat";
   if( run >= 1784 ) gainC = "C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat";
@@ -215,30 +166,15 @@
   if( run >= 1872 ) ke[C] = 0.0416; // c102 dph>25
   if( run >= 1872 ) ke[C] = 0.0429; // c102 Tsunami
 
-  ifstream gainFileC( gainC );
-
-  if( ! gainFileC ) {
-    cout << "gain file for C not found" << endl;
-    return 1;
-  }
-
-  while( ! gainFileC.eof() ) {
-
-    int icol;
-    int irow;
-    gainFileC >> icol;
-    gainFileC >> irow;
-    gainFileC >> p0[C][icol][irow];
-    gainFileC >> p1[C][icol][irow];
-    gainFileC >> p2[C][icol][irow];
-    gainFileC >> p3[C][icol][irow];
-
-  } // while
 
 
 
 ************************************************************************
-	  if( run == 447 || run == 449 )
+///     NB if there is dx += a*xavg write -a in the alignment file ////
+///     NB if there is dx -= a*xavg write a in the alignment file ////
+*********************************************************************
+
+if( run == 447 || run == 449 )
 	    dx3 -= 0.00076*xavg; // from -dx3vsx.Fit("pol1")
 	  if( run == 866 )
 	    dx3 += 0.0011*xavg; // from -dx3vsx
@@ -280,14 +216,6 @@
 	    dx3 -= 0.0005*xavg; // from -dx3vsx
 	  if( run >= 1010 && run <= 1020 )
 	    dx3 -= 0.00086*xavg; // from -dx3vsx
-	  if( run == 1025 )
-	    dx3 -= 0.00084*xavg; // from -dx3vsx
-	  if( run == 1026 )
-	    dx3 -= 0.00082*xavg; // from -dx3vsx
-	  if( run == 1027 )
-	    dx3 -= 0.00072*xavg; // from -dx3vsx
-	  if( run >= 1028 && run <= 1035 )
-	    dx3 -= 0.00082*xavg; // from -dx3vsx
 	  if( run >= 1036 && run <= 1045 )
 	    dx3 -= 0.00085*xavg; // from -dx3vsx
 	  if( run == 1046 )
