@@ -3,8 +3,8 @@ bool fifty = false;
 #define r4sRows 160
 #define r4sColumns 155
 
-#define halfSensorX 4.0
-#define halfSensorY 3.9
+#define halfSensorX 4.0 //[mm]
+#define halfSensorY 3.9 //[mm]
 #define ACspacing 40 //[mm] distance between planes A and C in the dreimaster
 
 using namespace std;
