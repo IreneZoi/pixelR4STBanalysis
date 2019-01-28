@@ -632,6 +632,7 @@ int main( int argc, char* argv[] )
 		  hdx3->Fill( dx3 );
 		  hdy3->Fill( dy3 );
 		  
+
 		  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 )
 		    { // cut on y, look at x, see madx3vsy
 		    
@@ -639,27 +640,7 @@ int main( int argc, char* argv[] )
 		      
 		      if( (cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
 			hdx3nocq3->Fill( dx3);
-		      
-		      //this is probably not needed anymore
-		      if( dx3 > 0.04 && dx3 < -0.06 )
-			{ // side lobe
-			  cout << endl;
-			  cout << "x: " << xAr << ", " << xB << ", " << xCr << ", dx3 " << dx3 << endl;
-			  cout << "A:";
-			  for( unsigned icl = 0; icl < vclA.size(); ++icl )
-			    cout << " (" << vclA[icl].col << ", " << vclA[icl].row << ", " << vclA[icl].q << ")";
-			  cout << endl;
-			  cout << "B:";
-			  for( unsigned icl = 0; icl < vclB.size(); ++icl )
-			    cout << " (" << vclB[icl].col << ", " << vclB[icl].row << ", " << vclB[icl].q << ")";
-			  cout << endl;
-			  cout << "C:";
-			  for( unsigned icl = 0; icl < vclC.size(); ++icl )
-			    cout << " (" << vclC[icl].col << ", " << vclC[icl].row << ", " << vclC[icl].q << ")";
-			  cout << endl;
-			} 
-		      
-		      
+		       
 		      if( cB->iso )
 			hdx3ci->Fill( dx3 );
 		      
@@ -715,7 +696,17 @@ int main( int argc, char* argv[] )
 			
 			  if(cB->q < qRB)  hdx3ciiiqr->Fill( dx3);
 			  if( cB->q > qLB && cB->q < qRB ) hdx3ciiiq->Fill( dx3);
-			  if(cB->q < qRB && cA->q < qR && cC->q < qR)  hdx3ciiiqr3->Fill( dx3);
+			  if(cB->q < qRB && cA->q < qR && cC->q < qR)
+			    {
+			      hdx3ciiiqr3->Fill( dx3);
+			      if( fifty )
+				nrowvsxmB3forRes->Fill( xmod*1E3, ncolB );
+			      else
+				nrowvsxmB3forRes->Fill( xmod*1E3, nrowB );
+			    }
+			  if(cA->q < qR && cC->q < qR)
+			      hdx3ciiiqr2->Fill( dx3);
+
 			  if( cB->q > qLB && cB->q < qRB && cA->q > qL && cA->q < qR && cC->q > qL && cC->q < qR) hdx3ciiiq3 ->Fill( dx3);
 			  
 			  
@@ -731,39 +722,40 @@ int main( int argc, char* argv[] )
 			    hdx3cqi->Fill( dx3 );
 			  
 			  if( cA->q > qL && cA->q < qR &&
-			      cC->q > qL && cC->q < qR ) {
+			      cC->q > qL && cC->q < qR )
+			    {
 			    
-			    hdx3cq3->Fill( dx3 );
+			      hdx3cq3->Fill( dx3 );
+			      
+			      if( cA->iso && cB->iso && cC->iso )
+				hdx3cq3i->Fill( dx3 );
 			    
-			    if( cA->iso && cB->iso && cC->iso )
-			      hdx3cq3i->Fill( dx3 );
-			    
-			    dx3vsev->Fill( iev, dx3 );
+			      dx3vsev->Fill( iev, dx3 );
 			
-			    dx3vsx->Fill( xB, dx3 ); // turn
-			    dx3vsy->Fill( yB, dx3 ); // rot
-			    dx3vsxm->Fill( xmod*1E3, dx3 );
+			      dx3vsx->Fill( xB, dx3 ); // turn
+			      dx3vsy->Fill( yB, dx3 ); // rot
+			      dx3vsxm->Fill( xmod*1E3, dx3 );
 			    
-			    madx3vsdx->Fill( dxCA*1E3, fabs(dx3) ); // dxCA
+			      madx3vsdx->Fill( dxCA*1E3, fabs(dx3) ); // dxCA
 			    
-			    if( fabs( dxCA ) < straightTracks * beamDivergenceScaled )
-			      { // track angle
+			      if( fabs( dxCA ) < straightTracks * beamDivergenceScaled )
+				{ // track angle
 			  
-				hdx3cq3t->Fill( dx3 ); // 447 4.27 um
+				  hdx3cq3t->Fill( dx3 ); // 447 4.27 um
 				
-				madx3vsx->Fill( xB, fabs(dx3) );
-				madx3vsy->Fill( yB, fabs(dx3) );
-				madx3vsxm->Fill( xmod*1E3, fabs(dx3) );
-				if( cB->size == 2 )
-				  {
-				    etavsxmB3->Fill( xmod*1E3, etaB ); // sine
-				    madx3vseta->Fill( etaB, fabs(dx3) ); // flat
-				    hdx3cq3t2->Fill( dx3 ); // 447 4.25 um
-				  }
+				  madx3vsx->Fill( xB, fabs(dx3) );
+				  madx3vsy->Fill( yB, fabs(dx3) );
+				  madx3vsxm->Fill( xmod*1E3, fabs(dx3) );
+				  if( cB->size == 2 )
+				    {
+				      etavsxmB3->Fill( xmod*1E3, etaB ); // sine
+				      madx3vseta->Fill( etaB, fabs(dx3) ); // flat
+				      hdx3cq3t2->Fill( dx3 ); // 447 4.25 um
+				    }
 				
-			      } // angle
+				} // angle
 			    
-			  } // Qa, qC
+			    } // Qa, qC
 			  
 			} // qB
 		      
@@ -803,6 +795,7 @@ int main( int argc, char* argv[] )
 		      nrowvsxmB3->Fill( xmod*1E3, ncolB );
 		    else
 		      nrowvsxmB3->Fill( xmod*1E3, nrowB );
+		    hdx3ciiiqr3forNrow->Fill( dx3);
 		    
 		    clqvsxmB3->Fill( xmod*1E3, cB->q );
 
@@ -1730,6 +1723,20 @@ hdxCB = new  TH1I( "dxCB", "Cx-Bx;x-x [mm];cluster pairs", 800, -2, 2 );
   hdx3ciiiqr = new  TH1I( "dx3ciiiqr", "triplet dx, cut dy, isolated, qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
   hdx3ciiiq = new  TH1I( "dx3ciiiq", "triplet dx, cut dy, isolated, qL < qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
   hdx3ciiiqr3 = new  TH1I( "dx3ciiiqr3", "triplet dx, cut dy, isolated, q3 < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+  if(fifty)
+    {
+      nrowvsxmB3forRes = new TProfile( "nrowvsxmB3forRes",
+				 "B rows vs xmod @ res;x mod 50 [#mum];<B cluster size [rows]>",
+				 50, 0, 50, 0.5, 10.5 );
+    }
+  else
+    {
+      nrowvsxmB3forRes = new TProfile( "nrowvsxmB3forRes",
+				 "B rows vs xmod @ res;x mod 25 [#mum];<B cluster size [rows]>",
+				 25, 0, 25, 0.5, 10.5 );
+    }
+
+  hdx3ciiiqr2 = new  TH1I( "dx3ciiiqr2", "triplet dx, cut dy, isolated, q3A-C < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
   hdx3ciiiq3 = new  TH1I( "dx3ciiiq3", "triplet dx, cut dy, isolated, qL < q3 < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
   
   hdx3c1 = new  TH1I( "dx3c1", "triplet dx, cut dy, npx 1;dx [mm];triplets, B npx 1",
@@ -1852,14 +1859,20 @@ madx3vsdx = new TProfile( "madx3vsdx", "MAD = new  (dx3) vs dx C-A;C-A dx [#mum]
   hclqC3 = new TH1I( "clqC3", "C cluster charge on tracks;cluster charge [ke];C clusters on tracks",
 	       160, 0, 80 );
   if(fifty)
-    nrowvsxmB3 = new TProfile( "nrowvsxmB3",
-			       "B rows vs xmod;x mod 50 [#mum];<B cluster size [rows]>",
-			       50, 0, 50, 0.5, 10.5 );
+    {
+      nrowvsxmB3 = new TProfile( "nrowvsxmB3",
+				 "B rows vs xmod;x mod 50 [#mum];<B cluster size [rows]>",
+				 50, 0, 50, 0.5, 10.5 );
+    }
   else
-    nrowvsxmB3 = new TProfile( "nrowvsxmB3",
-			       "B rows vs xmod;x mod 25 [#mum];<B cluster size [rows]>",
-			       25, 0, 25, 0.5, 10.5 );
-   clqvsxmB3 = new TProfile( "clqvsxmB3",
+    {
+      nrowvsxmB3 = new TProfile( "nrowvsxmB3",
+				 "B rows vs xmod;x mod 25 [#mum];<B cluster size [rows]>",
+				 25, 0, 25, 0.5, 10.5 );
+    }
+  hdx3ciiiqr3forNrow = new  TH1I( "dx3ciiiqr3forNrow", "triplet dx, cut dy, isolated, q3 < qR @ nrow;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+
+  clqvsxmB3 = new TProfile( "clqvsxmB3",
 		      "B cluster charge vs xmod;x mod 50 [#mum];<B cluster charge [ke]>",
 		      50, 0, 50, 0, 50 );
 

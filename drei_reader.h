@@ -157,6 +157,9 @@ TH1I * hdx3ciii;// ( "dx3ciii", "triplet dx, cut dy, isolated;dx [mm];isolated t
 TH1I * hdx3ciiiqr;// ( "dx3ciiiqr", "triplet dx, cut dy, isolated, qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
 TH1I * hdx3ciiiq;// ( "dx3ciiiq", "triplet dx, cut dy, isolated, qL < qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
 TH1I * hdx3ciiiqr3;// ( "dx3ciiiqr3", "triplet dx, cut dy, isolated, q3 < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+TProfile * nrowvsxmB3forRes;// ( "nrowvsxmB3",		       "B rows vs xmod;x mod 50 [#mum];<B cluster size [rows]>",		       50, 0, 50, 0.5, 10.5 );
+TH1I * hdx3ciiiqr2;// ( "dx3ciiiqr2", "triplet dx, cut dy, isolated, q3A-C < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+
 TH1I * hdx3ciiiq3;// ( "dx3ciiiq3", "triplet dx, cut dy, isolated, qL < q3 < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
 
 
@@ -239,7 +242,10 @@ TH1I * hclphC3;// ( "clphC3", "C cluster PH on tracks;cluster ph [ADC];C cluster
 TH1I * hclqC3;// ( "clqC3", "C cluster charge on tracks;cluster charge [ke];C clusters on tracks",	       160, 0, 80 );
 
 TProfile * nrowvsxmB3;// ( "nrowvsxmB3",		       "B rows vs xmod;x mod 50 [#mum];<B cluster size [rows]>",		       50, 0, 50, 0.5, 10.5 );
-  TProfile * clqvsxmB3;// ( "clqvsxmB3",		      "B cluster charge vs xmod;x mod 50 [#mum];<B cluster charge [ke]>",		      50, 0, 50, 0, 50 );
+TH1I * hdx3ciiiqr3forNrow;// ( "dx3ciiiqr3", "triplet dx, cut dy, isolated, q3 < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+
+
+TProfile * clqvsxmB3;// ( "clqvsxmB3",		      "B cluster charge vs xmod;x mod 50 [#mum];<B cluster charge [ke]>",		      50, 0, 50, 0, 50 );
 
 TH1I * hetaA3;// ( "etaA3", "A cluster eta;eta;A 2-pix clusters on tracks",	       100, -1, 1 );
 TH1I * hetaB3;// ( "etaB3", "B cluster eta;eta;B 2-pix clusters on tracks",	       100, -1, 1 );
