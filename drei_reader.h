@@ -63,7 +63,7 @@ void bookHists();
 
 typedef std::map<TString, TH1I*> histoMap;
 histoMap bookControlHists(TString selection);
-void fillControlHists(histoMap mapOfHists, TString selection, double dx3);
+void fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC);
 double xcoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr); 
 double ycoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pichr); 
 double eta(vector<cluster>::iterator c); 
@@ -151,13 +151,13 @@ TH1I * hdyCAc;// ( "dyCAc", "Cy-Ay, cut dx;y-y [mm];cluster pairs", 200, -1, 1 )
 TProfile * dyvsyCA;// ( "dyvsyCA", "dy vs y C-A;y [mm];<dy> [mm]",  80, -4, 4, -f, f );
 TProfile * nmvsevCA;// ( "nmvsevCA", "CA matches vs time;time [events];CA matches", 3100, 0, 3100*1000, -1, 99 );
 
-TH1I * hdx3;// ( "dx3", "triplet dx;dx [mm];triplets", 500, -0.5, 0.5 );
-TH1I * hdy3;// ( "dy3", "triplet dy;dy [mm];triplets", 200, -1, 1 );
+//TH1I * hdx3;// ( "dx3", "triplet dx;dx [mm];triplets", 500, -0.5, 0.5 ); //done
+//TH1I * hdy3;// ( "dy3", "triplet dy;dy [mm];triplets", 200, -1, 1 ); //done
 
-TH1I * hdx3c;// ( "dx3c", "triplet dx, cut dy;dx [mm];triplets", 500, -0.25, 0.25 );
-TH1I * hdx3ci;// ( "dx3ci", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
-TH1I * hdx3cii;// ( "dx3cii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
-TH1I * hdx3ciii;// ( "dx3ciii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+//TH1I * hdx3c;// ( "dx3c", "triplet dx, cut dy;dx [mm];triplets", 500, -0.25, 0.25 );
+//TH1I * hdx3ci;// ( "dx3ci", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+//TH1I * hdx3cii;// ( "dx3cii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+//TH1I * hdx3ciii;// ( "dx3ciii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
 TH1I * hdx3ciiiqr;// ( "dx3ciiiqr", "triplet dx, cut dy, isolated, qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
 TH1I * hdx3ciiiq;// ( "dx3ciiiq", "triplet dx, cut dy, isolated, qL < qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
 TH1I * hdx3ciiiqr3;// ( "dx3ciiiqr3", "triplet dx, cut dy, isolated, q3 < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );

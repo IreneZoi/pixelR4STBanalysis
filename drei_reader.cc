@@ -276,24 +276,38 @@ int main( int argc, char* argv[] )
   // book histos:
   if(PRINT) cout << "***** going to book hists ***********" << endl;
   bookHists();
-  cout << "hists booking"<<endl;
-  histoMap prova1 =   bookControlHists("prova1");
-  cout << " booked! "  <<endl;
 
-  bool found = false;
+  histoMap beforeCorrections =   bookControlHists("beforeCorrections");
 
-  auto it = prova1.find("xAprova1");
-  if(it != prova1.end())
+  if(PRINT) cout << "hists booking whit new method"<<endl;
+  histoMap nocuts =   bookControlHists("nocuts");
+  if(PRINT) cout << " booked! "  <<endl;
+
+
+  if(PRINT)
     {
-      found = true;
-      std::cout<<it->first<<" :: "<<it->second->GetEntries()<<std::endl;
-      it++;
-    }
-  
-  cout << "hists prova1 " << found << endl;
+      bool found = false;
 
-  histoMap prova2 =   bookControlHists("prova2");
-  TH1I * hprova  = new  TH1I( "prova", "Cx-Ax;x-x [mm];cluster pairs", 400, -1, 1 );
+      auto it = nocuts.find("xA_nocuts");
+      if(it != nocuts.end())
+	{
+	  found = true;
+	  std::cout<<it->first<<" :: "<<it->second->GetEntries()<<std::endl;
+	  it++;
+	}
+      
+      cout << "hists cuts " << found << endl;
+    }
+
+  histoMap straightTracksY =   bookControlHists("straightTracksY");
+  histoMap isoAandC =   bookControlHists("isoAandC");
+  histoMap isoAandCandB =   bookControlHists("isoAandCandB");
+  histoMap isoAandCandB_chargerAandC  =   bookControlHists("isoAandCandB_chargerAandC");
+  histoMap isoAandCandB_chargerAandCandB  =   bookControlHists("isoAandCandB_chargerAandCandB");
+  histoMap isoAandCandB_chargeAandC  =   bookControlHists("isoAandCandB_chargeAandC");
+  histoMap isoAandCandB_chargeAandCandB  =   bookControlHists("isoAandCandB_chargeAandCandB");
+
+
 
   if(PRINT)   cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
 
@@ -643,40 +657,60 @@ int main( int argc, char* argv[] )
 		  // triplet residual:
 	    
 		  double dx3 = xB - xavg;
+		  double dy3 = yB - yavg;
+
+		  fillControlHists(beforeCorrections,"beforeCorrections",dx3,dy3,cA,cB,cC);
+
 		  dx3 = dx3 - dx3corr*xavg; // from -dx3vsx.Fit("pol1")
 
-		  double dy3 = yB - yavg;
 		  double dxy = sqrt( dx3*dx3 + dy3*dy3 );
 
-		  hdx3->Fill( dx3 );
-		  hdy3->Fill( dy3 );
+		  fillControlHists(nocuts,"nocuts",dx3,dy3,cA,cB,cC);
+		  if(PRINT) cout << "nocuts" << endl;
 		  
 
 		  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 )
 		    { // cut on y, look at x, see madx3vsy
 		    
-		      hprova->Fill( dx3 );
-		      cout << "hprova" << endl;
-		      fillControlHists(prova1,"prova1",dx3);
-		      cout << "prova1" << endl;
+		      fillControlHists(straightTracksY,"straightTracksY",dx3,dy3,cA,cB,cC);
 
-		      hdx3c->Fill( dx3 );
-		      
-		      if( (cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
-			{
-			hdx3nocq3->Fill( dx3);
-			fillControlHists(prova2,"prova2",dx3);
-
-			}
-		      if( cB->iso )
-			hdx3ci->Fill( dx3 );
-		      
 		      if( cA->iso && cC->iso )
-			hdx3cii->Fill( dx3 );
+			{
+			  fillControlHists(isoAandC,"isoAandC",dx3,dy3,cA,cB,cC);
+			  if( cB->iso )
+			    {
+			      fillControlHists(isoAandCandB,"isoAandCandB",dx3,dy3,cA,cB,cC);
+			      
+			      if( (cA->q >= qR) && (cC->q >= qR))
+				{
+				  fillControlHists(isoAandCandB_chargerAandC,"isoAandCandB_chargerAandC",dx3,dy3,cA,cB,cC);
+			      
+				  if( ( cB->q >= qRB) && ( cA->q >= qR) && ( cC->q >= qR))
+				    {
+				      
+				      fillControlHists(isoAandCandB_chargerAandCandB,"isoAandCandB_chargerAandCandB",dx3,dy3,cA,cB,cC);
+				    }// ( cB->q >= qRB) && ( cA->q >= qR) && ( cC->q >= qR)
+
+				  if( ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
+				    {
+				      fillControlHists(isoAandCandB_chargeAandC,"isoAandCandB_chargeAandC",dx3,dy3,cA,cB,cC);
+
+				      if( (cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
+					{
+					  fillControlHists(isoAandCandB_chargeAandCandB,"isoAandCandB_chargeAandCandB",dx3,dy3,cA,cB,cC);
+					}//(cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR)
+
+				    }//( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR)
+			
+				}//(cA->q >= qR) && (cC->q >= qR)
+			    }//iso B
+			}//iso A and C
+
+
+		      
 		      
 		      if( cA->iso && cB->iso && cC->iso )
 			{	      
-			  hdx3ciii->Fill( dx3 ); //resolution histo (better require isolation than cut on the charge)
 			
 			  if( cB->size == 1 )
 			    hdx3c1->Fill( dx3 ); // r447 4.4
@@ -955,7 +989,7 @@ int main( int argc, char* argv[] )
       double newalignxA = alignxA;
       if(PRINT) cout << " newalignxA " << newalignxA << " alignxA " << alignxA << endl;
       
-      cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
+      if(PRINT) cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
       
       if( hdxAB->GetEntries() > 999 )
 	{
@@ -969,7 +1003,7 @@ int main( int argc, char* argv[] )
 
       double newalignyA = alignyA;
       
-      cout << endl << hdyAB->GetTitle() << " entries " << hdyAB->GetEntries() << endl;
+      if(PRINT) cout << endl << hdyAB->GetTitle() << " entries " << hdyAB->GetEntries() << endl;
       if( hdyAB->GetEntries() > 999 ) {
 	cout << "  y correction " << hdyAB->GetMean() << endl;
 	newalignyA += aligny(hdyAB);
@@ -981,7 +1015,7 @@ int main( int argc, char* argv[] )
       
       double newalignfA = alignfA;
       
-      cout << endl << dxvsyAB->GetTitle() << " entries " << dxvsyAB->GetEntries() << endl;
+      if(PRINT) cout << endl << dxvsyAB->GetTitle() << " entries " << dxvsyAB->GetEntries() << endl;
       if( aligniteration > 0 && dxvsyAB->GetEntries() > 999 ) {
 	newalignfA += alignangle(dxvsyAB);
       }
@@ -992,7 +1026,7 @@ int main( int argc, char* argv[] )
 
       double newalignxC = alignxC;
   
-      cout << endl << hdxCB->GetTitle() << " entries " << hdxCB->GetEntries() << endl;
+      if(PRINT) cout << endl << hdxCB->GetTitle() << " entries " << hdxCB->GetEntries() << endl;
       if( hdxCB->GetEntries() > 999 ) {   
 	newalignxC += alignx(hdxCB);
       }
@@ -1003,7 +1037,7 @@ int main( int argc, char* argv[] )
       
       double newalignyC = alignyC;
 
-      cout << endl << hdyCB->GetTitle() << " entries " << hdyCB->GetEntries() << endl;
+      if(PRINT)      cout << endl << hdyCB->GetTitle() << " entries " << hdyCB->GetEntries() << endl;
       if( hdyCB->GetEntries() > 999 ) {
 	cout << "  y correction " << hdyCB->GetMean() << endl;
 	newalignyC += aligny(hdyCB);
@@ -1609,7 +1643,140 @@ double ycoordinate(int plane, vector<cluster>::iterator c, double align, double 
 
   return variable;
 }
-//**************** 
+//****************
+
+histoMap  bookControlHists(TString selection)
+{
+  if(PRINT) cout << " booking " << selection << endl; 
+  int nbx =  80; //number of bins x
+  int nby = 320; //number of bins y
+  if( fifty ) {
+    nbx = 160;
+    nby = 160;
+  }
+
+  histoMap mapOfHists;
+    // correlations:
+
+  TH1I * hdx3 = new TH1I("dx3_"+selection, "triplet dx_"+selection+"; dx [mm];triplets", 500, -0.5, 0.5 );// "dx_"+selection, "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
+  TH1I * hdy3 = new TH1I("dy3_"+selection, "triplet dy_"+selection+"; dy [mm];triplets", 200, -1., 1. );// "dx_"+selection, "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
+  TH1I * hclsizeA = new TH1I("clsizeA_"+selection, "A cluster size "+selection+";cluster size [pixels];A clusters on tracks", 40, 0.5, 40.5 ); 
+  TH1I * hclsizeB = new TH1I("clsizeB_"+selection, "B cluster size "+selection+";cluster size [pixels];B clusters on tracks", 40, 0.5, 40.5 ); 
+  TH1I * hclsizeC = new TH1I("clsizeC_"+selection, "C cluster size "+selection+";cluster size [pixels];C clusters on tracks", 40, 0.5, 40.5 ); 
+
+  TH1I * hdx3_clsizeB1 = new TH1I("dx3_clsizeB1_"+selection, "triplet dx_clsizeB1_"+selection+"; dx [mm];triplets", 500, -0.5, 0.5 );// "dx_"+selection, "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
+  TH1I * hdx3_clsizeB2 = new TH1I("dx3_clsizeB2_"+selection, "triplet dx_clsizeB2_"+selection+"; dx [mm];triplets", 500, -0.5, 0.5 );// "dx_"+selection, "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
+  TH1I * hdx3_clsizeB3 = new TH1I("dx3_clsizeB3_"+selection, "triplet dx_clsizeB3_"+selection+"; dx [mm];triplets", 500, -0.5, 0.5 );// "dx_"+selection, "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
+  
+  
+
+  if(PRINT) cout << "going to insert first hist" << endl;
+
+  mapOfHists.insert(std::make_pair("dx3_"+selection,hdx3));
+  if(PRINT) cout << " inserted first hist" << endl;
+  mapOfHists.insert(std::make_pair("dy3_"+selection,hdy3));
+  mapOfHists.insert(std::make_pair("clsizeA_"+selection,hclsizeA));
+  mapOfHists.insert(std::make_pair("clsizeB_"+selection,hclsizeB));
+  mapOfHists.insert(std::make_pair("clsizeC_"+selection,hclsizeC));
+
+  mapOfHists.insert(std::make_pair("dx3_clsizeB1_"+selection,hdx3_clsizeB1));
+  mapOfHists.insert(std::make_pair("dx3_clsizeB2_"+selection,hdx3_clsizeB2));
+  mapOfHists.insert(std::make_pair("dx3_clsizeB3_"+selection,hdx3_clsizeB3));
+
+  
+  return mapOfHists;
+}
+
+
+void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC)
+{
+
+
+  if(PRINT)cout << " cl B " << clusterB->size << endl;
+
+  if(PRINT) cout << "filling in map" << endl;
+  auto search =  mapOfHists.find("dx3_"+selection);
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_"+selection << endl;
+  }
+
+
+  search =  mapOfHists.find("dy3_"+selection);
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(dy3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dy3_"+selection << endl;
+  }
+
+  search =  mapOfHists.find("clsizeA_"+selection);
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterA->size);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clsizeA_"+selection << endl;
+  }
+
+    search =  mapOfHists.find("clsizeB_"+selection);
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterB->size);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clsizeB_"+selection << endl;
+  }
+
+    search =  mapOfHists.find("clsizeC_"+selection);
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterC->size);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clsizeC_"+selection << endl;
+  }
+
+
+  search =  mapOfHists.find("dx3_clsizeB1_"+selection);
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(clusterB->size ==1)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB1_"+selection << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clsizeB2_"+selection);
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(clusterB->size ==2)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB2_"+selection << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clsizeB3_"+selection);
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(clusterB->size ==3)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB3_"+selection << endl;
+  }
+
+
+  
+}//fillControlHists
+
+
 void bookHists()
 {
 
@@ -1740,13 +1907,18 @@ hdxCB = new  TH1I( "dxCB", "Cx-Bx;x-x [mm];cluster pairs", 800, -2, 2 );
  nmvsevCA = new  TProfile( "nmvsevCA", "CA matches vs time;time [events];CA matches",
 		     3100, 0, 3100*1000, -1, 99 );
 
-  hdx3 = new  TH1I( "dx3", "triplet dx;dx [mm];triplets", 500, -0.5, 0.5 );
+
+
+
+ /*
+ hdx3 = new  TH1I( "dx3", "triplet dx;dx [mm];triplets", 500, -0.5, 0.5 );  //done 
   hdy3 = new  TH1I( "dy3", "triplet dy;dy [mm];triplets", 200, -1, 1 );
 
   hdx3c = new  TH1I( "dx3c", "triplet dx, cut dy;dx [mm];triplets", 500, -0.25, 0.25 );
   hdx3ci = new  TH1I( "dx3ci", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
   hdx3cii = new  TH1I( "dx3cii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
   hdx3ciii = new  TH1I( "dx3ciii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
+ */
   hdx3ciiiqr = new  TH1I( "dx3ciiiqr", "triplet dx, cut dy, isolated, qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
   hdx3ciiiq = new  TH1I( "dx3ciiiq", "triplet dx, cut dy, isolated, qL < qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
   hdx3ciiiqr3 = new  TH1I( "dx3ciiiqr3", "triplet dx, cut dy, isolated, q3 < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
@@ -1951,45 +2123,3 @@ effvsmpxA = new TProfile( "effvsmpxA", "eff vs occupancy A;occupancy A [pixels];
 }
 
 
-histoMap  bookControlHists(TString selection)
-{
-  cout << " booking " << selection << endl; 
-  int nbx =  80; //number of bins x
-  int nby = 320; //number of bins y
-  if( fifty ) {
-    nbx = 160;
-    nby = 160;
-  }
-
-  histoMap mapOfHists;
-    // correlations:
-
-  TH1I * hxA = new TH1I( "xA"+selection, "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
-  TH1I * hxB = new TH1I( "xB"+selection, "x B " +selection+ " ;x [mm];clusters B", 100, -5, 5 );
-  cout << "going to insert first hist" << endl;
-
-  mapOfHists.insert(std::make_pair("xA"+selection,hxA));
-  cout << " inserted first hist" << endl;
-  mapOfHists.insert(std::make_pair("xB"+selection,hxB));
-
-  return mapOfHists;
-}
-
-
-void  fillControlHists(histoMap mapOfHists, TString selection, double dx3)
-{
-
-  cout << "filling in map" << endl;
-  auto search =  mapOfHists.find("xA"+selection);
-  cout << "search" << endl;
-  if (search !=  mapOfHists.end()) {
-    std::cout << "Found " << search->first << " " << search->second << '\n';
-    search->second->Fill(dx3);
-  } else {
-    std::cout << "Not found\n";
-  }
-
-  //  ->Fill(dx3);
-  // mapOfHists[1][selection]->Fill(dx3);
-
-}
