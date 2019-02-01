@@ -276,25 +276,6 @@ int main( int argc, char* argv[] )
   // book histos:
   if(PRINT) cout << "***** going to book hists ***********" << endl;
   bookHists();
-  cout << "hists booking"<<endl;
-  histoMap prova1 =   bookControlHists("prova1");
-  cout << " booked! "  <<endl;
-
-  bool found = false;
-
-  auto it = prova1.find("xAprova1");
-  if(it != prova1.end())
-    {
-      found = true;
-      std::cout<<it->first<<" :: "<<it->second->GetEntries()<<std::endl;
-      it++;
-    }
-  
-  cout << "hists prova1 " << found << endl;
-
-  histoMap prova2 =   bookControlHists("prova2");
-  TH1I * hprova  = new  TH1I( "prova", "Cx-Ax;x-x [mm];cluster pairs", 400, -1, 1 );
-
   if(PRINT)   cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
 
   const double log10 = log(10);
@@ -655,19 +636,11 @@ int main( int argc, char* argv[] )
 		  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 )
 		    { // cut on y, look at x, see madx3vsy
 		    
-		      hprova->Fill( dx3 );
-		      cout << "hprova" << endl;
-		      fillControlHists(prova1,"prova1",dx3);
-		      cout << "prova1" << endl;
-
 		      hdx3c->Fill( dx3 );
 		      
 		      if( (cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
-			{
 			hdx3nocq3->Fill( dx3);
-			fillControlHists(prova2,"prova2",dx3);
-
-			}
+		       
 		      if( cB->iso )
 			hdx3ci->Fill( dx3 );
 		      
@@ -1395,9 +1368,9 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 
 	    phvsprev[plane].Fill( phprev, ph4 ); //looking at this plot I can see if there are correlections = "tsunami effect"
 
-	    //if(PRINT) cout << " ph4 before " << ph4;
+	    if(PRINT) cout << " ph4 before " << ph4;
 	    ph4 -= Tsunami*phprev; // Tsunami
-	    //if(PRINT) cout << " ph4 after " << ph4 << endl;
+	    if(PRINT) cout << " ph4 after " << ph4 << endl;
 	    
 	    phprev = vpx[ipx].ph; // original ph4
 
@@ -1947,49 +1920,5 @@ effvsmpxA = new TProfile( "effvsmpxA", "eff vs occupancy A;occupancy A [pixels];
 		    100, 0, 100, -0.1, 1.1 );
    effvstxy = new TProfile("effvstxy", "eff vs angle;dxy CA [mm];DUT efficiency",
 		     100, 0, 0.2, -0.1, 1.1 );
-
-}
-
-
-histoMap  bookControlHists(TString selection)
-{
-  cout << " booking " << selection << endl; 
-  int nbx =  80; //number of bins x
-  int nby = 320; //number of bins y
-  if( fifty ) {
-    nbx = 160;
-    nby = 160;
-  }
-
-  histoMap mapOfHists;
-    // correlations:
-
-  TH1I * hxA = new TH1I( "xA"+selection, "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
-  TH1I * hxB = new TH1I( "xB"+selection, "x B " +selection+ " ;x [mm];clusters B", 100, -5, 5 );
-  cout << "going to insert first hist" << endl;
-
-  mapOfHists.insert(std::make_pair("xA"+selection,hxA));
-  cout << " inserted first hist" << endl;
-  mapOfHists.insert(std::make_pair("xB"+selection,hxB));
-
-  return mapOfHists;
-}
-
-
-void  fillControlHists(histoMap mapOfHists, TString selection, double dx3)
-{
-
-  cout << "filling in map" << endl;
-  auto search =  mapOfHists.find("xA"+selection);
-  cout << "search" << endl;
-  if (search !=  mapOfHists.end()) {
-    std::cout << "Found " << search->first << " " << search->second << '\n';
-    search->second->Fill(dx3);
-  } else {
-    std::cout << "Not found\n";
-  }
-
-  //  ->Fill(dx3);
-  // mapOfHists[1][selection]->Fill(dx3);
 
 }
