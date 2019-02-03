@@ -62,8 +62,8 @@ void getGain( string gainfile, double (*p0)[r4sColumns][r4sRows], double (*p1)[r
 void bookHists();
 
 typedef std::map<TString, TH1I*> histoMap;
-histoMap bookControlHists(TString selection);
-void fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC);
+histoMap bookControlHists(TString selection, TFile * histofile);
+void fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC, TFile * histofile, TString fileName);
 double xcoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr); 
 double ycoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pichr); 
 double eta(vector<cluster>::iterator c); 
