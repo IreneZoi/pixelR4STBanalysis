@@ -277,6 +277,8 @@ int main( int argc, char* argv[] )
   // book histos:
   if(PRINT) cout << "***** going to book hists ***********" << endl;
   bookHists();
+  histoMap raw =  bookControlHists("raw",histoFile);
+  histoMap dxCAcut =  bookControlHists("dxCAcut",histoFile);
 
   histoMap beforeCorrections =   bookControlHists("beforeCorrections",histoFile);
 
@@ -301,12 +303,15 @@ int main( int argc, char* argv[] )
     }
 
   histoMap straightTracksY =   bookControlHists("straightTracksY",histoFile);
-  histoMap isoAandC =   bookControlHists("isoAandC",histoFile);
-  histoMap isoAandCandB =   bookControlHists("isoAandCandB",histoFile);
-  histoMap isoAandCandB_chargerAandC  =   bookControlHists("isoAandCandB_chargerAandC",histoFile);
-  histoMap isoAandCandB_chargerAandCandB  =   bookControlHists("isoAandCandB_chargerAandCandB",histoFile);
-  histoMap isoAandCandB_chargeAandC  =   bookControlHists("isoAandCandB_chargeAandC",histoFile);
-  histoMap isoAandCandB_chargeAandCandB  =   bookControlHists("isoAandCandB_chargeAandCandB",histoFile);
+  histoMap straightTracksY_isoAandC =   bookControlHists("straightTracksY_isoAandC",histoFile);
+  histoMap straightTracksY_isoAandCandB =   bookControlHists("straightTracksY_isoAandCandB",histoFile);
+  histoMap straightTracksY_isoAandCandB_straightTracksX =   bookControlHists("straightTracksY_isoAandCandB_straightTracksX",histoFile);
+  histoMap straightTracksY_isoAandCandB_chargerAandC  =   bookControlHists("straightTracksY_isoAandCandB_chargerAandC",histoFile);
+  histoMap straightTracksY_isoAandCandB_chargerAandCandB  =   bookControlHists("straightTracksY_isoAandCandB_chargerAandCandB",histoFile);
+  histoMap straightTracksY_isoAandCandB_chargeAandC  =   bookControlHists("straightTracksY_isoAandCandB_chargeAandC",histoFile);
+  histoMap straightTracksY_isoAandCandB_chargeAandCandB  =   bookControlHists("straightTracksY_isoAandCandB_chargeAandCandB",histoFile);
+  histoMap hitsOnTrack  =   bookControlHists("hitsOnTrack",histoFile);
+
 
 
 
@@ -604,9 +609,19 @@ int main( int argc, char* argv[] )
 	      hdxCA->Fill( dxCA );
 	      hdyCA->Fill( dyCA );
 
+	      if(PRINT) cout << "#################    EVENT " << iev << endl;
+   
+	      // NB until I initialize cB, I am using cA instead!!!!
+	      fillControlHists(raw,"raw",0,0,cA,cA,cC,0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName);
+
 
 	      if(PRINT) cout << " tracks condition " << fabs( dxCA ) << " vs "  << straightTracks * beamDivergenceScaled + 0.02 << endl;
+
 	      if( fabs( dxCA ) > straightTracks * beamDivergenceScaled + 0.02 ) continue; // includes beam divergence: +-5 sigma
+
+	      fillControlHists(dxCAcut,"dxCAcut",0,0,cA,cA,cC,0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName);
+
+
 	      if(PRINT) cout << " dyCA " << dyCA << endl;
 	      hdyCAc->Fill( dyCA );
 	      dyvsyCA->Fill( yAr, dyCA );
@@ -660,243 +675,94 @@ int main( int argc, char* argv[] )
 		  double dx3 = xB - xavg;
 		  double dy3 = yB - yavg;
 
-		  fillControlHists(beforeCorrections,"beforeCorrections",dx3,dy3,cA,cB,cC,histoFile,fileName);
+		  fillControlHists(beforeCorrections,"beforeCorrections",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName);
 
 		  dx3 = dx3 - dx3corr*xavg; // from -dx3vsx.Fit("pol1")
 
 		  double dxy = sqrt( dx3*dx3 + dy3*dy3 );
-
-		  fillControlHists(nocuts,"nocuts",dx3,dy3,cA,cB,cC,histoFile,fileName);
+		  fillControlHists(nocuts,"nocuts",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName);
+	
 		  if(PRINT) cout << "nocuts" << endl;
 		  
-
+		  
 		  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 )
 		    { // cut on y, look at x, see madx3vsy
 		    
-		      fillControlHists(straightTracksY,"straightTracksY",dx3,dy3,cA,cB,cC,histoFile,fileName);
+		      fillControlHists(straightTracksY,"straightTracksY",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName);
 
 		      if( cA->iso && cC->iso )
 			{
-			  fillControlHists(isoAandC,"isoAandC",dx3,dy3,cA,cB,cC,histoFile,fileName);
+			  fillControlHists(straightTracksY_isoAandC,"straightTracksY_isoAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName);
 			  if( cB->iso )
 			    {
-			      fillControlHists(isoAandCandB,"isoAandCandB",dx3,dy3,cA,cB,cC,histoFile,fileName);
+			      fillControlHists(straightTracksY_isoAandCandB,"straightTracksY_isoAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName);
+			      if(PRINT) cout << "isoAandCandB done" << endl;
+
+
+			      if( fabs( dxCA ) < straightTracks * beamDivergenceScaled )
+				{ // track angle
+				  fillControlHists(straightTracksY_isoAandCandB_straightTracksX,"straightTracksY_isoAandCandB_straightTracksX",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName);
+				}//fabs( dxCA ) < straightTracks * beamDivergenceScaled 
+
 			      
 			      if( (cA->q >= qR) && (cC->q >= qR))
 				{
-				  fillControlHists(isoAandCandB_chargerAandC,"isoAandCandB_chargerAandC",dx3,dy3,cA,cB,cC,histoFile,fileName);
+				  if(PRINT) cout << "cA->q " << cA->q << " >= qR " << qR << " && cC->q " << cC->q << "  >= qR " << endl;
+
+				  if(PRINT) cout << "straightTracksY_isoAandCandB_chargerAandC going to be done" << endl;
+			      
+				  fillControlHists(straightTracksY_isoAandCandB_chargerAandC,"straightTracksY_isoAandCandB_chargerAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName);
+				  if(PRINT) cout << "straightTracksY_isoAandCandB_chargerAandC going done" << endl;
 			      
 				  if( ( cB->q >= qRB) && ( cA->q >= qR) && ( cC->q >= qR))
 				    {
 				      
-				      fillControlHists(isoAandCandB_chargerAandCandB,"isoAandCandB_chargerAandCandB",dx3,dy3,cA,cB,cC,histoFile,fileName);
+				      fillControlHists(straightTracksY_isoAandCandB_chargerAandCandB,"straightTracksY_isoAandCandB_chargerAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName);
 				    }// ( cB->q >= qRB) && ( cA->q >= qR) && ( cC->q >= qR)
 
 				  if( ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
 				    {
-				      fillControlHists(isoAandCandB_chargeAandC,"isoAandCandB_chargeAandC",dx3,dy3,cA,cB,cC,histoFile,fileName);
+				      fillControlHists(straightTracksY_isoAandCandB_chargeAandC,"straightTracksY_isoAandCandB_chargeAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName);
 
 				      if( (cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
-					{
-					  fillControlHists(isoAandCandB_chargeAandCandB,"isoAandCandB_chargeAandCandB",dx3,dy3,cA,cB,cC,histoFile,fileName);
+					{					  
+					  fillControlHists(straightTracksY_isoAandCandB_chargeAandCandB,"straightTracksY_isoAandCandB_chargeAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName);
 					}//(cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR)
 
 				    }//( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR)
 			
 				}//(cA->q >= qR) && (cC->q >= qR)
+
 			    }//iso B
 			}//iso A and C
 
-
-		      
-		      
-		      if( cA->iso && cB->iso && cC->iso )
-			{	      
-			
-			  if( cB->size == 1 )
-			    hdx3c1->Fill( dx3 ); // r447 4.4
-			  if( cB->size == 2 )
-			    hdx3c2->Fill( dx3 ); // r447 4.4
-			  if( cB->size == 3 )
-			    hdx3c3->Fill( dx3 ); // r447 4.8
-			  if( cB->size == 4 )
-			    hdx3c4->Fill( dx3 ); // r447 6.5
-			  if( cB->size == 5 )
-			    hdx3c5->Fill( dx3 ); // r447 16.6
-			  if( cB->size == 6 )
-			    hdx3c6->Fill( dx3 ); // r447 24.5
-			  if( cB->size > 6 )
-			    hdx3c7->Fill( dx3 ); // r447 39.9
-			
-			  if( xB < 0 )
-			    hdx3m->Fill( dx3 );
-			  else
-			    hdx3p->Fill( dx3 );
-			  
-			  if( fabs( dxCA ) < straightTracks * beamDivergenceScaled )
-			    { // track angle
-			      hdx3ct->Fill( dx3 );
-			      madx3vsq->Fill( cB->q, fabs(dx3) );
-			      madx3vsn->Fill( cB->size, fabs(dx3) );
-			    }
-
-		    
-			  hclszAiii->Fill( cA->size );
-			  hclszBiii->Fill( cB->size );
-			  hncolBiii->Fill( ncolB );
-			  hnrowBiii->Fill( nrowB );
-			  hclszCiii->Fill( cC->size );
-			  
-			  hclphAiii->Fill( cA->sum );
-			  hclphBiii->Fill( cB->sum );
-			  hclphCiii->Fill( cC->sum );
-			  
-			  hclqAiii->Fill( cA->q );
-			  hclqBiii->Fill( cB->q );
-			  hclqCiii->Fill( cC->q );
-			  
-			
-			  if(cB->q < qRB)  hdx3ciiiqr->Fill( dx3);
-			  if( cB->q > qLB && cB->q < qRB ) hdx3ciiiq->Fill( dx3);
-			  if(cB->q < qRB && cA->q < qR && cC->q < qR)
-			    {
-			      hdx3ciiiqr3->Fill( dx3);
-			      if( fifty )
-				nrowvsxmB3forRes->Fill( xmod*1E3, ncolB );
-			      else
-				nrowvsxmB3forRes->Fill( xmod*1E3, nrowB );
-			    }
-			  if(cA->q < qR && cC->q < qR)
-			      hdx3ciiiqr2->Fill( dx3);
-
-			  if( cB->q > qLB && cB->q < qRB && cA->q > qL && cA->q < qR && cC->q > qL && cC->q < qR) hdx3ciiiq3 ->Fill( dx3);
-			  
-			  
-			} // iso
-		    
-		    
-		      if( cB->q > qLB && cB->q < qRB )
-			{
-		      
-			  hdx3cq->Fill( dx3 );
-			  
-			  if( cA->iso && cB->iso && cC->iso )
-			    hdx3cqi->Fill( dx3 );
-			  
-			  if( cA->q > qL && cA->q < qR &&
-			      cC->q > qL && cC->q < qR )
-			    {
-			    
-			      hdx3cq3->Fill( dx3 );
-			      
-			      if( cA->iso && cB->iso && cC->iso )
-				hdx3cq3i->Fill( dx3 );
-			    
-			      dx3vsev->Fill( iev, dx3 );
-			
-			      dx3vsx->Fill( xB, dx3 ); // turn
-			      dx3vsy->Fill( yB, dx3 ); // rot
-			      dx3vsxm->Fill( xmod*1E3, dx3 );
-			    
-			      madx3vsdx->Fill( dxCA*1E3, fabs(dx3) ); // dxCA
-			    
-			      if( fabs( dxCA ) < straightTracks * beamDivergenceScaled )
-				{ // track angle
-			  
-				  hdx3cq3t->Fill( dx3 ); // 447 4.27 um
-				
-				  madx3vsx->Fill( xB, fabs(dx3) );
-				  madx3vsy->Fill( yB, fabs(dx3) );
-				  madx3vsxm->Fill( xmod*1E3, fabs(dx3) );
-				  if( cB->size == 2 )
-				    {
-				      etavsxmB3->Fill( xmod*1E3, etaB ); // sine
-				      madx3vseta->Fill( etaB, fabs(dx3) ); // flat
-				      hdx3cq3t2->Fill( dx3 ); // 447 4.25 um
-				    }
-				
-				} // angle
-			    
-			    } // Qa, qC
-			  
-			} // qB
-		      
+    
 		    } // cut dy (fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05)
+		  if(PRINT) cout << " done with hist filling my way " << endl;
+
 		  
-		  if( fabs( dx3 ) < 0.07 && // hit on track
-		      fabs( dy3 ) < 0.15 &&
-		      cA->iso && cB->iso && cC->iso) {
-		    
-		    hclmapB3->Fill( cB->col, cB->row );
-		    
-		    hxA3->Fill( xAr );
-		    hyA3->Fill( yAr );
-		    hxB3->Fill( xB  );
-		    hyB3->Fill( yB  );
-		    hxC3->Fill( xCr );
-		    hyC3->Fill( yCr );
-		    
-		    hclszA3->Fill( cA->size );
-		    hclszB3->Fill( cB->size );
-		    hncolB3->Fill( ncolB );
-		    hnrowB3->Fill( nrowB );
-		    hclszC3->Fill( cC->size );
-		    
-		    hclphA3->Fill( cA->sum );
-		    hclphB3->Fill( cB->sum );
-		    hclphC3->Fill( cC->sum );
-		    
-		    hclqA3->Fill( cA->q );
-		    hclqB3->Fill( cB->q );
-		    hclqB3i->Fill( cB->q );
-		    hclqC3->Fill( cC->q );
-		    if( cB->size < 4 )
-		      hclqB3n->Fill( cB->q );
-		    
-		    if( fifty )
-		      nrowvsxmB3->Fill( xmod*1E3, ncolB );
-		    else
-		      nrowvsxmB3->Fill( xmod*1E3, nrowB );
-		    hdx3ciiiqr3forNrow->Fill( dx3);
-		    
-		    clqvsxmB3->Fill( xmod*1E3, cB->q );
+		  if(PRINT) cout << " filling hists on track " << endl;
 
-		    if( cA->size == 2 )
-		      hetaA3->Fill( etaA );
-		    
-		    if( cB->size == 2 )
-		      hetaB3->Fill( etaB );
-		    
-		    if( cC->size == 2 )
-		      hetaC3->Fill( etaC );
-		    
-		    for( int ipx = 0; ipx < cA->size; ++ipx ) {
-		      hpxpA3->Fill( cA->vpix[ipx].ph );
-		      hpxqA3->Fill( cA->vpix[ipx].q );
-		    }
-		    for( int ipx = 0; ipx < cB->size; ++ipx ) {
-		      hpxpB3->Fill( cB->vpix[ipx].ph );
-		      hpxqB3->Fill( cB->vpix[ipx].q );
-		    }
-		    for( int ipx = 0; ipx < cC->size; ++ipx ) {
-		      hpxpC3->Fill( cC->vpix[ipx].ph );
-		      hpxqC3->Fill( cC->vpix[ipx].q );
-		    }
-		    
-		    if( cB->size == 2 ) {
-		      hpxq1stB3->Fill( cB->vpix[0].q );
-		      hpxq2ndB3->Fill( cB->vpix[1].q ); // identical
-		    }
-		    
-		    // task: store track
-		    
-		  } // linked, iso
+		  if( fabs( dx3 ) < 0.07 && fabs( dy3 ) < 0.15 && cA->iso && cB->iso && cC->iso) // hit on track
+		    {
 
+		      if(PRINT) cout << "  it is on track " << endl;
+		      
+		      fillControlHists(hitsOnTrack,"hitsOnTrack",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName);
+				    
+
+
+		    } // linked, iso (hit on track)
+		  
+		  if(PRINT) cout << "  end of selections!  " << endl;
+		  
 		  for( int iw = 1; iw < 999; ++iw )
 		    if( dxy < iw*0.010 )
 		      eff[iw] = 1; // eff
-		  
+		  if(PRINT) cout << "  hist filling 14 " << endl;
+
 		} // clusters B
+	      if(PRINT) cout << "  hist filling 15 " << endl;
 
 	      if( fabs( dyCA ) > straightTracks*beamDivergenceScaled ) continue; // clean reference "tracks"
 	      
@@ -1648,51 +1514,183 @@ double ycoordinate(int plane, vector<cluster>::iterator c, double align, double 
 
 histoMap  bookControlHists(TString selection, TFile * histofile)
 {
+  if(PRINT) cout << " boking my hists " << selection << endl;
   TDirectory *cdtof = histofile->mkdir(selection);
   cdtof->cd(); 
-
-
-  if(PRINT) cout << " booking " << selection << endl; 
   int nbx =  80; //number of bins x
   int nby = 320; //number of bins y
   if( fifty ) {
     nbx = 160;
     nby = 160;
   }
+  
 
   histoMap mapOfHists;
 
+  TH1I * hxA = new TH1I("xA","x Ar;x [mm];clusters A", 100, -5, 5 );
+  TH1I * hyA = new TH1I("yA","y Ar;y [mm];clusters A", 100, -5, 5 ); 
+  TH1I * hxB = new TH1I("xB","x Br;x [mm];clusters B", 100, -5, 5 );
+  TH1I * hyB = new TH1I("yB","y Br;y [mm];clusters B", 100, -5, 5 ); 
+  TH1I * hxC = new TH1I("xC","x Cr;x [mm];clusters C", 100, -5, 5 );
+  TH1I * hyC = new TH1I("yC","y Cr;y [mm];clusters C", 100, -5, 5 ); 
+  
   TH1I * hdx3 = new TH1I("dx3", "triplet dx; dx [mm];triplets", 500, -0.5, 0.5 );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
   TH1I * hdy3 = new TH1I("dy3", "triplet dy; dy [mm];triplets", 200, -1., 1. );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
+
   TH1I * hclsizeA = new TH1I("clsizeA", "A cluster size "+selection+";cluster size [pixels];A clusters on tracks", 40, 0.5, 40.5 ); 
   TH1I * hclsizeB = new TH1I("clsizeB", "B cluster size "+selection+";cluster size [pixels];B clusters on tracks", 40, 0.5, 40.5 ); 
   TH1I * hclsizeC = new TH1I("clsizeC", "C cluster size "+selection+";cluster size [pixels];C clusters on tracks", 40, 0.5, 40.5 ); 
 
+  TH1I * hnrowB = new TH1I("nrowB", "B number of rows "+selection+";number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 ); 
+  TH1I * hncolB = new TH1I("ncolB", "B number of cols "+selection+";number of cols [pixels];B clusters on tracks", 40, 0.5, 40.5 ); 
+
+  TH2I * hclmapA = new TH2I("clmapA","A cluster map;col;row;A clusters", nbx, 0, nbx, nby, 0, nby );
+  TH2I * hclmapB = new TH2I("clmapB","B cluster map;col;row;B clusters", nbx, 0, nbx, nby, 0, nby );
+  TH2I * hclmapC = new TH2I("clmapC","C cluster map;col;row;C clusters", nbx, 0, nbx, nby, 0, nby );
+
+  TH1I * hclchargeA = new TH1I("clchargeA", "A cluster charge "+selection+";cluster charge [ke];A clusters on tracks", 160, 0., 80. ); 
+  TH1I * hclchargeB = new TH1I("clchargeB", "B cluster charge "+selection+";cluster charge [ke];B clusters on tracks", 160, 0., 80. ); 
+  TH1I * hclchargeC = new TH1I("clchargeC", "C cluster charge "+selection+";cluster charge [ke];C clusters on tracks", 160, 0., 80. ); 
+
+  TH1I * hclphA = new TH1I("clphA", "A cluster ph "+selection+";cluster ph [ADC];A clusters on tracks", 200, 0., 1000. ); 
+  TH1I * hclphB = new TH1I("clphB", "B cluster ph "+selection+";cluster ph [ADC];B clusters on tracks", 200, 0., 1000. ); 
+  TH1I * hclphC = new TH1I("clphC", "C cluster ph "+selection+";cluster ph [ADC];C clusters on tracks", 200, 0., 1000. ); 
+
+  TH1I * hetaA = new TH1I("etaA", "A eta "+selection+";eta;A 2-pix clusters on tracks",            100, -1, 1 ); 
+  TH1I * hetaB = new TH1I("etaB", "B eta "+selection+";eta;B 2-pix clusters on tracks",            100, -1, 1 ); 
+  TH1I * hetaC = new TH1I("etaC", "C eta "+selection+";eta;C 2-pix clusters on tracks",            100, -1, 1 ); 
+
+
+  TH1I * hpxphA = new TH1I( "pxphA", "A pixel PH;pixel PH [ADC];A pixels on tracks", 250, 0, 500 ); 
+  TH1I * hpxchargeA = new TH1I( "pxchargeA", "A pixel charge;pixel charge [ke];A pixels on tracks",             100, 0, 20 );     
+  TH1I * hpxphB = new TH1I( "pxphB", "B pixel PH;pixel PH [ADC];B pixels on tracks", 250, 0, 500 ); 
+  TH1I * hpxchargeB = new TH1I( "pxchargeB", "B pixel charge;pixel charge [ke];B pixels on tracks",             100, 0, 20 );     
+  TH1I * hpxphC = new TH1I( "pxphC", "C pixel PH;pixel PH [ADC];C pixels on tracks", 250, 0, 500 ); 
+  TH1I * hpxchargeC = new TH1I( "pxchargeC", "C pixel charge;pixel charge [ke];C pixels on tracks",             100, 0, 20 );     
+
+  TH1I * hpxchargeB1st = new TH1I( "pxchargeB1st", "B 1st pixel charge;pixel charge [ke];B pixels on tracks",             100, 0, 20 );     
+  TH1I * hpxchargeB2nd = new TH1I( "pxchargeB2nd", "B 2nd pixel charge;pixel charge [ke];B pixels on tracks",             100, 0, 20 );     
+		    
+  TProfile * hnrowvsxmB3;
+  if(fifty)
+    {
+      hnrowvsxmB3 = new TProfile( "nrowvsxmB3","B rows vs xmod @ res;x mod 50 [#mum];<B cluster size [rows]>",50, 0, 50, 0.5, 10.5 );
+    }
+  else
+    {
+      hnrowvsxmB3 = new TProfile( "nrowvsxmB3","B rows vs xmod @ res;x mod 25 [#mum];<B cluster size [rows]>",25, 0, 25, 0.5, 10.5 );
+    }
+  
+
+  TProfile * clqvsxmB3= new TProfile( "clqvsxmB3",                "B cluster charge vs xmod;x mod 50 [#mum];<B cluster charge [ke]>",                     50, 0, 50, 0, 50 );
+
+  TProfile * dx3vsev   = new TProfile( "dx3vsev", "dx3 vs time;trigger;<dx3> [mm]",                310, 0, 3100*1000, -0.5, 0.5 ); 
+  TProfile * dx3vsx    = new TProfile( "dx3vsx", "dx vs x;x [mm];<dx3> [mm]", 320, -4, 4, -0.5, 0.5 );//turn 
+  TProfile * dx3vsy    = new TProfile( "dx3vsy", "dx vs y;y [mm];<dx3> [mm]",  80, -4, 4, -0.5, 0.5 );// rot
+  TProfile * dx3vsxm   = new TProfile( "dx3vsxm", "dx vs x mod 50 um;x mod 50 [#mum];<dx3> [mm]",                  50, 0, 50, -0.5, 0.5 ); 
+  TProfile * madx3vsdx = new TProfile( "madx3vsdx", "MAD;// (dx3) vs dx C-A;C-A dx [#mum];MAD dx3 [mm]",                   100, -100, 100, 0, 0.1 );// dxCA
+  TProfile * madx3vsx  = new TProfile( "madx3vsx", "MAD;// (dx3) vs x;x [mm];MAD dx3 [mm]", 320, -4, 4, 0, 0.1 );
+  TProfile * madx3vsy  = new TProfile( "madx3vsy", "MAD;// (dx3) vs y;y [mm];MAD dx3 [mm]",  80, -4, 4, 0, 0.1 );
+  TProfile * madx3vsxm;
+
+  if( fifty)
+    madx3vsxm = new TProfile( "madx3vsxm", "MAD = new  (dx3) vs xmod;x mod 50 [#mum];MAD dx3 [mm]",                    50, 0, 50, 0, 0.1 );
+  else
+    madx3vsxm = new TProfile( "madx3vsxm", "MAD = new  (dx3) vs xmod;x mod 25 [#mum];MAD dx3 [mm]",                    25, 0, 25, 0, 0.1 );
+
+  TProfile * madx3vsq = new TProfile( "madx3vsq", "MAD;// (dx) vs Q;B cluster charge [ke];MAD dx [mm]", 100, 0, 100, 0, 0.1 );
+  TProfile * madx3vsn = new TProfile( "madx3vsn", "MAD;// (dx) vs cluster size;B cluster size [pixels];MAD dx [mm]", 20, 0.5, 20.5, 0, 0.1 );
+  
+  TProfile * etavsxmB3 = new TProfile( "etavsxmB3", "eta vs xmod;x mod 50 [#mum];B <eta>",                 50, 0, 50, -1.1, 1.1 );//sine
+  TProfile * madx3vseta= new TProfile( "madx3vseta", "MAD;// (dx3) vs eta;eta;MAD dx3 [mm]",                     100, -1, 1, 0, 0.1 );   //flat
+
   TH1I * hdx3_clsizeB1 = new TH1I("dx3_clsizeB1", "triplet dx_clsizeB1; dx [mm];triplets", 500, -0.5, 0.5 );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
   TH1I * hdx3_clsizeB2 = new TH1I("dx3_clsizeB2", "triplet dx_clsizeB2; dx [mm];triplets", 500, -0.5, 0.5 );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
   TH1I * hdx3_clsizeB3 = new TH1I("dx3_clsizeB3", "triplet dx_clsizeB3; dx [mm];triplets", 500, -0.5, 0.5 );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
+  TH1I * hdx3_clsizeB4 = new TH1I("dx3_clsizeB4", "triplet dx_clsizeB4; dx [mm];triplets", 500, -0.5, 0.5 );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
+  TH1I * hdx3_clsizeB5 = new TH1I("dx3_clsizeB5", "triplet dx_clsizeB5; dx [mm];triplets", 500, -0.5, 0.5 );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
+  TH1I * hdx3_clsizeB6 = new TH1I("dx3_clsizeB6", "triplet dx_clsizeB6; dx [mm];triplets", 500, -0.5, 0.5 );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
+  TH1I * hdx3_clsizeB7m = new TH1I("dx3_clsizeB7m", "triplet dx_clsizeB7m; dx [mm];triplets", 500, -0.5, 0.5 );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
   
   if(PRINT) cout << "going to insert first hist" << endl;
 
+  mapOfHists.insert(std::make_pair("xA",hxA));
+  mapOfHists.insert(std::make_pair("yA",hyA));
+  mapOfHists.insert(std::make_pair("xB",hxB));
+  mapOfHists.insert(std::make_pair("yB",hyB));
+  mapOfHists.insert(std::make_pair("xC",hxC));
+  mapOfHists.insert(std::make_pair("yC",hyC));
+  
   mapOfHists.insert(std::make_pair("dx3",hdx3));
-  if(PRINT) cout << " inserted first hist" << endl;
   mapOfHists.insert(std::make_pair("dy3",hdy3));
+
   mapOfHists.insert(std::make_pair("clsizeA",hclsizeA));
   mapOfHists.insert(std::make_pair("clsizeB",hclsizeB));
   mapOfHists.insert(std::make_pair("clsizeC",hclsizeC));
 
+  mapOfHists.insert(std::make_pair("nrowB",hnrowB));
+  mapOfHists.insert(std::make_pair("ncolB",hncolB));
+
+  mapOfHists.insert(std::make_pair("clmapA",hclmapA));
+  mapOfHists.insert(std::make_pair("clmapB",hclmapB));
+  mapOfHists.insert(std::make_pair("clmapC",hclmapC));
+
+  mapOfHists.insert(std::make_pair("clchargeA",hclchargeA));
+  mapOfHists.insert(std::make_pair("clchargeB",hclchargeB));
+  mapOfHists.insert(std::make_pair("clchargeC",hclchargeC));
+
+  mapOfHists.insert(std::make_pair("clphA",hclphA));
+  mapOfHists.insert(std::make_pair("clphB",hclphB));
+  mapOfHists.insert(std::make_pair("clphC",hclphC));
+
+  mapOfHists.insert(std::make_pair("etaA",hetaA));
+  mapOfHists.insert(std::make_pair("etaB",hetaB));
+  mapOfHists.insert(std::make_pair("etaC",hetaC));
+
+  mapOfHists.insert(std::make_pair("pxphA",hpxphA));
+  mapOfHists.insert(std::make_pair("pxchargeA",hpxchargeA));
+  mapOfHists.insert(std::make_pair("pxphB",hpxphB));
+  mapOfHists.insert(std::make_pair("pxchargeB",hpxchargeB));
+  mapOfHists.insert(std::make_pair("pxphC",hpxphC));
+  mapOfHists.insert(std::make_pair("pxchargeC",hpxchargeC));
+
+  mapOfHists.insert(std::make_pair("pxchargeB1st",hpxchargeB1st));
+  mapOfHists.insert(std::make_pair("pxchargeB2nd",hpxchargeB2nd));
+  
+  mapOfHists.insert(std::make_pair("nrowvsxmB3",hnrowvsxmB3));
+
+  mapOfHists.insert(std::make_pair("clqvsxmB3",clqvsxmB3));
+
+  mapOfHists.insert(std::make_pair("dx3vsev",dx3vsev));
+  mapOfHists.insert(std::make_pair("dx3vsx",dx3vsx));
+  mapOfHists.insert(std::make_pair("dx3vsy",dx3vsy));
+  mapOfHists.insert(std::make_pair("dx3vsxm",dx3vsxm));
+  mapOfHists.insert(std::make_pair("madx3vsdx",madx3vsdx));
+  mapOfHists.insert(std::make_pair("madx3vsx",madx3vsx));
+  mapOfHists.insert(std::make_pair("madx3vsy",madx3vsy));
+  mapOfHists.insert(std::make_pair("madx3vsxm",madx3vsxm));
+  mapOfHists.insert(std::make_pair("etavsxmB3",etavsxmB3));
+  mapOfHists.insert(std::make_pair("madx3vseta",madx3vseta));
+  mapOfHists.insert(std::make_pair("madx3vsq",madx3vsq));
+  mapOfHists.insert(std::make_pair("madx3vsn",madx3vsn));
+
   mapOfHists.insert(std::make_pair("dx3_clsizeB1",hdx3_clsizeB1));
   mapOfHists.insert(std::make_pair("dx3_clsizeB2",hdx3_clsizeB2));
   mapOfHists.insert(std::make_pair("dx3_clsizeB3",hdx3_clsizeB3));
+  mapOfHists.insert(std::make_pair("dx3_clsizeB4",hdx3_clsizeB4));
+  mapOfHists.insert(std::make_pair("dx3_clsizeB5",hdx3_clsizeB5));
+  mapOfHists.insert(std::make_pair("dx3_clsizeB6",hdx3_clsizeB6));
+  mapOfHists.insert(std::make_pair("dx3_clsizeB7m",hdx3_clsizeB7m));
 
   
   return mapOfHists;
 }
 
 
-void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC, TFile * histofile, TString fileName)
+void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC, int nrowB, int ncolB,double xmod, unsigned iev,double xB, double yB,double xAr, double yAr, double xCr, double yCr,double dxCA,double etaA, double etaB, double etaC,TFile * histofile, TString fileName)
 {
-  if(PRINT) cout << " filling hists" << endl;
+
+  if(PRINT) std::cout << "********** filling hists of "<< selection << endl;
   
   TDirectory *cdtof = (TDirectory *)histofile->Get(selection);
   cdtof->cd(fileName+":"+selection);
@@ -1700,7 +1698,66 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   if(PRINT)  cout << " directory " << fileName << ":"<< selection << " found "<< endl;
   if(PRINT)cout << " cl B " << clusterB->size << endl;
   if(PRINT) cout << "filling in map" << endl;
-  auto search =  mapOfHists.find("dx3");
+
+	
+  
+  auto search =  mapOfHists.find("xA");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(xAr);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "xA" << endl;
+  }
+
+  search =  mapOfHists.find("yA");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(yAr);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "yAr" << endl;
+  }
+
+  search =  mapOfHists.find("xB");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(xB);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "xB" << endl;
+  }
+
+  search =  mapOfHists.find("yB");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(yB);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "yB" << endl;
+  }
+
+  search =  mapOfHists.find("xC");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(xCr);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "xC" << endl;
+  }
+
+  search =  mapOfHists.find("yC");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(yCr);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "yCr" << endl;
+  }
+
+
+  
+  search =  mapOfHists.find("dx3");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
     if(PRINT) std::cout << "Found " << search->first  << '\n';
@@ -1728,7 +1785,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "clsizeA" << endl;
   }
 
-    search =  mapOfHists.find("clsizeB");
+  search =  mapOfHists.find("clsizeB");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
     if(PRINT) std::cout << "Found " << search->first  << '\n';
@@ -1746,6 +1803,345 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "clsizeC" << endl;
   }
 
+
+  search =  mapOfHists.find("nrowB");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(nrowB);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "nrowB" << endl;
+  }
+
+  search =  mapOfHists.find("ncolB");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(ncolB);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "ncolB" << endl;
+  }
+
+  search =  mapOfHists.find("clmapA");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterA->col, clusterA->row);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clmapA" << endl;
+  }
+
+  search =  mapOfHists.find("clmapB");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterB->col, clusterB->row);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clmapB" << endl;
+  }
+
+  search =  mapOfHists.find("clmapC");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterC->col, clusterC->row);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clmapC" << endl;
+  }
+
+
+  search =  mapOfHists.find("clchargeA");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterA->q);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clchargeA" << endl;
+  }
+
+    search =  mapOfHists.find("clchargeB");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterB->q);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clchargeB" << endl;
+  }
+
+    search =  mapOfHists.find("clchargeC");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterC->q);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clchargeC" << endl;
+  }
+
+  search =  mapOfHists.find("clphA");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterA->sum);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clphA" << endl;
+  }
+
+    search =  mapOfHists.find("clphB");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterB->sum);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clphB" << endl;
+  }
+
+  search =  mapOfHists.find("clphC");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterC->sum);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clphC" << endl;
+  }
+
+  search =  mapOfHists.find("pxphA");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    for( int ipx = 0; ipx < clusterA->size; ++ipx )     search->second->Fill( clusterA->vpix[ipx].ph );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxphA" << endl;
+  }
+
+  search =  mapOfHists.find("pxchargeA");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    for( int ipx = 0; ipx < clusterA->size; ++ipx )     search->second->Fill( clusterA->vpix[ipx].q );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxchargeA" << endl;
+  }
+
+  search =  mapOfHists.find("pxphB");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    for( int ipx = 0; ipx < clusterB->size; ++ipx )     search->second->Fill( clusterB->vpix[ipx].ph );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxphB" << endl;
+  }
+
+  search =  mapOfHists.find("pxchargeB");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    for( int ipx = 0; ipx < clusterB->size; ++ipx )     search->second->Fill( clusterB->vpix[ipx].q );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxchargeB" << endl;
+  }
+
+  search =  mapOfHists.find("pxphC");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    for( int ipx = 0; ipx < clusterC->size; ++ipx )     search->second->Fill( clusterC->vpix[ipx].ph );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxphC" << endl;
+  }
+
+  search =  mapOfHists.find("pxchargeC");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    for( int ipx = 0; ipx < clusterC->size; ++ipx )     search->second->Fill( clusterC->vpix[ipx].q );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxchargeC" << endl;
+  }
+
+
+  search =  mapOfHists.find("etaA");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(clusterA->size ==2)
+      search->second->Fill(etaA);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "etaA" << endl;
+  }
+
+  search =  mapOfHists.find("etaB");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(clusterB->size ==2)
+      search->second->Fill(etaB);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "etaB" << endl;
+  }
+
+  search =  mapOfHists.find("etaC");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(clusterC->size ==2)
+      search->second->Fill(etaC);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "etaA" << endl;
+  }
+		    
+  search =  mapOfHists.find("pxchargeB1st");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(clusterB->size ==2)
+      search->second->Fill( clusterB->vpix[0].q );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxchargeB1st" << endl;
+  }
+
+  search =  mapOfHists.find("pxchargeB2nd");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(clusterB->size ==2)
+      search->second->Fill( clusterB->vpix[1].q );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxchargeB2nd" << endl;
+  }
+
+
+
+
+  search =  mapOfHists.find("nrowvsxmB3");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+  if( fifty )
+    search->second->Fill( xmod*1E3, ncolB );
+  else
+    search->second->Fill( xmod*1E3, nrowB );
+
+  } else {
+    if(PRINT) std::cout << "Not found "<< "nrowvsxmB3" << endl;
+  }
+
+  search =  mapOfHists.find("clqvsxmB3");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( xmod*1E3, clusterB->q );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clqvsxmB3" << endl;
+  }
+
+  search =  mapOfHists.find("dx3vsev");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( iev, dx3 );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3vsev" << endl;
+  }
+
+  search =  mapOfHists.find("dx3vsx");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( xB, dx3 ); // turn 
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3vsx" << endl;
+  }
+
+  search =  mapOfHists.find("dx3vsy");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( yB, dx3 ); // rot
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3vsy" << endl;
+  }
+
+  search =  mapOfHists.find("dx3vsxm");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( xmod*1E3, dx3 ); // rot
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3vsxm" << endl;
+  }
+  search =  mapOfHists.find("madx3vsdx");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( dxCA*1E3, fabs(dx3) ); // dxCA
+  } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vsdx" << endl;
+  }
+
+  search =  mapOfHists.find("madx3vsx");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( xB, fabs(dx3) );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vsx" << endl;
+  }
+
+  search =  mapOfHists.find("madx3vsy");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( yB, fabs(dx3) );
+      } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vsy" << endl;
+  }
+
+  search =  mapOfHists.find("madx3vsxm");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(xmod*1E3, fabs(dx3) );
+      } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vsxm" << endl;
+  }
+
+  search =  mapOfHists.find("madx3vsq");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterB->q, fabs(dx3) );
+      } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vsq" << endl;
+  }
+
+  search =  mapOfHists.find("madx3vsn");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterB->size, fabs(dx3) );
+      } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vsn" << endl;
+  }
+
+  search =  mapOfHists.find("etavsxmB3");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end() && clusterB->size == 2) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( xmod*1E3, etaB ); // sine 
+      } else {
+    if(PRINT) std::cout << "Not found "<< "etavsxmB3" << endl;
+  }
+  
+  search =  mapOfHists.find("madx3vseta");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end() && clusterB->size == 2) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( etaB, fabs(dx3) ); // flat 
+      } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vseta" << endl;
+  }
+  
 
   search =  mapOfHists.find("dx3_clsizeB1");
   if(PRINT) cout << "search" << endl;
@@ -1777,7 +2173,44 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clsizeB3" << endl;
   }
 
+  search =  mapOfHists.find("dx3_clsizeB4");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(clusterB->size ==4)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB4" << endl;
+  }
+  search =  mapOfHists.find("dx3_clsizeB5");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(clusterB->size ==5)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB5" << endl;
+  }
+  search =  mapOfHists.find("dx3_clsizeB6");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(clusterB->size ==6)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB6" << endl;
+  }
+  search =  mapOfHists.find("dx3_clsizeB7m");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(clusterB->size >6)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB7m" << endl;
+  }
 
+  if(PRINT) std::cout << "filled all hists of "<< selection << endl;
   
 }//fillControlHists
 
@@ -1912,194 +2345,6 @@ hdxCB = new  TH1I( "dxCB", "Cx-Bx;x-x [mm];cluster pairs", 800, -2, 2 );
  nmvsevCA = new  TProfile( "nmvsevCA", "CA matches vs time;time [events];CA matches",
 		     3100, 0, 3100*1000, -1, 99 );
 
-
-
-
- /*
- hdx3 = new  TH1I( "dx3", "triplet dx;dx [mm];triplets", 500, -0.5, 0.5 );  //done 
-  hdy3 = new  TH1I( "dy3", "triplet dy;dy [mm];triplets", 200, -1, 1 );
-
-  hdx3c = new  TH1I( "dx3c", "triplet dx, cut dy;dx [mm];triplets", 500, -0.25, 0.25 );
-  hdx3ci = new  TH1I( "dx3ci", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
-  hdx3cii = new  TH1I( "dx3cii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
-  hdx3ciii = new  TH1I( "dx3ciii", "triplet dx, cut dy, isolated;dx [mm];isolated triplets", 500, -0.25, 0.25 );
- */
-  hdx3ciiiqr = new  TH1I( "dx3ciiiqr", "triplet dx, cut dy, isolated, qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
-  hdx3ciiiq = new  TH1I( "dx3ciiiq", "triplet dx, cut dy, isolated, qL < qB < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
-  hdx3ciiiqr3 = new  TH1I( "dx3ciiiqr3", "triplet dx, cut dy, isolated, q3 < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
-  if(fifty)
-    {
-      nrowvsxmB3forRes = new TProfile( "nrowvsxmB3forRes",
-				 "B rows vs xmod @ res;x mod 50 [#mum];<B cluster size [rows]>",
-				 50, 0, 50, 0.5, 10.5 );
-    }
-  else
-    {
-      nrowvsxmB3forRes = new TProfile( "nrowvsxmB3forRes",
-				 "B rows vs xmod @ res;x mod 25 [#mum];<B cluster size [rows]>",
-				 25, 0, 25, 0.5, 10.5 );
-    }
-
-  hdx3ciiiqr2 = new  TH1I( "dx3ciiiqr2", "triplet dx, cut dy, isolated, q3A-C < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
-  hdx3ciiiq3 = new  TH1I( "dx3ciiiq3", "triplet dx, cut dy, isolated, qL < q3 < qR;dx [mm];isolated triplets", 500, -0.25, 0.25 );
-  
-  hdx3c1 = new  TH1I( "dx3c1", "triplet dx, cut dy, npx 1;dx [mm];triplets, B npx 1",
-	       500, -0.25, 0.25 );
-  hdx3c2 = new  TH1I( "dx3c2", "triplet dx, cut dy, npx 2;dx [mm];triplets, B npx 2",
-	       500, -0.25, 0.25 );
-  hdx3c3 = new TH1I( "dx3c3", "triplet dx, cut dy, npx 3;dx [mm];triplets, B npx 3",
-	       500, -0.25, 0.25 );
-  hdx3c4 = new TH1I( "dx3c4", "triplet dx, cut dy, npx 4;dx [mm];triplets, B npx 4",
-	       500, -0.25, 0.25 );
-  hdx3c5 = new TH1I( "dx3c5", "triplet dx, cut dy, npx 5;dx [mm];triplets, B npx 5",
-	       500, -0.25, 0.25 );
-  hdx3c6 = new TH1I( "dx3c6", "triplet dx, cut dy, npx 6;dx [mm];triplets, B npx 6",
-	       500, -0.25, 0.25 );
-  hdx3c7 = new TH1I( "dx3c7", "triplet dx, cut dy, npx > 6;dx [mm];triplets, B npx > 6",
-	       500, -0.25, 0.25 );
-
-  hdx3m = new TH1I( "dx3m", "triplet dx, x < 0;dx [mm];triplets", 500, -0.5, 0.5 );
-  hdx3p = new TH1I( "dx3p", "triplet dx, x > 0;dx [mm];triplets", 500, -0.5, 0.5 );
-  hdx3ct = new TH1I( "dx3ct", "triplet dx, cut dy, tx;dx [mm];triplets",
-	       500, -0.25, 0.25 );
- madx3vsq = new TProfile( "madx3vsq", "MAD = new  (dx) vs Q;B cluster charge [ke];MAD dx [mm]",
-		     100, 0, 100, 0, 0.1 );
- madx3vsn = new TProfile( "madx3vsn", "MAD = new  (dx) vs cluster size;B cluster size [pixels];MAD dx [mm]",
-		     20, 0.5, 20.5, 0, 0.1 );
-
-  hdx3cq = new TH1I( "dx3cq", "triplet dx, Landau peak;dx [mm];Landau peak triplets",
-	       500, -0.25, 0.25 );
-  hdx3cqi = new TH1I( "dx3cqi", "triplet dx, Landau peak, isolated;dx [mm];isolated Landau peak triplets",
-		500, -0.25, 0.25 );
-  hdx3cq3 = new TH1I( "dx3cq3", "triplet dx, 3 Landau peak;dx [mm];Landau peak triplets",
-		500, -0.25, 0.25 );
-  hdx3nocq3 = new TH1I( "dx3nocq3", "triplet dx, no 3 Landau peak;dx [mm];no Landau peak triplets",
-		500, -0.25, 0.25 );
-  hdx3cq3i = new TH1I( "dx3cq3i", "triplet dx, 3 Landau peak, isolated;dx [mm];isolated Landau peak triplets",
-		 500, -0.25, 0.25 );
-
- dx3vsev = new TProfile( "dx3vsev", "dx3 vs time;trigger;<dx3> [mm]",
-		    310, 0, 3100*1000, -0.5, 0.5 );
-
- dx3vsx = new TProfile( "dx3vsx", "dx vs x;x [mm];<dx3> [mm]", 320, -4, 4, -0.5, 0.5 );
- dx3vsy = new TProfile( "dx3vsy", "dx vs y;y [mm];<dx3> [mm]",  80, -4, 4, -0.5, 0.5 );
- dx3vsxm = new TProfile( "dx3vsxm", "dx vs x mod 50 um;x mod 50 [#mum];<dx3> [mm]",
-		    50, 0, 50, -0.5, 0.5 );
-
-madx3vsdx = new TProfile( "madx3vsdx", "MAD = new  (dx3) vs dx C-A;C-A dx [#mum];MAD dx3 [mm]",
-		      100, -100, 100, 0, 0.1 );
-
-  hdx3cq3t = new TH1I( "dx3cq3t",
-		 "triplet dx, 3 Landau peak, forward;dx [mm];Landau peak forward triplets",
-		 500, -0.25, 0.25 );
- madx3vsx = new TProfile( "madx3vsx", "MAD = new  (dx3) vs x;x [mm];MAD dx3 [mm]", 320, -4, 4, 0, 0.1 );
- madx3vsy = new TProfile( "madx3vsy", "MAD = new  (dx3) vs y;y [mm];MAD dx3 [mm]",  80, -4, 4, 0, 0.1 );
-
- if( fifty) 
-   madx3vsxm = new TProfile( "madx3vsxm", "MAD = new  (dx3) vs xmod;x mod 50 [#mum];MAD dx3 [mm]",		      50, 0, 50, 0, 0.1 );
- else
-   madx3vsxm = new TProfile( "madx3vsxm", "MAD = new  (dx3) vs xmod;x mod 25 [#mum];MAD dx3 [mm]",		      25, 0, 25, 0, 0.1 );
-
- etavsxmB3 = new TProfile( "etavsxmB3", "eta vs xmod;x mod 50 [#mum];B <eta>",
-		      50, 0, 50, -1.1, 1.1 );
- madx3vseta = new TProfile( "madx3vseta", "MAD = new  (dx3) vs eta;eta;MAD dx3 [mm]",
-		       100, -1, 1, 0, 0.1 );
-  hdx3cq3t2 = new TH1I( "dx3cq3t2",
-		  "triplet dx, 3 Landau peak, forward, 2-px;dx [mm];Landau peak forward triplets",
-		  500, -0.25, 0.25 );
-
-  hclmapB3 = new  TH2I( "clmapB3", "linked cluster map B;col;row;B clusters on tracks",
-	  80, 0, 80, 320, 0, 320 );
-
-  hxA3 = new TH1I( "xA3", "x A linked;x [mm];A clusters on tracks", 100, -5, 5 );
-  hyA3 = new TH1I( "yA3", "y A linked;y [mm];A clusters on tracks", 100, -5, 5 ); 
-  hxB3 = new TH1I( "xB3", "x B linked;x [mm];B clusters on tracks", 100, -5, 5 );
-  hyB3 = new TH1I( "yB3", "y B linked;y [mm];B clusters on tracks", 100, -5, 5 ); 
-  hxC3 = new TH1I( "xC3", "x C linked;x [mm];C clusters on tracks", 100, -5, 5 );
-  hyC3 = new TH1I( "yC3", "y C linked;y [mm];C clusters on tracks", 100, -5, 5 ); 
-
-  hclszAiii = new TH1I( "clszAiii", "A cluster size on tracks;cluster size [pixels];Aclusters isolated",40, 0.5, 40.5 );
-  hclphAiii = new TH1I( "clphAiii", "A cluster PH on tracks;cluster ph [ADC];A clusters isolated", 200, 0, 1000 );
-  hclqAiii = new TH1I( "clqAiii", "A cluster charge on tracks;cluster charge [ke];A clusters isolated", 160, 0, 80 );
-
-  hclszBiii = new TH1I( "clszBiii", "B cluster size on tracks;cluster size [pixels];B clusters isolated", 40, 0.5, 40.5 );
-  hncolBiii = new TH1I( "ncolBiii", "B cluster size on tracks;cluster size [columns];B clusters isolated", 20, 0.5, 20.5 );
-  hnrowBiii = new TH1I( "nrowBiii", "B cluster size on tracks;cluster size [rows];B clusters isolated", 20, 0.5, 20.5 );
-  hclphBiii = new TH1I( "clphBiii", "B cluster PH on tracks;cluster ph [ADC];B clusters isolated", 200, 0, 1000 );
-  hclqBiii = new TH1I( "clqBiii", "B cluster charge on tracks;cluster charge [ke];B clusters isolated", 160, 0, 80 );
-  hclszCiii = new TH1I( "clszCiii", "C cluster size on tracks;cluster size [pixels];C clusters isolated", 40, 0.5, 40.5 );
-  hclphCiii = new TH1I( "clphCiii", "C cluster PH on tracks;cluster ph [ADC];C clusters isolated", 200, 0, 1000 );
-  hclqCiii = new TH1I( "clqCiii", "C cluster charge on tracks;cluster charge [ke];C clusters isoalted", 160, 0, 80 );
-
-
-
-  hclszA3 = new TH1I( "clszA3", "A cluster size on tracks;cluster size [pixels];Aclusters on tracks",
-		40, 0.5, 40.5 );
-  hclphA3 = new TH1I( "clphA3", "A cluster PH on tracks;cluster ph [ADC];A clusters on tracks",
-		200, 0, 1000 );
-  hclqA3 = new TH1I( "clqA3", "A cluster charge on tracks;cluster charge [ke];A clusters on tracks",
-	       160, 0, 80 );
-
-  hclszB3 = new TH1I( "clszB3", "B cluster size on tracks;cluster size [pixels];B clusters on tracks",
-		40, 0.5, 40.5 );
-  hncolB3 = new TH1I( "ncolB3", "B cluster size on tracks;cluster size [columns];B clusters on tracks",
-		20, 0.5, 20.5 );
-  hnrowB3 = new TH1I( "nrowB3", "B cluster size on tracks;cluster size [rows];B clusters on tracks",
-		20, 0.5, 20.5 );
-  hclphB3 = new TH1I( "clphB3", "B cluster PH on tracks;cluster ph [ADC];B clusters on tracks",
-		200, 0, 1000 );
-  hclqB3 = new TH1I( "clqB3", "B cluster charge on tracks;cluster charge [ke];B clusters on tracks",
-	       160, 0, 80 );
-  hclqB3i = new TH1I( "clqB3i", "B cluster charge on tracks;cluster charge [ke];B clusters on tracks",
-	       80, 0, 20 );
-  hclqB3n = new TH1I( "clqB3n",
-		"B cluster charge on tracks, npx < 4;cluster charge [ke];B clusters on tracks, npx < 4",
-		160, 0, 80 );
-
-  hclszC3 = new TH1I( "clszC3", "C cluster size on tracks;cluster size [pixels];C clusters on tracks",
-		40, 0.5, 40.5 );
-  hclphC3 = new TH1I( "clphC3", "C cluster PH on tracks;cluster ph [ADC];C clusters on tracks",
-		200, 0, 1000 );
-  hclqC3 = new TH1I( "clqC3", "C cluster charge on tracks;cluster charge [ke];C clusters on tracks",
-	       160, 0, 80 );
-  if(fifty)
-    {
-      nrowvsxmB3 = new TProfile( "nrowvsxmB3",
-				 "B rows vs xmod;x mod 50 [#mum];<B cluster size [rows]>",
-				 50, 0, 50, 0.5, 10.5 );
-    }
-  else
-    {
-      nrowvsxmB3 = new TProfile( "nrowvsxmB3",
-				 "B rows vs xmod;x mod 25 [#mum];<B cluster size [rows]>",
-				 25, 0, 25, 0.5, 10.5 );
-    }
-  hdx3ciiiqr3forNrow = new  TH1I( "dx3ciiiqr3forNrow", "triplet dx, cut dy, isolated, q3 < qR @ nrow;dx [mm];isolated triplets", 500, -0.25, 0.25 );
-
-  clqvsxmB3 = new TProfile( "clqvsxmB3",
-		      "B cluster charge vs xmod;x mod 50 [#mum];<B cluster charge [ke]>",
-		      50, 0, 50, 0, 50 );
-
-  hetaA3 = new TH1I( "etaA3", "A cluster eta;eta;A 2-pix clusters on tracks",
-	       100, -1, 1 );
-  hetaB3 = new TH1I( "etaB3", "B cluster eta;eta;B 2-pix clusters on tracks",
-	       100, -1, 1 );
-  hetaC3 = new TH1I( "etaC3", "C cluster eta;eta;C 2-pix clusters on tracks",
-	       100, -1, 1 );
-
-  hpxqA3 = new TH1I( "pxqA3", "A pixel charge;pixel charge [ke];A pixels on tracks",
-	       100, 0, 20 );
-  hpxqB3 = new TH1I( "pxqB3", "B pixel charge;pixel charge [ke];B pixels on tracks",
-	       100, 0, 20 );
-   hpxqC3 = new TH1I( "pxqC3", "C pixel charge;pixel charge [ke];C pixels on tracks",
-	       100, 0, 20 );
-
-   hpxpA3 = new TH1I( "pxpA3", "A pixel PH;pixel PH [ADC];A pixels on tracks", 250, 0, 500 );
-   hpxpB3 = new TH1I( "pxpB3", "B pixel PH;pixel PH [ADC];B pixels on tracks", 250, 0, 500 );
-   hpxpC3 = new TH1I( "pxpC3", "C pixel PH;pixel PH [ADC];C pixels on tracks", 250, 0, 500 );
-
-  hpxq1stB3 = new TH1I( "pxq1stB3", "B 1st pixel charge;pixel charge [ke];B `st pixels on tracks",		  100, 0, 20 );
-  hpxq2ndB3 = new TH1I( "pxq2ndB3", "B 2nd pixel charge;pixel charge [ke];B `st pixels on tracks",		  100, 0, 20 );
 
   effvsdxy = new TProfile( "effvsdxy",		     "DUT efficiency vs triplet dxy;xy match radius [mm];DUT efficiency",		     1000, 0, 10, -0.1, 1.1 );
 
