@@ -677,14 +677,14 @@ int main( int argc, char* argv[] )
 	      if(PRINT) cout << "#################    EVENT " << iev << endl;
    
 	      // NB until I initialize cB, I am using cA instead!!!!
-	      fillControlHists(raw,"raw",0,0,cA,cA,cC,0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName,hclphBiii,hclqBiii);
+	      fillControlHists(raw,"raw",0,0,cA,cA,cC,0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
 
 	      if(PRINT) cout << " tracks condition " << fabs( dxCA ) << " vs "  << straightTracks * beamDivergenceScaled + 0.02 << endl;
 
 	      if( fabs( dxCA ) > straightTracks * beamDivergenceScaled + 0.02 ) continue; // includes beam divergence: +-5 sigma
 
-	      fillControlHists(dxCAcut,"dxCAcut",0,0,cA,cA,cC,0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName,hclphBiii,hclqBiii);
+	      fillControlHists(dxCAcut,"dxCAcut",0,0,cA,cA,cC,0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
 
 	      if(PRINT) cout << " dyCA " << dyCA << endl;
@@ -742,12 +742,12 @@ int main( int argc, char* argv[] )
 		  double dx3 = xB - xavg;
 		  double dy3 = yB - yavg;
 
-		  fillControlHists(beforeCorrections,"beforeCorrections",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphBiii,hclqBiii);
+		  fillControlHists(beforeCorrections,"beforeCorrections",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
 		  dx3 = dx3 - dx3corr*xavg; // from -dx3vsx.Fit("pol1")
 
 		  double dxy = sqrt( dx3*dx3 + dy3*dy3 );
-		  fillControlHists(nocuts,"nocuts",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphBiii,hclqBiii);
+		  fillControlHists(nocuts,"nocuts",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 	
 		  if(PRINT) cout << "nocuts" << endl;
 		  
@@ -755,20 +755,20 @@ int main( int argc, char* argv[] )
 		  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 )
 		    { // cut on y, look at x, see madx3vsy
 		    
-		      fillControlHists(straightTracksY,"straightTracksY",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphBiii,hclqBiii);
+		      fillControlHists(straightTracksY,"straightTracksY",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
 		      if( cA->iso && cC->iso )
 			{
-			  fillControlHists(straightTracksY_isoAandC,"straightTracksY_isoAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphBiii,hclqBiii);
+			  fillControlHists(straightTracksY_isoAandC,"straightTracksY_isoAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 			  if( cB->iso )
 			    {
-			      fillControlHists(straightTracksY_isoAandCandB,"straightTracksY_isoAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphBiii,hclqBiii);
+			      fillControlHists(straightTracksY_isoAandCandB,"straightTracksY_isoAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 			      if(PRINT) cout << "isoAandCandB done" << endl;
 			      
 
 			      if( fabs( dxCA ) < straightTracks * beamDivergenceScaled )
 				{ // track angle
-				  fillControlHists(straightTracksY_isoAandCandB_straightTracksX,"straightTracksY_isoAandCandB_straightTracksX",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphBiii,hclqBiii);
+				  fillControlHists(straightTracksY_isoAandCandB_straightTracksX,"straightTracksY_isoAandCandB_straightTracksX",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 				  
 				}//fabs( dxCA ) < straightTracks * beamDivergenceScaled 
 
@@ -779,22 +779,22 @@ int main( int argc, char* argv[] )
 
 				  if(PRINT) cout << "straightTracksY_isoAandCandB_chargerAandC going to be done" << endl;
 			      
-				  fillControlHists(straightTracksY_isoAandCandB_chargerAandC,"straightTracksY_isoAandCandB_chargerAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphBiii,hclqBiii);
+				  fillControlHists(straightTracksY_isoAandCandB_chargerAandC,"straightTracksY_isoAandCandB_chargerAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 				  if(PRINT) cout << "straightTracksY_isoAandCandB_chargerAandC going done" << endl;
 			      
 				  if( ( cB->q >= qRB) && ( cA->q >= qR) && ( cC->q >= qR))
 				    {
 				      
-				      fillControlHists(straightTracksY_isoAandCandB_chargerAandCandB,"straightTracksY_isoAandCandB_chargerAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphBiii,hclqBiii);
+				      fillControlHists(straightTracksY_isoAandCandB_chargerAandCandB,"straightTracksY_isoAandCandB_chargerAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 				    }// ( cB->q >= qRB) && ( cA->q >= qR) && ( cC->q >= qR)
 
 				  if( ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
 				    {
-				      fillControlHists(straightTracksY_isoAandCandB_chargeAandC,"straightTracksY_isoAandCandB_chargeAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphBiii,hclqBiii);
+				      fillControlHists(straightTracksY_isoAandCandB_chargeAandC,"straightTracksY_isoAandCandB_chargeAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
 				      if( (cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
 					{					  
-					  fillControlHists(straightTracksY_isoAandCandB_chargeAandCandB,"straightTracksY_isoAandCandB_chargeAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphBiii,hclqBiii);
+					  fillControlHists(straightTracksY_isoAandCandB_chargeAandCandB,"straightTracksY_isoAandCandB_chargeAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 					}//(cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR)
 
 				    }//( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR)
@@ -816,7 +816,7 @@ int main( int argc, char* argv[] )
 
 		      if(PRINT) cout << "  it is on track " << endl;
 		      
-		      fillControlHists(hitsOnTrack,"hitsOnTrack",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphBiii,hclqBiii);
+		      fillControlHists(hitsOnTrack,"hitsOnTrack",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 				    
 
 		    } // linked, iso (hit on track)
@@ -1702,11 +1702,34 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   TH1I * hdx3_clphB700adc = new TH1I("dx3_clphB700adc", "triplet dx_clphB700adc; dx [mm];triplets", 500, -0.5, 0.5 );
 
 
-  TH1I * hdx3_clchargeB90evR = new TH1I("dx3_clchargeB90evR ", "triplet dx_clchargeB90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
-  TH1I * hdx3_clphB90evR = new TH1I("dx3_clphB90evR ", "triplet dx_clphB90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  TH1I * hdx3_clchargeAC90evR = new TH1I("dx3_clchargeAC90evR ", "triplet dx_clchargeAC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
+  TH1I * hdx3_clphAC90evR = new TH1I("dx3_clphAC90evR ", "triplet dx_clphAC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  TH1I * hdx3_clchargeAC80evR = new TH1I("dx3_clchargeAC80evR ", "triplet dx_clchargeAC80evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 80% events in Landau (only high tail)
+  TH1I * hdx3_clphAC80evR = new TH1I("dx3_clphAC80evR ", "triplet dx_clphAC80evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  TH1I * hdx3_clchargeAC70evR = new TH1I("dx3_clchargeAC70evR ", "triplet dx_clchargeAC70evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 70% events in Landau (only high tail)
+  TH1I * hdx3_clphAC70evR = new TH1I("dx3_clphAC70evR ", "triplet dx_clphAC70evR ; dx [mm];triplets", 500, -0.5, 0.5 );
 
-  TH1I * hdx3_clchargeB10hR = new TH1I("dx3_clchargeB10hR ", "triplet dx_clchargeB10hR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 10% height in Landau (only high tail)
-  TH1I * hdx3_clphB10hR = new TH1I("dx3_clphB10hR ", "triplet dx_clphB10hR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  TH1I * hdx3_clchargeAC10hR = new TH1I("dx3_clchargeAC10hR ", "triplet dx_clchargeAC10hR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 10% height in Landau (only high tail)
+  TH1I * hdx3_clphAC10hR = new TH1I("dx3_clphAC10hR ", "triplet dx_clphAC10hR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  TH1I * hdx3_clchargeAC20hR = new TH1I("dx3_clchargeAC20hR ", "triplet dx_clchargeAC20hR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 20% height in Landau (only high tail)
+  TH1I * hdx3_clphAC20hR = new TH1I("dx3_clphAC20hR ", "triplet dx_clphAC20hR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  TH1I * hdx3_clchargeAC30hR = new TH1I("dx3_clchargeAC30hR ", "triplet dx_clchargeAC30hR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 30% height in Landau (only high tail)
+  TH1I * hdx3_clphAC30hR = new TH1I("dx3_clphAC30hR ", "triplet dx_clphAC30hR ; dx [mm];triplets", 500, -0.5, 0.5 );
+
+  TH1I * hdx3_clchargeABC90evR = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
+  TH1I * hdx3_clphABC90evR = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  TH1I * hdx3_clchargeABC80evR = new TH1I("dx3_clchargeABC80evR ", "triplet dx_clchargeABC80evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 80% events in Landau (only high tail)
+  TH1I * hdx3_clphABC80evR = new TH1I("dx3_clphABC80evR ", "triplet dx_clphABC80evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  TH1I * hdx3_clchargeABC70evR = new TH1I("dx3_clchargeABC70evR ", "triplet dx_clchargeABC70evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 70% events in Landau (only high tail)
+  TH1I * hdx3_clphABC70evR = new TH1I("dx3_clphABC70evR ", "triplet dx_clphABC70evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+
+  TH1I * hdx3_clchargeABC10hR = new TH1I("dx3_clchargeABC10hR ", "triplet dx_clchargeABC10hR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 10% height in Landau (only high tail)
+  TH1I * hdx3_clphABC10hR = new TH1I("dx3_clphABC10hR ", "triplet dx_clphABC10hR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  TH1I * hdx3_clchargeABC20hR = new TH1I("dx3_clchargeABC20hR ", "triplet dx_clchargeABC20hR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 20% height in Landau (only high tail)
+  TH1I * hdx3_clphABC20hR = new TH1I("dx3_clphABC20hR ", "triplet dx_clphABC20hR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  TH1I * hdx3_clchargeABC30hR = new TH1I("dx3_clchargeABC30hR ", "triplet dx_clchargeABC30hR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 30% height in Landau (only high tail)
+  TH1I * hdx3_clphABC30hR = new TH1I("dx3_clphABC30hR ", "triplet dx_clphABC30hR ; dx [mm];triplets", 500, -0.5, 0.5 );
+
 
 
 
@@ -1804,11 +1827,33 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   mapOfHists.insert(std::make_pair("dx3_clphB700adc",hdx3_clphB700adc));
 
 
-  mapOfHists.insert(std::make_pair("dx3_clchargeB90evR",hdx3_clchargeB90evR));
-  mapOfHists.insert(std::make_pair("dx3_clphB90evR",hdx3_clphB90evR));
-  
-  mapOfHists.insert(std::make_pair("dx3_clchargeB10hR",hdx3_clchargeB10hR));
-  mapOfHists.insert(std::make_pair("dx3_clphB10hR",hdx3_clphB10hR));
+  mapOfHists.insert(std::make_pair("dx3_clchargeAC90evR",hdx3_clchargeAC90evR));
+  mapOfHists.insert(std::make_pair("dx3_clphAC90evR",hdx3_clphAC90evR));
+  mapOfHists.insert(std::make_pair("dx3_clchargeAC80evR",hdx3_clchargeAC80evR));
+  mapOfHists.insert(std::make_pair("dx3_clphAC80evR",hdx3_clphAC80evR));
+  mapOfHists.insert(std::make_pair("dx3_clchargeAC70evR",hdx3_clchargeAC70evR));
+  mapOfHists.insert(std::make_pair("dx3_clphAC70evR",hdx3_clphAC70evR));
+
+  mapOfHists.insert(std::make_pair("dx3_clchargeAC10hR",hdx3_clchargeAC10hR));
+  mapOfHists.insert(std::make_pair("dx3_clphAC10hR",hdx3_clphAC10hR));
+  mapOfHists.insert(std::make_pair("dx3_clchargeAC20hR",hdx3_clchargeAC20hR));
+  mapOfHists.insert(std::make_pair("dx3_clphAC20hR",hdx3_clphAC20hR));
+  mapOfHists.insert(std::make_pair("dx3_clchargeAC30hR",hdx3_clchargeAC30hR));
+  mapOfHists.insert(std::make_pair("dx3_clphAC30hR",hdx3_clphAC30hR));
+
+  mapOfHists.insert(std::make_pair("dx3_clchargeABC90evR",hdx3_clchargeABC90evR));
+  mapOfHists.insert(std::make_pair("dx3_clphABC90evR",hdx3_clphABC90evR));
+  mapOfHists.insert(std::make_pair("dx3_clchargeABC80evR",hdx3_clchargeABC80evR));
+  mapOfHists.insert(std::make_pair("dx3_clphABC80evR",hdx3_clphABC80evR));
+  mapOfHists.insert(std::make_pair("dx3_clchargeABC70evR",hdx3_clchargeABC70evR));
+  mapOfHists.insert(std::make_pair("dx3_clphABC70evR",hdx3_clphABC70evR));
+
+  mapOfHists.insert(std::make_pair("dx3_clchargeABC10hR",hdx3_clchargeABC10hR));
+  mapOfHists.insert(std::make_pair("dx3_clphABC10hR",hdx3_clphABC10hR));
+  mapOfHists.insert(std::make_pair("dx3_clchargeABC20hR",hdx3_clchargeABC20hR));
+  mapOfHists.insert(std::make_pair("dx3_clphABC20hR",hdx3_clphABC20hR));
+  mapOfHists.insert(std::make_pair("dx3_clchargeABC30hR",hdx3_clchargeABC30hR));
+  mapOfHists.insert(std::make_pair("dx3_clphABC30hR",hdx3_clphABC30hR));
 
 
 
@@ -1818,7 +1863,7 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
 }
 
 
-void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC, int nrowB, int ncolB,double xmod, unsigned iev,double xB, double yB,double xAr, double yAr, double xCr, double yCr,double dxCA,double etaA, double etaB, double etaC,TFile * histofile, TString fileName, TH1I *hclph, TH1I * hclq)
+void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC, int nrowB, int ncolB,double xmod, unsigned iev,double xB, double yB,double xAr, double yAr, double xCr, double yCr,double dxCA,double etaA, double etaB, double etaC,TFile * histofile, TString fileName, TH1I *hclphA,TH1I *hclphB,TH1I *hclphC, TH1I *hclqA, TH1I *hclqB, TH1I *hclqC)
 {
 
   if(PRINT) std::cout << "********** filling hists of "<< selection << endl;
@@ -1832,8 +1877,19 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   if(PRINT)cout << " cl B " << clusterB->size << endl;
   if(PRINT) cout << "filling in map" << endl;
 
-  if(PRINT)cout << " hclph B " << hclph->GetEntries() << endl;
-  if(PRINT)cout << " hclq B " << hclq->GetEntries() << endl;
+  if(PRINT)cout << " hclph B " << hclphB->GetEntries() << endl;
+  if(PRINT)cout << " hclq B " << hclqB->GetEntries() << endl;
+
+  TH1I * hclq[DreiMasterPlanes];
+  hclq[0]=hclqA;
+  hclq[1]=hclqB;
+  hclq[2]=hclqC;
+
+  TH1I * hclph[DreiMasterPlanes];
+  hclph[0]=hclphA;
+  hclph[1]=hclphB;
+  hclph[2]=hclphC;
+
   
   auto search =  mapOfHists.find("xA");
   if(PRINT) cout << "search" << endl;
@@ -2548,117 +2604,479 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   
-  double integral = hclq->Integral();
-  if(PRINT)   cout << " integral " << integral << endl;
-  double integral90 = 0.9*hclq->Integral(); //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
-  if(PRINT)   cout << " integral90 " << integral90 << endl;
-  int i = 0;
-  double high = 0;
-  while(integral>integral90)
-      {
-	//      cout << " while "<< i << endl;
-	integral = hclq->Integral(1,hclq->GetNbinsX()-i);
-	high = hclq->GetNbinsX()-i;
-	//cout << " integral " << integral << " low " << low << " high " << high << endl;
-	i++;
-      }
-  if(PRINT)    cout << "final integral " << integral << " high " << high << endl;
-  if(PRINT)  cout << " clusterB->q " << clusterB->q << " <= hclq->GetBinCenter(high) " << hclq->GetBinCenter(high) << endl;
-  
-  search =  mapOfHists.find("dx3_clchargeB90evR");
+  double integral[DreiMasterPlanes];
+  double integralPH[DreiMasterPlanes];
+
+  double integral90[DreiMasterPlanes];
+  double integral80[DreiMasterPlanes];
+  double integral70[DreiMasterPlanes];
+  double integralPH90[DreiMasterPlanes];
+  double integralPH80[DreiMasterPlanes];
+  double integralPH70[DreiMasterPlanes];
+
+  int high90[DreiMasterPlanes];
+  int high80[DreiMasterPlanes];
+  int high70[DreiMasterPlanes];
+  double highPH90[DreiMasterPlanes];
+  double highPH80[DreiMasterPlanes];
+  double highPH70[DreiMasterPlanes];
+
+  for(int j =0; j < DreiMasterPlanes; j++)
+    {
+      if(PRINT)   cout << " plane " << j << endl;
+      integral[j] = hclq[j]->Integral();
+      if(PRINT)   cout << " integral " << integral[j] << endl;
+
+      integralPH[j] = hclph[j]->Integral();
+      if(PRINT)   cout << " integralPH " << integralPH[j] << endl;
+
+      integral90[j] = 0.9*hclq[j]->Integral(); //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
+      if(PRINT)   cout << " integral90 " << integral90[j] << endl;
+      integral80[j] = 0.8*hclq[j]->Integral(); //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
+      integral70[j] = 0.7*hclq[j]->Integral(); //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
+
+      integralPH90[j] = 0.9*hclph[j]->Integral();
+      integralPH80[j] = 0.8*hclph[j]->Integral();
+      integralPH70[j] = 0.7*hclph[j]->Integral();
+
+      high90[j] = 0;
+      high80[j] = 0;
+      high70[j] = 0;
+      highPH90[j] = 0;
+      highPH80[j] = 0;
+      highPH70[j] = 0;
+
+
+      int i = 0;
+      while(integral[j]>integral90[j])
+	{
+	  //      cout << " while "<< i << endl;
+	  integral[j] = hclq[j]->Integral(1,hclq[j]->GetNbinsX()-i);
+	  high90[j] = hclq[j]->GetNbinsX()-i;
+	  //cout << " integral " << integral << " low " << low << " high " << high << endl;
+	  i++;
+	}
+      if(PRINT)    cout << "final integral 90 " << integral[j] << " high " << high90[j] << endl;
+      i = 0;
+      while(integral[j]>integral80[j])
+	{
+	  //      cout << " while "<< i << endl;
+	  integral[j] = hclq[j]->Integral(1,hclq[j]->GetNbinsX()-i);
+	  high80[j] = hclq[j]->GetNbinsX()-i;
+	  //cout << " integral " << integral << " low " << low << " high " << high << endl;
+	  i++;
+	}
+      if(PRINT)    cout << "final integral 80 " << integral[j] << " high " << high80[j] << endl;
+      i = 0;
+      while(integral[j]>integral70[j])
+	{
+	  //      cout << " while "<< i << endl;
+	  integral[j] = hclq[j]->Integral(1,hclq[j]->GetNbinsX()-i);
+	  high70[j] = hclq[j]->GetNbinsX()-i;
+	  //cout << " integral " << integral << " low " << low << " high " << high << endl;
+	  i++;
+	}
+      if(PRINT)    cout << "final integral 70 " << integral[j] << " high " << high70[j] << endl;
+
+      i=0;
+      while(integralPH[j]>integralPH90[j])
+	{
+	  //      cout << " while "<< i << endl;
+	  integralPH[j] = hclph[j]->Integral(1,hclph[j]->GetNbinsX()-i);
+	  highPH90[j] = hclph[j]->GetNbinsX()-i;
+	  //cout << " integral " << integral << " low " << low << " high " << high << endl;
+	  i++;
+	}
+      if(PRINT)  cout << "final integralPH 90 " << integralPH[j]  << " high " << highPH90[j] << endl;
+
+      i=0;
+      while(integralPH[j]>integralPH80[j])
+	{
+	  //      cout << " while "<< i << endl;
+	  integralPH[j] = hclph[j]->Integral(1,hclph[j]->GetNbinsX()-i);
+	  highPH80[j] = hclph[j]->GetNbinsX()-i;
+	  //cout << " integral " << integral << " low " << low << " high " << high << endl;
+	  i++;
+	}
+      if(PRINT)  cout << "final integralPH 80 " << integralPH[j]  << " high " << highPH80[j] << endl;
+
+      i=0;
+      while(integralPH[j]>integralPH70[j])
+	{
+	  //      cout << " while "<< i << endl;
+	  integralPH[j] = hclph[j]->Integral(1,hclph[j]->GetNbinsX()-i);
+	  highPH70[j] = hclph[j]->GetNbinsX()-i;
+	  //cout << " integral " << integral << " low " << low << " high " << high << endl;
+	  i++;
+	}
+      if(PRINT)  cout << "final integralPH 70 " << integralPH[j]  << " high " << highPH70[j] << endl;
+
+    }
+
+
+  search =  mapOfHists.find("dx3_clchargeAC90evR");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
     if(PRINT) std::cout << "Found " << search->first  << '\n';
 
-    if(clusterB->q <= hclq->GetBinCenter(high))
+    if(clusterA->q <= hclq[0]->GetBinCenter(high90[0]) && clusterC->q <= hclq[2]->GetBinCenter(high90[2]))
        search->second->Fill(dx3);
        
   } else {
-    if(PRINT) std::cout << "Not found "<< "dx3_clchargeB90evR" << endl;
+    if(PRINT) std::cout << "Not found "<< "dx3_clchargeAC90evR" << endl;
+  }  
+
+  search =  mapOfHists.find("dx3_clchargeABC90evR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if(clusterB->q <= hclq[1]->GetBinCenter(high90[1]) && clusterA->q <= hclq[0]->GetBinCenter(high90[0]) && clusterC->q <= hclq[2]->GetBinCenter(high90[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clchargeABC90evR" << endl;
   }
 
-  double integralPH = hclph->Integral();
-  if(PRINT)   cout << " integralPH " << integralPH << endl;
-  double integralPH90 = 0.9*hclph->Integral();
-  if(PRINT) cout << " integral90 " << integral90 << endl;
-  i=0;
-  double highPH = 0;
-  while(integralPH>integralPH90)
-    {
-      //      cout << " while "<< i << endl;
-      integralPH = hclph->Integral(1,hclph->GetNbinsX()-i);
-      highPH = hclph->GetNbinsX()-i;
-	//cout << " integral " << integral << " low " << low << " high " << high << endl;
-      i++;
-    }
-  if(PRINT)  cout << "final integralPH " << integralPH << " high " << highPH << endl;
-  if(PRINT) cout << " clusterB->q " << clusterB->sum << " <= hclq->GetBinCenter(high) " << hclph->GetBinCenter(high) << endl;
-
-
-  search =  mapOfHists.find("dx3_clphB90evR");
+  search =  mapOfHists.find("dx3_clchargeAC80evR");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
     if(PRINT) std::cout << "Found " << search->first  << '\n';
 
-    if(clusterB->sum <= hclph->GetBinCenter(highPH))
+    if(clusterA->q <= hclq[0]->GetBinCenter(high80[0]) && clusterC->q <= hclq[2]->GetBinCenter(high80[2]))
        search->second->Fill(dx3);
        
   } else {
-    if(PRINT) std::cout << "Not found "<< "dx3_clphB90evR" << endl;
+    if(PRINT) std::cout << "Not found "<< "dx3_clchargeAC80evR" << endl;
+  }
+  search =  mapOfHists.find("dx3_clchargeABC80evR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if(clusterB->q <= hclq[1]->GetBinCenter(high80[1]) && clusterA->q <= hclq[0]->GetBinCenter(high80[0]) && clusterC->q <= hclq[2]->GetBinCenter(high80[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clchargeABC80evR" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clchargeAC80evR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if(clusterA->q <= hclq[0]->GetBinCenter(high80[0]) && clusterC->q <= hclq[2]->GetBinCenter(high80[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clchargeAC80evR" << endl;
+  }
+  search =  mapOfHists.find("dx3_clchargeABC70evR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if(clusterB->q <= hclq[1]->GetBinCenter(high70[1]) && clusterA->q <= hclq[0]->GetBinCenter(high70[0]) && clusterC->q <= hclq[2]->GetBinCenter(high70[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clchargeABC70evR" << endl;
+  }
+
+
+
+  search =  mapOfHists.find("dx3_clphAC90evR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if( clusterA->sum <= hclph[0]->GetBinCenter(highPH90[0]) && clusterC->sum <= hclph[2]->GetBinCenter(highPH90[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clphAC90evR" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clphABC90evR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if(clusterB->sum <= hclph[1]->GetBinCenter(highPH90[1]) && clusterA->sum <= hclph[0]->GetBinCenter(highPH90[0]) && clusterC->sum <= hclph[2]->GetBinCenter(highPH90[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clphABC90evR" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clphAC80evR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if( clusterA->sum <= hclph[0]->GetBinCenter(highPH80[0]) && clusterC->sum <= hclph[2]->GetBinCenter(highPH80[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clphAC80evR" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clphABC80evR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if(clusterB->sum <= hclph[1]->GetBinCenter(highPH80[1]) && clusterA->sum <= hclph[0]->GetBinCenter(highPH80[0]) && clusterC->sum <= hclph[2]->GetBinCenter(highPH80[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clphABC80evR" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clphAC70evR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if( clusterA->sum <= hclph[0]->GetBinCenter(highPH70[0]) && clusterC->sum <= hclph[2]->GetBinCenter(highPH70[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clphAC70evR" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clphABC70evR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if(clusterB->sum <= hclph[1]->GetBinCenter(highPH70[1]) && clusterA->sum <= hclph[0]->GetBinCenter(highPH70[0]) && clusterC->sum <= hclph[2]->GetBinCenter(highPH70[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clphABC70evR" << endl;
   }
 
 
   //use a fit!!! - probably not needed after iso requirements
-  double maximum = hclq->GetMaximum();
-  if(PRINT)       cout << " maximum " << maximum << endl;
-  int maximumBin = hclq->GetMaximumBin();
-  if(PRINT) 	cout << " maximumBin " << maximumBin << endl;
-  i = 0;
-  high = 0;
-  double maximum10 = 0.1*hclq->GetMaximum();
-  int bin10;
-  hclq->GetBinWithContent(maximum10,bin10,maximumBin,hclq->GetNbinsX(),10);
-  if(PRINT) cout << " bin on 10 % " << bin10 << endl;
-  if(PRINT) cout << " clusterB->q " << clusterB->q << " <= hclq->GetBinCenter(high) " << hclq->GetBinCenter(bin10) << endl;
+  double maximum[DreiMasterPlanes];
+  int maximumBin[DreiMasterPlanes];
+  double maximum10[DreiMasterPlanes];
+  int bin10[DreiMasterPlanes];
+  double maximum20[DreiMasterPlanes];
+  int bin20[DreiMasterPlanes];
+  double maximum30[DreiMasterPlanes];
+  int bin30[DreiMasterPlanes];
 
-  search =  mapOfHists.find("dx3_clchargeB10hR");
+  double maximumPH[DreiMasterPlanes];
+  int maximumBinPH[DreiMasterPlanes];
+  double maximum10PH[DreiMasterPlanes];
+  int bin10PH[DreiMasterPlanes];
+  double maximum20PH[DreiMasterPlanes];
+  int bin20PH[DreiMasterPlanes];
+  double maximum30PH[DreiMasterPlanes];
+  int bin30PH[DreiMasterPlanes];
+
+
+
+  
+  for(int j =0; j < DreiMasterPlanes; j++)
+    {
+      if(PRINT)       cout << " plane " << j << endl;
+      maximum[j] = hclq[j]->GetMaximum();
+      if(PRINT)       cout << " maximum " << maximum[j] << endl;
+      maximumBin[j] = hclq[j]->GetMaximumBin();
+      if(PRINT) 	cout << " maximumBin " << maximumBin[j] << endl;
+
+      maximumPH[j] = hclph[j]->GetMaximum();
+      if(PRINT)       cout << " maximum " << maximumPH[j] << endl;
+      maximumBinPH[j] = hclph[j]->GetMaximumBin();
+      if(PRINT) 	cout << " maximumBin " << maximumBinPH[j] << endl;
+
+      
+      maximum10[j] = 0.1*hclq[j]->GetMaximum();
+      maximum20[j] = 0.2*hclq[j]->GetMaximum();
+      maximum30[j] = 0.3*hclq[j]->GetMaximum();
+      maximum10PH[j] = 0.1*hclph[j]->GetMaximum();
+      maximum20PH[j] = 0.2*hclph[j]->GetMaximum();
+      maximum30PH[j] = 0.3*hclph[j]->GetMaximum();
+
+   
+      hclq[j]->GetBinWithContent(maximum10[j],bin10[j],maximumBin[j],hclq[j]->GetNbinsX(),11);
+      if(PRINT) cout << " bin on 10 % " << bin10[j] << endl;
+   
+      hclq[j]->GetBinWithContent(maximum20[j],bin20[j],maximumBin[j],hclq[j]->GetNbinsX(),11);
+      if(PRINT) cout << " bin on 20 % " << bin20[j] << endl;
+   
+      hclq[j]->GetBinWithContent(maximum30[j],bin30[j],maximumBin[j],hclq[j]->GetNbinsX(),11);
+      if(PRINT) cout << " bin on 30 % " << bin30[j] << endl;
+
+   
+      hclph[j]->GetBinWithContent(maximum10PH[j],bin10PH[j],maximumBinPH[j],hclph[j]->GetNbinsX(),11);
+      if(PRINT) cout << " bin on 10 % " << bin10PH[j] << endl;
+   
+      hclph[j]->GetBinWithContent(maximum20PH[j],bin20PH[j],maximumBinPH[j],hclph[j]->GetNbinsX(),11);
+      if(PRINT) cout << " bin on 20 % " << bin20PH[j] << endl;
+
+     
+      hclph[j]->GetBinWithContent(maximum30PH[j],bin30PH[j],maximumBinPH[j],hclph[j]->GetNbinsX(),11);
+      if(PRINT) cout << " bin on 30 % " << bin30PH[j] << endl;
+      
+    }
+
+  search =  mapOfHists.find("dx3_clchargeAC10hR");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
     if(PRINT) std::cout << "Found " << search->first  << '\n';
 
     
-    if(clusterB->q <= hclq->GetBinCenter(bin10))
+    if( clusterA->q <= hclq[0]->GetBinCenter(bin10[0]) && clusterC->q <= hclq[2]->GetBinCenter(bin10[2]))
        search->second->Fill(dx3);
        
   } else {
-    if(PRINT) std::cout << "Not found "<< "dx3_clchargeB10hR" << endl;
+    if(PRINT) std::cout << "Not found "<< "dx3_clchargeAC10hR" << endl;
   }
 
-
-  maximum = hclph->GetMaximum();
-  if(PRINT)       cout << " maximum " << maximum << endl;
-  maximumBin = hclph->GetMaximumBin();
-  if(PRINT) 	cout << " maximumBin " << maximumBin << endl;
-  i = 0;
-  high = 0;
-  maximum10 = 0.1*hclph->GetMaximum();
-  hclph->GetBinWithContent(maximum10,bin10,maximumBin,hclph->GetNbinsX(),10);
-  if(PRINT) cout << " bin on 10 % " << bin10 << endl;
-  if(PRINT) cout << " clusterB->sum " << clusterB->sum << " <= hclq->GetBinCenter(high) " << hclph->GetBinCenter(bin10) << endl;
-
-  search =  mapOfHists.find("dx3_clphB10hR");
+  search =  mapOfHists.find("dx3_clchargeABC10hR");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
     if(PRINT) std::cout << "Found " << search->first  << '\n';
 
-    if(clusterB->sum <= hclph->GetBinCenter(bin10))
+    
+    if(clusterB->q <= hclq[1]->GetBinCenter(bin10[1]) && clusterA->q <= hclq[0]->GetBinCenter(bin10[0]) && clusterC->q <= hclq[2]->GetBinCenter(bin10[2]))
        search->second->Fill(dx3);
        
   } else {
-    if(PRINT) std::cout << "Not found "<< "dx3_clphB10hR" << endl;
+    if(PRINT) std::cout << "Not found "<< "dx3_clchargeABC10hR" << endl;
   }
 
+  search =  mapOfHists.find("dx3_clchargeAC20hR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    
+    if( clusterA->q <= hclq[0]->GetBinCenter(bin20[0]) && clusterC->q <= hclq[2]->GetBinCenter(bin20[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clchargeAC20hR" << endl;
+  }
+  search =  mapOfHists.find("dx3_clchargeABC20hR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    
+    if(clusterB->q <= hclq[1]->GetBinCenter(bin20[1]) && clusterA->q <= hclq[0]->GetBinCenter(bin20[0]) && clusterC->q <= hclq[2]->GetBinCenter(bin20[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clchargeABC20hR" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clchargeAC30hR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    
+    if( clusterA->q <= hclq[0]->GetBinCenter(bin30[0]) && clusterC->q <= hclq[2]->GetBinCenter(bin30[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clchargeAC30hR" << endl;
+  }
+  search =  mapOfHists.find("dx3_clchargeABC30hR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    
+    if(clusterB->q <= hclq[1]->GetBinCenter(bin30[1]) && clusterA->q <= hclq[0]->GetBinCenter(bin30[0]) && clusterC->q <= hclq[2]->GetBinCenter(bin30[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clchargeABC30hR" << endl;
+  }
+
+
+
+  search =  mapOfHists.find("dx3_clphABC10hR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if(clusterB->sum <= hclph[1]->GetBinCenter(bin10[1]) && clusterA->sum <= hclph[0]->GetBinCenter(bin10[0]) && clusterC->sum <= hclph[2]->GetBinCenter(bin10[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clphABC10hR" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clphAC10hR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if(clusterA->sum <= hclph[0]->GetBinCenter(bin10[0]) && clusterC->sum <= hclph[2]->GetBinCenter(bin10[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clphAC10hR" << endl;
+  }
+
+
+  search =  mapOfHists.find("dx3_clphABC20hR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if(clusterB->sum <= hclph[1]->GetBinCenter(bin20[1]) && clusterA->sum <= hclph[0]->GetBinCenter(bin20[0]) && clusterC->sum <= hclph[2]->GetBinCenter(bin20[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clphABC20hR" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clphAC20hR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if(clusterA->sum <= hclph[0]->GetBinCenter(bin20[0]) && clusterC->sum <= hclph[2]->GetBinCenter(bin20[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clphAC20hR" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clphABC30hR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if(clusterB->sum <= hclph[1]->GetBinCenter(bin30[1]) && clusterA->sum <= hclph[0]->GetBinCenter(bin30[0]) && clusterC->sum <= hclph[2]->GetBinCenter(bin30[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clphABC30hR" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clphAC30hR");
+  if(PRINT) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(PRINT) std::cout << "Found " << search->first  << '\n';
+
+    if(clusterA->sum <= hclph[0]->GetBinCenter(bin30[0]) && clusterC->sum <= hclph[2]->GetBinCenter(bin30[2]))
+       search->second->Fill(dx3);
+       
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clphAC30hR" << endl;
+  }
   
+
   if(PRINT) std::cout << "filled all hists of "<< selection << endl;
   
 }//fillControlHists
@@ -2792,9 +3210,9 @@ void bookHists()
   hclqAiii = new  TH1I( "clqAiii", "A isolated cluster charge;cluster charge [ke];A isolated clusters",100, 0, 50 );
   hclqBiii = new  TH1I( "clqBiii", "B isolated cluster charge;cluster charge [ke];B isolated clusters",100, 0, 50 );
   hclqCiii = new  TH1I( "clqCiii", "C isolated cluster charge;cluster charge [ke];C isolated clusters",100, 0, 50 );
-  hclphAiii = new  TH1I( "clqAiii", "A isolated cluster charge;cluster PH [ADC];A isolated clusters",  200, 0, 1000 );
-  hclphBiii = new  TH1I( "clqBiii", "B isolated cluster charge;cluster PH [ADC];B isolated clusters",  200, 0, 1000 );
-  hclphCiii = new  TH1I( "clqCiii", "C isolated cluster charge;cluster PH [ADC];C isolated clusters",  200, 0, 1000 );
+  hclphAiii = new  TH1I( "clphAiii", "A isolated cluster charge;cluster PH [ADC];A isolated clusters",  200, 0, 1000 );
+  hclphBiii = new  TH1I( "clphBiii", "B isolated cluster charge;cluster PH [ADC];B isolated clusters",  200, 0, 1000 );
+  hclphCiii = new  TH1I( "clphCiii", "C isolated cluster charge;cluster PH [ADC];C isolated clusters",  200, 0, 1000 );
 
 
   

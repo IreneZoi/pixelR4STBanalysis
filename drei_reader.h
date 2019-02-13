@@ -63,7 +63,7 @@ void bookHists();
 
 typedef std::map<TString, TH1*> histoMap;
 histoMap bookControlHists(TString selection, TFile * histofile);
-void fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC, int ncolB,int nrowB,double xmod,unsigned iev,double xB, double yB,double xAr, double yAr, double xCr, double yCr, double dxCA,double etaA, double etaB, double etaC, TFile * histofile, TString fileName, TH1I *hclph, TH1I *hclq);
+void fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC, int ncolB,int nrowB,double xmod,unsigned iev,double xB, double yB,double xAr, double yAr, double xCr, double yCr, double dxCA,double etaA, double etaB, double etaC, TFile * histofile, TString fileName, TH1I *hclphA,TH1I *hclphB,TH1I *hclphC, TH1I *hclqA, TH1I *hclqB, TH1I *hclqC);
 double xcoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr); 
 double ycoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pichr); 
 double eta(vector<cluster>::iterator c); 
