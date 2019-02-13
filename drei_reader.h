@@ -63,7 +63,7 @@ void bookHists();
 
 typedef std::map<TString, TH1*> histoMap;
 histoMap bookControlHists(TString selection, TFile * histofile);
-void fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC, int ncolB,int nrowB,double xmod,unsigned iev,double xB, double yB,double xAr, double yAr, double xCr, double yCr, double dxCA,double etaA, double etaB, double etaC, TFile * histofile, TString fileName);
+void fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC, int ncolB,int nrowB,double xmod,unsigned iev,double xB, double yB,double xAr, double yAr, double xCr, double yCr, double dxCA,double etaA, double etaB, double etaC, TFile * histofile, TString fileName, TH1I *hclph, TH1I *hclq);
 double xcoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr); 
 double ycoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pichr); 
 double eta(vector<cluster>::iterator c); 
@@ -149,6 +149,15 @@ TProfile * dxvsyCA;// ( "dxvsyCA", "dx vs y C-A;y [mm];<dx> [mm]",  80, -4, 4, -
 TH1I * hdyCAc;// ( "dyCAc", "Cy-Ay, cut dx;y-y [mm];cluster pairs", 200, -1, 1 );
 TProfile * dyvsyCA;// ( "dyvsyCA", "dy vs y C-A;y [mm];<dy> [mm]",  80, -4, 4, -f, f );
 TProfile * nmvsevCA;// ( "nmvsevCA", "CA matches vs time;time [events];CA matches", 3100, 0, 3100*1000, -1, 99 );
+
+//for cluster charge cuts
+TH1I * hclqAiii;// ( "clqAi", "A isolated cluster charge;cluster charge [ke];A isolatewd clusters", 	       100, 0, 50 );
+TH1I * hclqBiii;// ( "clqAi", "A isolated cluster charge;cluster charge [ke];A isolatewd clusters", 	       100, 0, 50 );
+TH1I * hclqCiii;// ( "clqAi", "A isolated cluster charge;cluster charge [ke];A isolatewd clusters", 	       100, 0, 50 );
+TH1I * hclphAiii;// ( "clqAi", "A isolated cluster charge;cluster charge [ke];A isolatewd clusters", 	       100, 0, 50 );
+TH1I * hclphBiii;// ( "clqAi", "A isolated cluster charge;cluster charge [ke];A isolatewd clusters", 	       100, 0, 50 );
+TH1I * hclphCiii;// ( "clqAi", "A isolated cluster charge;cluster charge [ke];A isolatewd clusters", 	       100, 0, 50 );
+
 
 // triplets:
 TProfile * effvsdxy;// ( "effvsdxy",		     "DUT efficiency vs triplet dxy;xy match radius [mm];DUT efficiency",		     1000, 0, 10, -0.1, 1.1 );
