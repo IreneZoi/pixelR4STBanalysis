@@ -1,5 +1,18 @@
 #!bin/bash
-dphcut=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40)
+dphcut=(3 6 9 10 11 12 13 14 15 18 20 22 25 27 30 32 35 37 40)
+dphcut2=(0 1)
+
+for l in ${dphcut2[*]}; do
+
+    for i in {2769..2773}
+    do
+	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
+	sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
+	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
+	
+    done
+
+done
 
 for l in ${dphcut[*]}; do
 #cp align/align_v2_2789.dat align/align_v3_2789.dat
@@ -13,29 +26,26 @@ for l in ${dphcut[*]}; do
 	
     done
     
-    for i in {1873..1905}
-    do
-	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
-	sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
-	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
-	
-    done
+#    for i in {1873..1905}
+#    do
+#	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
+#	sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
+#	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
+#    done
     
-    for i in {1845..1864}
-    do
-	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
-	sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
-	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
-	
-    done
+#    for i in {1845..1864}
+#    do
+#	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
+#	sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
+#	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
+#    done
     
-    for i in {1865..1869}
-    do
-	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
-	sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
-	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
-	
-    done
+#    for i in {1865..1869}
+#    do
+#	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
+#	sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
+#	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
+#    done
     
     for i in {1037..1045}
     do
@@ -46,20 +56,18 @@ for l in ${dphcut[*]}; do
     done
     
     for i in {1870..1870}
-    do
-    cp align/align_v2_${i}.dat align/align_v3_${i}.dat
-    sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
-    ./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
+#    do
+#    cp align/align_v2_${i}.dat align/align_v3_${i}.dat
+#    sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
+#    ./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
+#    done
     
-    done
-    
-    for i in {1893..1905}
-    do
-	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
-	sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
-	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
-	
-    done
+#    for i in {1893..1905}
+#    do
+#	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
+#	sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
+#	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
+#    done
     
     for i in {1026..1035}
     do
@@ -76,6 +84,7 @@ for l in ${dphcut[*]}; do
 	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
 	
     done
+
     for i in {2731..2760}
     do
 	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
@@ -83,21 +92,29 @@ for l in ${dphcut[*]}; do
 	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
 	
     done
-    for i in {1799..1820}
+
+    for i in {2769..2773}
     do
 	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
 	sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
 	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
 	
     done
+
+    #    for i in {1799..1820}
+#    do
+#	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
+#	sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
+#	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
+#    done
     
-    for i in 1822
-    do
-	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
-	sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
-	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
-	
-    done
+#    for i in 1822
+#    do
+#	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
+#	sed -i '/dphcutB/c\dphcutB '"${l}" align/align_v3_${i}.dat
+#	./drei_reader -a 3 $i | tee dphcutB${l}_scan_${i}.log      
+#    done
+
     for i in {2775..2781}
     do
 	cp align/align_v2_${i}.dat align/align_v3_${i}.dat
