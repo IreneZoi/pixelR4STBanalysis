@@ -67,9 +67,9 @@ void fillControlHists(histoMap mapOfHists, TString selection, double dx3, double
 double xcoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr); 
 double ycoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pichr); 
 double eta(vector<cluster>::iterator c); 
-double alignx(TH1I * h);
-double aligny(TH1I * h);
-double alignangle(TProfile * h);
+double alignx(TH1I * h, TString plane,TString run,int iteration);
+double aligny(TH1I * h, TString plane,TString run,int iteration);
+double alignangle(TProfile * h, TString plane,TString run,int iteration);
 
 
 TProfile phvsprev[DreiMasterPlanes];
@@ -149,6 +149,10 @@ TProfile * dxvsyCA;// ( "dxvsyCA", "dx vs y C-A;y [mm];<dx> [mm]",  80, -4, 4, -
 TH1I * hdyCAc;// ( "dyCAc", "Cy-Ay, cut dx;y-y [mm];cluster pairs", 200, -1, 1 );
 TProfile * dyvsyCA;// ( "dyvsyCA", "dy vs y C-A;y [mm];<dy> [mm]",  80, -4, 4, -f, f );
 TProfile * nmvsevCA;// ( "nmvsevCA", "CA matches vs time;time [events];CA matches", 3100, 0, 3100*1000, -1, 99 );
+
+TProfile * dx3vsx;//    = new TProfile( "dx3vsx", "dx vs x;x [mm];<dx3> [mm]", 320, -4, 4, -0.5, 0.5 );//turn
+TProfile * dx3vsy;//    = new TProfile( "dx3vsy", "dx vs y;y [mm];<dx3> [mm]",  80, -4, 4, -0.5, 0.5 );// rot
+
 
 //for cluster charge cuts
 TH1I * hclqAiii;// ( "clqAi", "A isolated cluster charge;cluster charge [ke];A isolatewd clusters", 	       100, 0, 50 );

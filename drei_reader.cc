@@ -1,4 +1,4 @@
-\
+
 // Daniel Pitzl (DESY) Sep 2017
 // Jan 2018: version for openMP (faster)
 // 3 x R4S, 25x100 or 50x50 on rot90 PCB
@@ -37,11 +37,13 @@
 #include <TProfile.h>
 #include <TProfile2D.h>
 #include <TF1.h>
+#include <TCanvas.h>
+#include <TStyle.h>
 #include "./drei_reader.h"
 
 bool PRINT = false;
-bool DOALIGNMENT = false;
-bool DPHCUT = true;
+bool DOALIGNMENT = true;
+bool DPHCUT = false;
 
 //------------------------------------------------------------------------------
 
@@ -624,6 +626,9 @@ int main( int argc, char* argv[] )
 		  double dy3 = yB - yavg;
 		  dx3 = dx3 - dx3corr*xavg; // from -dx3vsx.Fit("pol1")
 
+		  dx3vsx->Fill( xB, dx3 ); // turn
+		  dx3vsy->Fill( yB, dx3 );
+
 		  if(fabs( dx3 ) < 0.07 && fabs( dy3 ) < 0.15 && cA->iso && cB->iso && cC->iso)
 		    {
 		      hclqAiii->Fill(cA->q);
@@ -742,9 +747,12 @@ int main( int argc, char* argv[] )
 		  double dx3 = xB - xavg;
 		  double dy3 = yB - yavg;
 
+
+		  
 		  fillControlHists(beforeCorrections,"beforeCorrections",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
 		  dx3 = dx3 - dx3corr*xavg; // from -dx3vsx.Fit("pol1")
+
 
 		  double dxy = sqrt( dx3*dx3 + dy3*dy3 );
 		  fillControlHists(nocuts,"nocuts",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
@@ -773,7 +781,7 @@ int main( int argc, char* argv[] )
 				}//fabs( dxCA ) < straightTracks * beamDivergenceScaled 
 
 			      
-			      if( (cA->q >= qR) && (cC->q >= qR))
+			      if( (cA->q <= qR) && (cC->q <= qR))
 				{
 				  if(PRINT) cout << "cA->q " << cA->q << " >= qR " << qR << " && cC->q " << cC->q << "  >= qR " << endl;
 
@@ -782,17 +790,17 @@ int main( int argc, char* argv[] )
 				  fillControlHists(straightTracksY_isoAandCandB_chargerAandC,"straightTracksY_isoAandCandB_chargerAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 				  if(PRINT) cout << "straightTracksY_isoAandCandB_chargerAandC going done" << endl;
 			      
-				  if( ( cB->q >= qRB) && ( cA->q >= qR) && ( cC->q >= qR))
+				  if( ( cB->q <= qRB) && ( cA->q <= qR) && ( cC->q <= qR))
 				    {
 				      
 				      fillControlHists(straightTracksY_isoAandCandB_chargerAandCandB,"straightTracksY_isoAandCandB_chargerAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 				    }// ( cB->q >= qRB) && ( cA->q >= qR) && ( cC->q >= qR)
 
-				  if( ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
+				  if( ( cA->q >= qL || cA->q <= qR) && ( cC->q >= qL || cC->q <= qR))
 				    {
 				      fillControlHists(straightTracksY_isoAandCandB_chargeAandC,"straightTracksY_isoAandCandB_chargeAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
-				      if( (cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR))
+				      if( (cB->q >= qLB || cB->q <= qRB) && ( cA->q >= qL || cA->q <= qR) && ( cC->q >= qL || cC->q <= qR))
 					{					  
 					  fillControlHists(straightTracksY_isoAandCandB_chargeAandCandB,"straightTracksY_isoAandCandB_chargeAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 					}//(cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR)
@@ -920,6 +928,8 @@ int main( int argc, char* argv[] )
 
   if(DOALIGNMENT)
     {
+      cout << "**************** alignment iteration " << aligniteration << endl;
+      cout << "******* ALIGNA A ********" << endl;
       double newalignxA = alignxA;
       if(PRINT) cout << " newalignxA " << newalignxA << " alignxA " << alignxA << endl;
       
@@ -927,8 +937,9 @@ int main( int argc, char* argv[] )
       
       if( hdxAB->GetEntries() > 999 )
 	{
+      cout << "******* A x ********" << endl;
 	  
-	  newalignxA += alignx(hdxAB);
+      newalignxA += alignx(hdxAB,"A",runnum,aligniteration);
 	}
       else
 	cout << "  not enough statistics" << endl;
@@ -939,8 +950,10 @@ int main( int argc, char* argv[] )
       
       if(PRINT) cout << endl << hdyAB->GetTitle() << " entries " << hdyAB->GetEntries() << endl;
       if( hdyAB->GetEntries() > 999 ) {
-	cout << "  y correction " << hdyAB->GetMean() << endl;
-	newalignyA += aligny(hdyAB);
+	//cout << "  y correction " << hdyAB->GetMean() << endl;
+	cout << "******* A y ********" << endl;
+
+	newalignyA += aligny(hdyAB,"A",runnum,aligniteration);
       }
       else
 	cout << "  not enough statistics" << endl;
@@ -951,18 +964,21 @@ int main( int argc, char* argv[] )
       
       if(PRINT) cout << endl << dxvsyAB->GetTitle() << " entries " << dxvsyAB->GetEntries() << endl;
       if( aligniteration > 0 && dxvsyAB->GetEntries() > 999 ) {
-	newalignfA += alignangle(dxvsyAB);
+	cout << "******* A angle ********" << endl;
+	newalignfA += alignangle(dxvsyAB,"A",runnum,aligniteration);
       }
       else
 	cout << "  not enough" << endl;
       
       // C:
 
+      cout << "******* ALIGNA C ********" << endl;
       double newalignxC = alignxC;
   
       if(PRINT) cout << endl << hdxCB->GetTitle() << " entries " << hdxCB->GetEntries() << endl;
-      if( hdxCB->GetEntries() > 999 ) {   
-	newalignxC += alignx(hdxCB);
+      if( hdxCB->GetEntries() > 999 ) {
+	cout << "******* C x ********" << endl;
+	newalignxC += alignx(hdxCB,"C",runnum,aligniteration);
       }
       else
 	cout << "  not enough" << endl;
@@ -973,8 +989,9 @@ int main( int argc, char* argv[] )
 
       if(PRINT)      cout << endl << hdyCB->GetTitle() << " entries " << hdyCB->GetEntries() << endl;
       if( hdyCB->GetEntries() > 999 ) {
-	cout << "  y correction " << hdyCB->GetMean() << endl;
-	newalignyC += aligny(hdyCB);
+	//	cout << "  y correction " << hdyCB->GetMean() << endl;
+	cout << "******* C y ********" << endl;
+	newalignyC += aligny(hdyCB,"C",runnum,aligniteration);
       }
       else
 	cout << "  not enough" << endl;
@@ -985,7 +1002,8 @@ int main( int argc, char* argv[] )
       
       cout << endl << dxvsyCB->GetTitle() << " entries " << dxvsyCB->GetEntries() << endl;
       if( aligniteration > 0 && dxvsyCB->GetEntries() > 999 ) {
-	newalignfC += alignangle(dxvsyCB);
+	cout << "******* C angle ********" << endl;
+	newalignfC += alignangle(dxvsyCB,"C",runnum,aligniteration);
       }
       else
 	cout << "  not enough" << endl;
@@ -1056,34 +1074,194 @@ int main( int argc, char* argv[] )
 
 //------------------------------------------------------------------------------
 
-double alignx(TH1I * h)
+double alignx(TH1I * h, TString plane,TString run,int iteration)
 {
+  TString iter;
+  iter.Form("%d",iteration);
+  gROOT->SetStyle("Plain");
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(0);
+  TCanvas * c = new TCanvas("c","c",700,700);
+  c->cd();
+  c->SetFrameFillStyle(1000);
+  c->SetFrameFillColor(0);
+  gPad->SetTicks(1,1);
+
+
+  h->GetXaxis()->SetLabelFont(42);
+  h->GetXaxis()->SetLabelSize(0.025);
+  h->GetXaxis()->SetTitleSize(0.035);
+  h->GetXaxis()->SetTitleOffset(0.8);
+  h->GetXaxis()->SetTitleFont(42);
+  
+  h->GetYaxis()->SetLabelFont(42);
+  h->GetYaxis()->SetLabelSize(0.025);
+  h->GetYaxis()->SetTitleSize(0.035);
+  h->GetYaxis()->SetTitleOffset(1.4);
+  h->GetYaxis()->SetTitleFont(42);
+
+  h->SetMarkerStyle(20);
+  h->Draw("PZ");
+      
+  //important part
   TF1 * fgp0 = new TF1( "fgp0", "[0]*exp(-0.5*((x-[1])/[2])^2)+[3]", -10, 10 );
   double xpk = h->GetBinCenter( h->GetMaximumBin() );
   fgp0->SetParameter( 0, h->GetMaximum() ); // amplitude
   fgp0->SetParameter( 1, xpk ); //mean
   fgp0->SetParameter( 2, h->GetBinWidth(1) ); // sigma
   fgp0->SetParameter( 3, h->GetBinContent( hdxAB->FindBin(xpk-1) ) ); // BG
+  fgp0->SetParName(0, "amplitude");
+  fgp0->SetParName(1, "mean");
+  fgp0->SetParName(2, "sigma");
+  fgp0->SetParName(3, "BG");
   h->Fit( "fgp0", "q", "", xpk-1, xpk+1 ); // fit range around peak
+  fgp0->SetLineColor(kRed);
+  fgp0->SetLineWidth(2);
+  fgp0->Draw("same");
+  
   cout << "  Fit Gauss + BG:"
        << endl << "  area " << fgp0->GetParameter(0)
        << endl << "  mean " << fgp0->GetParameter(1)
+       << endl << "  mean error " << fgp0->GetParError(1)
        << endl << "  sigm " << fgp0->GetParameter(2)
        << endl << "  offs " << fgp0->GetParameter(3)
        << endl;
+
+  h->GetXaxis()->SetRangeUser(-0.5,0.5);
+  c->Update();
+  gStyle->SetOptFit(1111);
+  TString outputDir="/home/zoiirene/Output/alignment/";
+
+  //  TString outputDir = outputDir+"";
+  TString outputFile = outputDir+"alignx_"+plane+"_run"+run+"_iteration_"+iter;
+  c->SaveAs(outputFile+".eps");
+  c->SaveAs(outputFile+".pdf");
+  c->SaveAs(outputFile+".png");
+  c->SaveAs(outputFile+".root");
+  
+  
   return fgp0->GetParameter(1);
 }
 
 
-double aligny(TH1I * h)
+double aligny(TH1I * h, TString plane,TString run,int iteration)
 {
-  return h->GetMean();
+  TString iter;
+  iter.Form("%d",iteration);
+  gROOT->SetStyle("Plain");
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+
+  TCanvas * c = new TCanvas("c","c",700,700);
+  c->cd();
+  c->SetFrameFillStyle(1000);
+  c->SetFrameFillColor(0);
+  gPad->SetTicks(1,1);
+
+  h->GetXaxis()->SetLabelFont(42);
+  h->GetXaxis()->SetLabelSize(0.025);
+  h->GetXaxis()->SetTitleSize(0.035);
+  h->GetXaxis()->SetTitleOffset(0.8);
+  h->GetXaxis()->SetTitleFont(42);
+
+  h->GetYaxis()->SetLabelFont(42);
+  h->GetYaxis()->SetLabelSize(0.025);
+  h->GetYaxis()->SetTitleSize(0.035);
+  h->GetYaxis()->SetTitleOffset(1.4);
+  h->GetYaxis()->SetTitleFont(42);
+
+  h->SetMarkerStyle(20);
+
+  //important part
+  cout << "  Getting hist mean:"
+       << endl << "  mean " << h->GetMean()
+       << endl << "  mean error " << h->GetMeanError()
+       << endl;
+  double mean = h->GetMean();
+  h->GetXaxis()->SetRangeUser(-0.5,0.5);
+  h->Draw("PZ");
+
+
+  TString outputDir="/home/zoiirene/Output/alignment/";
+
+  //  TString outputDir = outputDir+"";
+  TString outputFile = outputDir+"aligny_"+plane+"_run"+run+"_iteration_"+iter;
+  c->SaveAs(outputFile+".eps");
+  c->SaveAs(outputFile+".pdf");
+  c->SaveAs(outputFile+".png");
+  c->SaveAs(outputFile+".root");
+
+  
+  return mean;
+
+
+
+  
 }
 
-double alignangle(TProfile * h)
+double alignangle(TProfile * h, TString plane,TString run,int iteration)
 {
+  TString iter;
+  iter.Form("%d",iteration);
+  gROOT->SetStyle("Plain");
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(0);
+  TCanvas * c = new TCanvas("c","c",700,700);
+  c->cd();
+  c->SetFrameFillStyle(1000);
+  c->SetFrameFillColor(0);
+  gPad->SetTicks(1,1);
+
+
+  h->SetTitle("");
+  h->GetXaxis()->SetLabelFont(42);
+  h->GetXaxis()->SetLabelSize(0.025);
+  h->GetXaxis()->SetTitleSize(0.035);
+  h->GetXaxis()->SetTitleOffset(0.8);
+  h->GetXaxis()->SetTitleFont(42);
+  //  h->GetXaxis()->SetRangeUser(-0.5,0.5);
+
+  h->GetYaxis()->SetLabelFont(42);
+  h->GetYaxis()->SetLabelSize(0.025);
+  h->GetYaxis()->SetTitleSize(0.035);
+  h->GetYaxis()->SetTitleOffset(1.4);
+  h->GetYaxis()->SetTitleFont(42);
+
+  h->SetMarkerStyle(20);
+  h->Draw("PZ");
+
+  //important part
   h->Fit( "pol1", "q", "", -3, 3 );
   TF1 * fdxvsy = h->GetFunction( "pol1" );
+  cout << "  Linear Fit:"
+       << endl << "  slope " << fdxvsy->GetParameter(1)
+       << endl << "  slope error " << fdxvsy->GetParError(1)
+       << endl << "  offs " << fdxvsy->GetParameter(0)
+       << endl;
+
+  fdxvsy->SetLineColor(kRed);
+  fdxvsy->SetLineWidth(2);
+  fdxvsy->Draw("same");
+  
+  
+  c->Update();
+  gStyle->SetOptFit(1111);
+  TString outputDir="/home/zoiirene/Output/alignment/";
+
+  //  TString outputDir = outputDir+"";
+  TString outputFile = outputDir+"alignf_"+plane+"_run"+run+"_iteration_"+iter;
+  c->SaveAs(outputFile+".eps");
+  c->SaveAs(outputFile+".pdf");
+  c->SaveAs(outputFile+".png");
+  c->SaveAs(outputFile+".root");
+
+  
+  
   return fdxvsy->GetParameter(1);
 }
 
@@ -1679,6 +1857,7 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   TH1I * hdx3_clsizeB6 = new TH1I("dx3_clsizeB6", "triplet dx_clsizeB6; dx [mm];triplets", 500, -0.5, 0.5 );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
   TH1I * hdx3_clsizeB7m = new TH1I("dx3_clsizeB7m", "triplet dx_clsizeB7m; dx [mm];triplets", 500, -0.5, 0.5 );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
   
+  /*
   TH1I * hdx3_clchargeB2e = new TH1I("dx3_clchargeB2e", "triplet dx_clchargeB2e; dx [mm];triplets", 500, -0.5, 0.5 );
   TH1I * hdx3_clchargeB2e5e = new TH1I("dx3_clchargeB2e5e", "triplet dx_clchargeB2e5e; dx [mm];triplets", 500, -0.5, 0.5 );
   TH1I * hdx3_clchargeB5e8e = new TH1I("dx3_clchargeB5e8e", "triplet dx_clchargeB5e8e; dx [mm];triplets", 500, -0.5, 0.5 );
@@ -1729,7 +1908,7 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   TH1I * hdx3_clphABC20hR = new TH1I("dx3_clphABC20hR ", "triplet dx_clphABC20hR ; dx [mm];triplets", 500, -0.5, 0.5 );
   TH1I * hdx3_clchargeABC30hR = new TH1I("dx3_clchargeABC30hR ", "triplet dx_clchargeABC30hR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 30% height in Landau (only high tail)
   TH1I * hdx3_clphABC30hR = new TH1I("dx3_clphABC30hR ", "triplet dx_clphABC30hR ; dx [mm];triplets", 500, -0.5, 0.5 );
-
+  */
 
 
 
@@ -1805,6 +1984,7 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   mapOfHists.insert(std::make_pair("dx3_clsizeB6",hdx3_clsizeB6));
   mapOfHists.insert(std::make_pair("dx3_clsizeB7m",hdx3_clsizeB7m));
 
+  /*
   mapOfHists.insert(std::make_pair("dx3_clchargeB2e",hdx3_clchargeB2e));
   mapOfHists.insert(std::make_pair("dx3_clchargeB2e5e",hdx3_clchargeB2e5e));
   mapOfHists.insert(std::make_pair("dx3_clchargeB5e8e",hdx3_clchargeB5e8e));
@@ -1854,7 +2034,7 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   mapOfHists.insert(std::make_pair("dx3_clphABC20hR",hdx3_clphABC20hR));
   mapOfHists.insert(std::make_pair("dx3_clchargeABC30hR",hdx3_clchargeABC30hR));
   mapOfHists.insert(std::make_pair("dx3_clphABC30hR",hdx3_clphABC30hR));
-
+  */
 
 
 
@@ -2403,6 +2583,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
 
+  /*
   search =  mapOfHists.find("dx3_clchargeB2e");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
@@ -3076,7 +3257,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clphAC30hR" << endl;
   }
   
-
+  */
   if(PRINT) std::cout << "filled all hists of "<< selection << endl;
   
 }//fillControlHists
@@ -3205,6 +3386,10 @@ void bookHists()
   hdyCAc = new  TH1I( "dyCAc", "Cy-Ay, cut dx;y-y [mm];cluster pairs", 200, -1, 1 );
   dyvsyCA = new  TProfile( "dyvsyCA", "dy vs y C-A;y [mm];<dy> [mm]",  80, -4, 4, -f, f );
   nmvsevCA = new  TProfile( "nmvsevCA", "CA matches vs time;time [events];CA matches",3100, 0, 3100*1000, -1, 99 );
+
+
+  dx3vsx    = new TProfile( "dx3vsx", "dx vs x;x [mm];<dx3> [mm]", 320, -4, 4, -0.5, 0.5 );//turn
+  dx3vsy    = new TProfile( "dx3vsy", "dx vs y;y [mm];<dx3> [mm]",  80, -4, 4, -0.5, 0.5 );// rot
   
 
   hclqAiii = new  TH1I( "clqAiii", "A isolated cluster charge;cluster charge [ke];A isolated clusters",100, 0, 50 );
