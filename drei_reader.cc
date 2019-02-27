@@ -42,7 +42,7 @@
 #include "./drei_reader.h"
 
 bool PRINT = false;
-bool DOALIGNMENT = true;
+bool DOALIGNMENT = false;
 bool DPHCUT = false;
 
 //------------------------------------------------------------------------------
@@ -1141,7 +1141,6 @@ double alignx(TH1I * h, TString plane,TString run,int iteration)
   c->SaveAs(outputFile+".png");
   c->SaveAs(outputFile+".root");
   
-  
   return fgp0->GetParameter(1);
 }
 
@@ -1154,6 +1153,7 @@ double aligny(TH1I * h, TString plane,TString run,int iteration)
   gStyle->SetPadGridX(0);
   gStyle->SetPadGridY(0);
   gStyle->SetPalette(1);
+  gStyle->SetOptStat(1);
 
   TCanvas * c = new TCanvas("c","c",700,700);
   c->cd();
@@ -1173,7 +1173,7 @@ double aligny(TH1I * h, TString plane,TString run,int iteration)
   h->GetYaxis()->SetTitleOffset(1.4);
   h->GetYaxis()->SetTitleFont(42);
 
-  h->SetMarkerStyle(20);
+  h->SetLineWidth(2);
 
   //important part
   cout << "  Getting hist mean:"
@@ -1182,7 +1182,7 @@ double aligny(TH1I * h, TString plane,TString run,int iteration)
        << endl;
   double mean = h->GetMean();
   h->GetXaxis()->SetRangeUser(-0.5,0.5);
-  h->Draw("PZ");
+  h->Draw("hist");
 
 
   TString outputDir="/home/zoiirene/Output/alignment/";
