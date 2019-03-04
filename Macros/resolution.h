@@ -3,6 +3,32 @@ Double_t tp0Fit( Double_t *x, Double_t *par );
 
 
 double G = 1E0;
+Double_t conversion = TMath::Sqrt(2./3.);
+
+void ExtractRes(Double_t *  sigma, Double_t *  sigmaerr, bool isIRR = false, Double_t sigma_fresh = 0., Double_t sigmaerr_fresh = 0.)
+{
+
+  cout << " before unfolding " << *sigma << " ± " << *sigmaerr << " um " << endl;
+  if(!isIRR)
+    {
+      *sigma *= conversion;
+      *sigmaerr *= conversion;
+    }
+  
+  if(isIRR)
+    {
+      Double_t sigma_orig = *sigma;
+      Double_t sigmaerr_orig = *sigmaerr;
+      
+      *sigma = TMath::Sqrt((2*sigma_orig*sigma_orig-sigma_fresh*sigma_fresh)/2);
+      *sigmaerr = TMath::Sqrt( 1./(*sigma)*sigma_orig*sigma_orig*sigmaerr_orig*sigmaerr_orig  + 0.25/(*sigma)*sigma_fresh*sigma_fresh*sigmaerr_fresh*sigmaerr_fresh );
+      
+    }
+    
+  cout << "after unfolding " << *sigma << " ± " << *sigmaerr << " um " << endl;
+  
+
+}
 
 void FitTH1(TH1F* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TString detectorA, TString detectorB, TString detectorC, TString func)
 {
@@ -154,8 +180,9 @@ void FitTH1(TH1F* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TSt
 	  cout << " integral " << integral << " low " << low << " high " << high << endl;
 	  cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(integral-integral95)/integral95 << endl;
 
-	  if(fabs(integral-integral95)/integral95 < 0.01)//integral>integral95)
+	  if(fabs(integral-integral95)/integral95 < 0.011 || integral>integral95)//integral>integral95)
 	    break;
+
 	 
 	}
 	  cout << "final integral " << integral << " low " << low << " high " << high << endl;
