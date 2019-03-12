@@ -1,0 +1,27 @@
+# alignment for run 3763
+iteration 5
+alignxA    -1.02522
+alignyA  -0.0767654
+alignfA   0.0132687
+alignxC    -1.04783
+alignyC  -0.0230612
+alignfC   0.0051047
+gainA /mnt/pixeldata/b/scm148-scancal1-drei-2018-06-16-ia99-hold33.dat
+gainB /mnt/pixeldata/b/scm120i-scancal1-drei-cold-2018-06-18-ia40-vb800-hold33.dat
+gainC /mnt/pixeldata/a/scm150-scancal1-tb21-2018-06-14-ia127-hold36.dat
+keA       0.043
+keB      0.0367
+keC      0.0489
+beamEnergy         5.2
+pitch          25
+qL           9
+qR          15
+qLB           9
+qRB          15
+TsunamiA           0
+TsunamiB           0
+TsunamiC           0
+dphcutA          12
+dphcutB          15
+dphcutC          12
+dx3c 0.000964576
