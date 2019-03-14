@@ -1950,8 +1950,10 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   TH1I * hdx3_clchargeAC30hR = new TH1I("dx3_clchargeAC30hR ", "triplet dx_clchargeAC30hR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 30% height in Landau (only high tail)
   TH1I * hdx3_clphAC30hR = new TH1I("dx3_clphAC30hR ", "triplet dx_clphAC30hR ; dx [mm];triplets", 500, -0.5, 0.5 );
   */
+  /*
   TH1I * hdx3_clchargeABC90evR = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
   TH1I * hdx3_clphABC90evR = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  */
   /*
   TH1I * hdx3_clchargeABC80evR = new TH1I("dx3_clchargeABC80evR ", "triplet dx_clchargeABC80evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 80% events in Landau (only high tail)
   TH1I * hdx3_clphABC80evR = new TH1I("dx3_clphABC80evR ", "triplet dx_clphABC80evR ; dx [mm];triplets", 500, -0.5, 0.5 );
@@ -2080,8 +2082,8 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   mapOfHists.insert(std::make_pair("dx3_clphAC30hR",hdx3_clphAC30hR));
   */
   
-  mapOfHists.insert(std::make_pair("dx3_clchargeABC90evR",hdx3_clchargeABC90evR));
-  mapOfHists.insert(std::make_pair("dx3_clphABC90evR",hdx3_clphABC90evR));
+  //  mapOfHists.insert(std::make_pair("dx3_clchargeABC90evR",hdx3_clchargeABC90evR));
+  //mapOfHists.insert(std::make_pair("dx3_clphABC90evR",hdx3_clphABC90evR));
   /*
   mapOfHists.insert(std::make_pair("dx3_clchargeABC80evR",hdx3_clchargeABC80evR));
   mapOfHists.insert(std::make_pair("dx3_clphABC80evR",hdx3_clphABC80evR));
@@ -2844,7 +2846,8 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clphB700adc" << endl;
   }
   */
-  
+
+  /*
   double integral[DreiMasterPlanes];
   double integralPH[DreiMasterPlanes];
 
@@ -2953,7 +2956,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
       if(PRINT)  cout << "final integralPH 70 " << integralPH[j]  << " high " << highPH70[j] << endl;
 
     }
-
+  */
   /*
   search =  mapOfHists.find("dx3_clchargeAC90evR");
   if(PRINT) cout << "search" << endl;
@@ -2968,6 +2971,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }  
 
   */
+  /*
   search =  mapOfHists.find("dx3_clchargeABC90evR");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
@@ -2979,7 +2983,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3_clchargeABC90evR" << endl;
   }
-
+  */
 
   /*
   search =  mapOfHists.find("dx3_clchargeAC80evR");
@@ -3043,6 +3047,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   */
+  /*
   search =  mapOfHists.find("dx3_clphABC90evR");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
@@ -3054,7 +3059,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3_clphABC90evR" << endl;
   }
-
+  */
 
   /*
   search =  mapOfHists.find("dx3_clphAC80evR");
