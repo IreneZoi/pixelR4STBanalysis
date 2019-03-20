@@ -1,0 +1,28 @@
+iteration 3
+    alignxA  -0.535 // [mm] same sign as dx
+    alignyA  -0.030 // [mm] same sign as dy
+    alignfA  -0.0035 // [rad] same sign dxvsy
+
+    alignxC   0.475 // [mm] same sign as dx
+    alignyC  -0.080 // [mm] same sign as dy
+    alignfC   0.0119 // [rad] same sign dxvsy
+gainA /mnt/pixeldata/a/r152-scancal-tb21-1211.dat
+gainB /mnt/pixeldata/b/r160-scancal-tb21-2017-12-11.dat
+gainC /mnt/pixeldata/c/r159-scancal-tb21-1210.dat
+keA 0.0283
+keB 0.029
+keC 0.039
+beamEnergy 6.0
+pitch 50
+qL 9
+qR 15
+qLB 9
+qRB 15
+TsunamiA 0
+TsunamiB 0
+TsunamiC 0
+dphcutA 12
+dphcutB 12
+dphcutC 12
+dx3c 0.00085
+

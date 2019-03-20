@@ -1,0 +1,27 @@
+iteration 3
+    alignxA  -1.384 // [mm] same sign as dx
+    alignyA   0.030 // [mm] same sign as dy
+    alignfA   0.0074 // [rad] same sign dxvsy
+
+    alignxC  -0.350 // [mm] same sign as dx
+    alignyC  -0.020 // [mm] same sign as dy
+    alignfC   0.0143 // [rad] same sign dxvsy
+gainA /home/cmspix/A/r158-scancal-tb21-1210.dat #missing
+gainB /home/cmspix/psi/r4s/tst10/B/r152-scancal-tb21-1210.dat
+gainC /home/cmspix/C/r159-scancal-tb21-1210.dat #missing
+keA 0.0285; // r158 thicker deep diff at 11 ke
+keB 0.0228; // r152 thicker deep diff at 11 ke
+keC 0.039; // c159
+beamEnergy 2.4
+pitch 50
+qL 9
+qR 15
+qLB 9
+qRB 15
+TsunamiA 0
+TsunamiB 0
+TsunamiC 0
+dphcutA 12 #irene
+dphcutB 12 #irene
+dphcutC 12 #irene
+dx3c 0.00082

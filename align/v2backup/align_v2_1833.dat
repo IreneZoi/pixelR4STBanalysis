@@ -1,0 +1,27 @@
+# alignment for run 1833
+iteration 62
+alignxA    -1.04094
+alignyA   -0.167633
+alignfA -9.90179e-05
+alignxC   0.0284097
+alignyC  -0.0228932
+alignfC -0.00325081
+gainA /home/cmspix/r4sclient/B/scm148-scancal2-drei-pr650-sh630-2018-03-13-hold17.dat
+gainB /home/cmspix/r4sclient/B/scm108-scancal2-drei-2018-3-15-hold24.dat
+gainC /home/cmspix/r4sclient/C/scm109-scancal2-drei-pr650-sh630-ia125-2018-03-13-hold20.dat
+keA  0.0511
+keB 0.0385
+keC 0.0463
+beamEnergy 3.6
+pitch 25
+qL  9
+qR 15
+qLB 9
+qRB 15
+TsunamiA 0.08 #approximated
+TsunamiB 0.075 #from Finn's table
+TsunamiC 0.093 #from Finn's table
+dphcutA 30
+dphcutB 15 #40 Daniel
+dphcutC 30
+dx3c 0.00064

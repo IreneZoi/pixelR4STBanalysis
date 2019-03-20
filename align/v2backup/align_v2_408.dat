@@ -1,0 +1,27 @@
+iteration 3
+    alignxA   0.418 // [mm] same sign as dx
+    alignyA  -0.20 // [mm] same sign as dy
+    alignfA   0.0075 // [rad] same sign dxvsy
+
+    alignxC  -0.776 // [mm] same sign as dx
+    alignyC   0.25 // [mm] same sign as dy
+    alignfC   0.0079 // [rad] same sign dxvsy
+gainA /home/cmspix/A/r113-scancal-tb21-0923.dat #missing
+gainB /home/cmspix/psi/r4s/tst10/B/r108-scancal-tb21-0923-hold25.dat
+gainC /home/cmspix/C/r110-scancal-tb21-0923-hold25.dat #missing
+keA 0.039 #to be checked
+keB 0.0276 #to be checked - different calib files
+keC 0.0366 #to be checked - different calib files
+beamEnergy 4.8
+pitch 25
+qL 9
+qR 15
+qLB 9
+qRB 15
+TsunamiA 0
+TsunamiB 0
+TsunamiC 0
+dphcutA 30 #irene
+dphcutB 30 #irene
+dphcutC 30 #irene
+dx3c 0 #not given
