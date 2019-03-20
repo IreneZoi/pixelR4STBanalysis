@@ -282,7 +282,7 @@ int main( int argc, char* argv[] )
       //      stringstream stream;
       //stream << fixed << setprecision(3) << dphcut[1];
       //string s = stream.str();
-      fileName.Form( "/home/zoiirene/Output/drei-r%i_irene_dphcutB%i.root", run,i_dph);
+      fileName.Form( "/home/zoiirene/Output/drei-r%i_irene_dphcut%i.root", run,i_dph);
     }
   TFile * histoFile = new TFile( fileName, "RECREATE" ); //Form( "/home/zoiirene/Output/drei-r%i_irene.root", run ), "RECREATE" );
 
@@ -354,6 +354,25 @@ int main( int argc, char* argv[] )
   list < vector < cluster > > evlistC;
 
   //#pragma omp sections // test, not parallel
+  /* oneplane function: for each plane                                                                                                                                                                                                                                        
+- Read data file & assemble pixel hits                                                                                                                                                                                                                                        
+- Skip noisy events with more than 400 hits                                                                                                                                                                                                                                    
+- Tsunami correction                                                                                                                                                                                                                                                           
+- Common mode correction (column-wise)                                                                                                                                                                                                                                         
+  - in roc coordinates                                                                                                                                                                                                                                                         
+  - we read along one column                                                                                                                                                                                                                                                   
+  - a roi is 7 pixels long                                                                                                                                                                                                                                                    
+  - we find the pixel with the highest and lowest row index in one column                                                                                                                                                                                                     
+  - we assume there is no significant charge in these pixels                                                                                                                                                                                                                   
+  - we take the average pulse height of these two pixels and subtract it from those in between  dph_i = ph_i - (ph_up + ph_low)/2                                                                                                                                              
+- Continue analysis if dph> dphcut                                                                                                                                                                                                                                             
+  - for each sample we use the cut yielding the best resolution                                                                                                                                                                                                                
+  - 25 vs 50                                                                                                                                                                                                                                                                   
+  - Conversion from ADC to ke (updated for Vcal offset correction - as Finn)                                                                                                                                                                                                   
+- Clustering for events with less than 50 hits (speeding)                                                                                                                                                                                                                      
+  - From a seed pixel add to it all adjacent pixels with a hit                                                                                                                                                                                                                 
+  - Evaluating the cluster isolation                                                                                                                                                                                                                                           
+  */
 #pragma omp parallel sections
   {
 #pragma omp section
@@ -1116,7 +1135,7 @@ double alignx(TH1I * h, TString plane,TString run,int iteration)
   fgp0->SetParName(1, "mean");
   fgp0->SetParName(2, "sigma");
   fgp0->SetParName(3, "BG");
-  h->Fit( "fgp0", "q", "", xpk-1, xpk+1 ); // fit range around peak
+  h->Fit( "fgp0", "qI", "", xpk-1, xpk+1 ); // fit range around peak
   fgp0->SetLineColor(kRed);
   fgp0->SetLineWidth(2);
   fgp0->Draw("same");
@@ -1355,7 +1374,25 @@ vector<cluster> getClus( vector <pixel> pb, int fCluCut ) // 1 = no gap
   return v;
 }//getClus
 
-
+/* oneplane function: for each plane 
+- Read data file & assemble pixel hits
+- Skip noisy events with more than 400 hits
+- Tsunami correction
+- Common mode correction (column-wise)
+  - in roc coordinates
+  - we read along one column
+  - a roi is 7 pixels long
+  - we find the pixel with the highest and lowest row index in one column
+  - we assume there is no significant charge in these pixels
+  - we take the average pulse height of these two pixels and subtract it from those in between  dph_i = ph_i - (ph_up + ph_low)/2
+- Continue analysis if dph> dphcut
+  - for each sample we use the cut yielding the best resolution
+  - 25 vs 50
+  - Conversion from ADC to ke (updated for Vcal offset correction - as Finn)
+- Clustering for events with less than 50 hits (speeding)
+  - From a seed pixel add to it all adjacent pixels with a hit
+  - Evaluating the cluster isolation
+*/
 list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bool fifty, double Tsunami, double dphcut )
 {
   int run = stoi( runnum );
@@ -1879,8 +1916,9 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   TH1I * hdx3_clphB500adc600adc = new TH1I("dx3_clphB500adc600adc", "triplet dx_clphB500adc600adc; dx [mm];triplets", 500, -0.5, 0.5 );
   TH1I * hdx3_clphB600adc700adc = new TH1I("dx3_clphB600adc700adc", "triplet dx_clphB600adc700adc; dx [mm];triplets", 500, -0.5, 0.5 );
   TH1I * hdx3_clphB700adc = new TH1I("dx3_clphB700adc", "triplet dx_clphB700adc; dx [mm];triplets", 500, -0.5, 0.5 );
+  */
 
-
+  /*
   TH1I * hdx3_clchargeAC90evR = new TH1I("dx3_clchargeAC90evR ", "triplet dx_clchargeAC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
   TH1I * hdx3_clphAC90evR = new TH1I("dx3_clphAC90evR ", "triplet dx_clphAC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
   TH1I * hdx3_clchargeAC80evR = new TH1I("dx3_clchargeAC80evR ", "triplet dx_clchargeAC80evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 80% events in Landau (only high tail)
@@ -1888,15 +1926,17 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   TH1I * hdx3_clchargeAC70evR = new TH1I("dx3_clchargeAC70evR ", "triplet dx_clchargeAC70evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 70% events in Landau (only high tail)
   TH1I * hdx3_clphAC70evR = new TH1I("dx3_clphAC70evR ", "triplet dx_clphAC70evR ; dx [mm];triplets", 500, -0.5, 0.5 );
 
+
   TH1I * hdx3_clchargeAC10hR = new TH1I("dx3_clchargeAC10hR ", "triplet dx_clchargeAC10hR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 10% height in Landau (only high tail)
   TH1I * hdx3_clphAC10hR = new TH1I("dx3_clphAC10hR ", "triplet dx_clphAC10hR ; dx [mm];triplets", 500, -0.5, 0.5 );
   TH1I * hdx3_clchargeAC20hR = new TH1I("dx3_clchargeAC20hR ", "triplet dx_clchargeAC20hR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 20% height in Landau (only high tail)
   TH1I * hdx3_clphAC20hR = new TH1I("dx3_clphAC20hR ", "triplet dx_clphAC20hR ; dx [mm];triplets", 500, -0.5, 0.5 );
   TH1I * hdx3_clchargeAC30hR = new TH1I("dx3_clchargeAC30hR ", "triplet dx_clchargeAC30hR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 30% height in Landau (only high tail)
   TH1I * hdx3_clphAC30hR = new TH1I("dx3_clphAC30hR ", "triplet dx_clphAC30hR ; dx [mm];triplets", 500, -0.5, 0.5 );
-
+  */
   TH1I * hdx3_clchargeABC90evR = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
   TH1I * hdx3_clphABC90evR = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  /*
   TH1I * hdx3_clchargeABC80evR = new TH1I("dx3_clchargeABC80evR ", "triplet dx_clchargeABC80evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 80% events in Landau (only high tail)
   TH1I * hdx3_clphABC80evR = new TH1I("dx3_clphABC80evR ", "triplet dx_clphABC80evR ; dx [mm];triplets", 500, -0.5, 0.5 );
   TH1I * hdx3_clchargeABC70evR = new TH1I("dx3_clchargeABC70evR ", "triplet dx_clchargeABC70evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 70% events in Landau (only high tail)
@@ -2005,8 +2045,9 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   mapOfHists.insert(std::make_pair("dx3_clphB500adc600adc",hdx3_clphB500adc600adc));
   mapOfHists.insert(std::make_pair("dx3_clphB600adc700adc",hdx3_clphB600adc700adc));
   mapOfHists.insert(std::make_pair("dx3_clphB700adc",hdx3_clphB700adc));
+  */
 
-
+  /*
   mapOfHists.insert(std::make_pair("dx3_clchargeAC90evR",hdx3_clchargeAC90evR));
   mapOfHists.insert(std::make_pair("dx3_clphAC90evR",hdx3_clphAC90evR));
   mapOfHists.insert(std::make_pair("dx3_clchargeAC80evR",hdx3_clchargeAC80evR));
@@ -2014,15 +2055,18 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   mapOfHists.insert(std::make_pair("dx3_clchargeAC70evR",hdx3_clchargeAC70evR));
   mapOfHists.insert(std::make_pair("dx3_clphAC70evR",hdx3_clphAC70evR));
 
+
   mapOfHists.insert(std::make_pair("dx3_clchargeAC10hR",hdx3_clchargeAC10hR));
   mapOfHists.insert(std::make_pair("dx3_clphAC10hR",hdx3_clphAC10hR));
   mapOfHists.insert(std::make_pair("dx3_clchargeAC20hR",hdx3_clchargeAC20hR));
   mapOfHists.insert(std::make_pair("dx3_clphAC20hR",hdx3_clphAC20hR));
   mapOfHists.insert(std::make_pair("dx3_clchargeAC30hR",hdx3_clchargeAC30hR));
   mapOfHists.insert(std::make_pair("dx3_clphAC30hR",hdx3_clphAC30hR));
-
+  */
+  
   mapOfHists.insert(std::make_pair("dx3_clchargeABC90evR",hdx3_clchargeABC90evR));
   mapOfHists.insert(std::make_pair("dx3_clphABC90evR",hdx3_clphABC90evR));
+  /*
   mapOfHists.insert(std::make_pair("dx3_clchargeABC80evR",hdx3_clchargeABC80evR));
   mapOfHists.insert(std::make_pair("dx3_clphABC80evR",hdx3_clphABC80evR));
   mapOfHists.insert(std::make_pair("dx3_clchargeABC70evR",hdx3_clchargeABC70evR));
@@ -2034,8 +2078,8 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   mapOfHists.insert(std::make_pair("dx3_clphABC20hR",hdx3_clphABC20hR));
   mapOfHists.insert(std::make_pair("dx3_clchargeABC30hR",hdx3_clchargeABC30hR));
   mapOfHists.insert(std::make_pair("dx3_clphABC30hR",hdx3_clphABC30hR));
-  */
 
+  */
 
 
   
@@ -2783,7 +2827,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3_clphB700adc" << endl;
   }
-
+  */
   
   double integral[DreiMasterPlanes];
   double integralPH[DreiMasterPlanes];
@@ -2894,7 +2938,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 
     }
 
-
+  /*
   search =  mapOfHists.find("dx3_clchargeAC90evR");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
@@ -2907,6 +2951,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clchargeAC90evR" << endl;
   }  
 
+  */
   search =  mapOfHists.find("dx3_clchargeABC90evR");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
@@ -2919,6 +2964,8 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clchargeABC90evR" << endl;
   }
 
+
+  /*
   search =  mapOfHists.find("dx3_clchargeAC80evR");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
@@ -2979,6 +3026,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clphAC90evR" << endl;
   }
 
+  */
   search =  mapOfHists.find("dx3_clphABC90evR");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
@@ -2991,6 +3039,8 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clphABC90evR" << endl;
   }
 
+
+  /*
   search =  mapOfHists.find("dx3_clphAC80evR");
   if(PRINT) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
@@ -3256,8 +3306,8 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3_clphAC30hR" << endl;
   }
-  
   */
+
   if(PRINT) std::cout << "filled all hists of "<< selection << endl;
   
 }//fillControlHists
