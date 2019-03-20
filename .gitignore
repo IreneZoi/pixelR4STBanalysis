@@ -6,3 +6,15 @@ A/*
 B/*
 obj/*
 rdroi
+log/
+*.log
+align/*v3*
+drei_align
+drei_reader
+drei
+edges4
+drei_irene.cc
+analyse*.sh
+Macros/OldOutputFormat/*
+Macros/bestRes.C.bckp
+Macros/resolutionSummary_25_gain1.C.bckp
