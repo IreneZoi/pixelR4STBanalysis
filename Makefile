@@ -86,6 +86,11 @@ drei_reader: drei_reader.cc
 	-Wall -O2 -o drei_reader $(ROOTGLIBS)
 	@echo 'done: drei_reader'
 
+drei_align: drei_align.cc
+	g++ $(ROOTCFLAGS) drei_align.cc \
+	-Wall -O2 -o drei_align $(ROOTGLIBS)
+	@echo 'done: drei_align'
+
 zweiAB: zweiAB.cc
 	g++ $(ROOTCFLAGS) zweiAB.cc \
 	-Wall -O2 -o zweiAB $(ROOTGLIBS)
