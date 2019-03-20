@@ -1,4 +1,5 @@
 //void FitTH1(TH1F* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TString detectorA, TString detectorB, TString detectorC, TString func );
+#include<bits/stdc++.h> 
 Double_t tp0Fit( Double_t *x, Double_t *par );
 
 
@@ -46,20 +47,23 @@ void FitTH1(TH1F* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TSt
   c->cd();
   c->SetFrameFillStyle(1000);
   c->SetFrameFillColor(0);
+  c->SetLeftMargin(0.15);
+  c->SetRightMargin(0.15);
+  c->SetBottomMargin(0.2);
   gPad->SetTicks(1,1);
 
 
   h1->SetTitle("");
   h1->GetXaxis()->SetLabelFont(42);
-  h1->GetXaxis()->SetLabelSize(0.025);
-  h1->GetXaxis()->SetTitleSize(0.035);
+  h1->GetXaxis()->SetLabelSize(0.04);
+  h1->GetXaxis()->SetTitleSize(0.05);
   h1->GetXaxis()->SetTitleOffset(0.8);
   h1->GetXaxis()->SetTitleFont(42);
 
   h1->GetYaxis()->SetLabelFont(42);
-  h1->GetYaxis()->SetLabelSize(0.025);
-  h1->GetYaxis()->SetTitleSize(0.035);
-  h1->GetYaxis()->SetTitleOffset(1.4);
+  h1->GetYaxis()->SetLabelSize(0.04);
+  h1->GetYaxis()->SetTitleSize(0.05);
+  h1->GetYaxis()->SetTitleOffset(1.);
   h1->GetYaxis()->SetTitleFont(42);
 
   h1->GetYaxis()->SetTitle("Entries");
@@ -190,10 +194,40 @@ void FitTH1(TH1F* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TSt
 
       cout << "final integral " << integral << " low " << low <<" high " << high << endl;
       h1->GetXaxis()->SetRange(low,high);
+
       *sigma = h1->GetRMS() * 1000;
       *sigmaerr = h1->GetRMSError() * 1000;
       cout << " resolution " << *sigma << " ± " << *sigmaerr << endl;
-      gStyle->SetOptStat(1111);
+      TString mean;
+      std::ostringstream sstream_mean;
+      sstream_mean << setprecision(2) << h1->GetMean();// * 1000;
+      mean = sstream_mean.str();
+      TString meanerr;
+      std::ostringstream sstream_meanerr;
+      sstream_meanerr << setprecision(1) << h1->GetMeanError();// * 1000;
+      meanerr = sstream_meanerr.str();
+      
+      TString rms;
+      std::ostringstream sstream_rms;
+      sstream_rms << setprecision(3) << h1->GetRMS() * 1000;
+      rms = sstream_rms.str();
+      
+      TString rmserr;
+      std::ostringstream sstream_rmserr;
+      sstream_rmserr << setprecision(1) << h1->GetRMSError() * 1000;
+      rmserr = sstream_rmserr.str();
+      //      TGaxis::SetMaxDigits(2)      ;
+      gStyle->SetOptStat(0);
+      TLatex Tl2;
+      Tl2.SetTextAlign(12);
+      Tl2.SetTextSize(0.04);
+      Tl2.DrawLatexNDC(0.23,0.7," #mu = "+mean+" mm");
+      Tl2.DrawLatexNDC(0.23,0.62," #sigma = "+rms+" #pm "+rmserr+" #mum");
+      //Tl2.DrawLatexNDC(0.6,0.54,"|#Delta #eta |< 1.3");
+      //Tl2.DrawLatexNDC(0.6,0.51,"m_{jj} > 1050 GeV");
+      //Tl2.DrawLatexNDC(0.6,0.48,"65 GeV < M_{SD} < 105 GeV");
+      
+
     }
   //  h1->GetXaxis()->SetLimits(-0.02,0.02);
   c->Update();
