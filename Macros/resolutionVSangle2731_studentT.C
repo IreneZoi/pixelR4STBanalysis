@@ -76,11 +76,7 @@ void resolutionVSangle2731_studentT(TString function = "RMS")
 
   GetHists(&res_map,Angles, dphcuts, comparisons,dphcut, Run, i_dphcut, Label, Hist, h_res);
 
-
-
-
-
-  
+ 
   if(print) cout << "Fit:"  << endl;
   
   ofstream myfile;
@@ -117,10 +113,6 @@ void resolutionVSangle2731_studentT(TString function = "RMS")
 
   DrawTGraphWithErrorDouble(Angles, Angle, Resolution, ResolutionError, Hist,"2743", Label[0], "angleScan_rms", "RMS 95% [#mum]",-7.,29.,0.,8., "angleScan", "Angle [degrees]"  );
 
-  double conversion = TMath::Sqrt(2./3.);
-  if(print) cout << "scaling residual to get resolution " <<  conversion <<endl;
-
-
   ofstream myfile2;
   myfile2.open ("/home/zoiirene/Output/TextFiles/Ascan_res_"+detectorB+"_"+function+".txt");
   myfile2 << "A " << detectorA << "\n";
@@ -132,12 +124,11 @@ void resolutionVSangle2731_studentT(TString function = "RMS")
   myfile2 << info << "\n";
   myfile2 << "Angle Resolution(um) Error\n";
 
-
   for(int i=0; i<Angles; i++)
     {
+
       if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << endl;
-      Resolution[i] = conversion*Resolution[i];
-      ResolutionError[i] = conversion*ResolutionError[i];
+      ExtractRes(&(Resolution[i]),&(ResolutionError[i]));
       if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << endl;
       myfile2 << " " << Angle[i] << " " << Resolution[i] << " " << ResolutionError[i] << "\n";
     }
@@ -147,287 +138,53 @@ void resolutionVSangle2731_studentT(TString function = "RMS")
   DrawTGraphWithErrorDouble(Angles, Angle, Resolution, ResolutionError, Hist,"2743", Label[0], "angleScan_res", "Resolution [#mum]",-7.,29.,0.,8., "angleScan", "Angle [degrees]"  );
   
 
-  /*
-  //*******************res plot
-  TCanvas *c2 = new TCanvas("c2", "resolution vs angle", 1500, 900);
-  gPad->SetTicks(1,1);
-  gROOT->SetStyle("Plain");
-  gStyle->SetPadGridX(0);
-  gStyle->SetPadGridY(0);
-  gStyle->SetPalette(1);
-  gStyle->SetOptStat(0);
-  gStyle->SetOptTitle(0);
 
-  TGraph* resolutionPlot = new TGraphErrors(Angles,Angle,Resolution,AngleError,ResolutionError);
 
-  resolutionPlot->SetTitle(" ");
-  resolutionPlot->GetYaxis()->SetTitle("RMS 95% [#mum]");
-  resolutionPlot->GetXaxis()->SetTitle("Angle [degrees]");
-  resolutionPlot->SetMarkerSize(2.5);
-  resolutionPlot->SetLineColor(2);
-  resolutionPlot->SetMarkerColor(2);
-  resolutionPlot->SetMarkerStyle(20);
-  resolutionPlot->SetLineWidth(2);
-  resolutionPlot->SetLineStyle(2);
-  resolutionPlot->GetXaxis()->SetRangeUser(-7.,29.);
-  resolutionPlot->GetYaxis()->SetRangeUser(0.,10.);
-  resolutionPlot->Draw("AE1P");
 
-  TLegend* leg2 = new TLegend(0.35,0.55,0.75,0.75);
-  leg2->SetLineColor(0);
-  leg2->SetTextSize(0.03);
-  leg2->AddEntry(resolutionPlot,"c"+detectorB+" "+labelB , "ep");
-  leg2->AddEntry(resolutionPlot,"A: c"+detectorA+" "+labelA ,"");
-  leg2->AddEntry(resolutionPlot,"C: c"+detectorC+" "+labelC ,"");
-  leg2->AddEntry(resolutionPlot,info ,"");
-  leg2->Draw();
+  Hist = "nrowB";
+  GetHists(&res_map,Angles, dphcuts, comparisons,dphcut, Run, i_dphcut, Label, Hist, h_res);
 
+  Double_t NrowB[Angles];
+  Double_t NrowBerror[Angles];
+  for(int i=0; i<Angles; i++)
+    {
+      auto it2 = res_map.find(std::make_pair(Run[i]+"_"+ss_dphcut[0]+"_"+Label[0],Hist));
+      if(it2  != res_map.end())
+	{
+	  if(print)               cout << " found map " << endl;
+	  if(print)               cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
+
+	  
+
+	  NrowB[i] = it2->second->GetMean();
+	  NrowBerror[i] = it2->second->GetMeanError();
+
+	  if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> nrowB: " << NrowB[i] << " and err: " << NrowBerror[i] << endl;
+
+	}
+      
+    }
+  DrawTGraphWithErrorDouble(Angles, TanAngle, NrowB, NrowBerror, Hist,"2743", Label[0], "angleScan_nrowB_vs_tanangle", "nrowB",-7.,29.,0.,5., "angleScan", "Tan angle"  );
+  DrawTGraphWithErrorDouble(Angles, Angle, NrowB, NrowBerror, Hist,"2743", Label[0], "angleScan_nrowB_vs_angle", "nrowB",-7.,29.,0.,5., "angleScan", "Angle [degrees]"  );
   
-  c2->SaveAs(outputDir+"Res_"+function+"_vs_angle_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".eps");
-  c2->SaveAs(outputDir+"Res_"+function+"_vs_angle_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".pdf");
-  c2->SaveAs(outputDir+"Res_"+function+"_vs_angle_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".png");
-  c2->SaveAs(outputDir+"Res_"+function+"_vs_angle_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".root");
-
-
-  //*******************size plot
-  TCanvas *c3 = new TCanvas("c3", "Mean Number of columns vs angle", 1500, 900);
-  gPad->SetTicks(1,1);
-  gROOT->SetStyle("Plain");
-  gStyle->SetPadGridX(0);
-  gStyle->SetPadGridY(0);
-  gStyle->SetPalette(1);
-  gStyle->SetOptStat(0);
-  gStyle->SetOptTitle(0);
-
-  TGraph* NcolPlot = new TGraphErrors(Angles,Angle,Ncol,AngleError,NcolError);
-
-  NcolPlot->SetTitle(" ");
-  NcolPlot->GetYaxis()->SetTitle("Mean Number of columns");
-  NcolPlot->GetXaxis()->SetTitle("Angle [degrees]");
-  NcolPlot->SetMarkerSize(2.5);
-  NcolPlot->SetLineColor(kBlue);
-  NcolPlot->SetMarkerColor(kBlue);
-  NcolPlot->SetMarkerStyle(20);
-  NcolPlot->SetLineWidth(2);
-  NcolPlot->SetLineStyle(2);
-  NcolPlot->GetXaxis()->SetRangeUser(0.,29.);
-  NcolPlot->GetYaxis()->SetRangeUser(0.,3.);
-  NcolPlot->Draw("AEPL");
-
-  TLegend* leg3 = new TLegend(0.65,0.4,0.75,0.5);
-  leg3->SetLineColor(0);
-  leg3->SetTextSize(0.03);
-  leg3->AddEntry(NcolPlot,"DUT "+detectorB , "ep");
-  leg3->Draw();
-
-  
-  c3->SaveAs(outputDir+"Ncol_vs_angle_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".eps");
-  c3->SaveAs(outputDir+"Ncol_vs_angle_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".root");
-
-  //*******************size plot vs tang
+  Hist = "clsizeB";
+  GetHists(&res_map,Angles, dphcuts, comparisons,dphcut, Run, i_dphcut, Label, Hist, h_res);
 
   for(int i=0; i<Angles; i++)
-    cout << " Angle " <<  Angle[i] << " TanAngle " <<  TanAngle[i] << endl;
-       
-
-  TCanvas *c5 = new TCanvas("c5", "Number of columns vs tan angle", 1500, 900);
-  gPad->SetTicks(1,1);
-  gROOT->SetStyle("Plain");
-  gStyle->SetPadGridX(0);
-  gStyle->SetPadGridY(0);
-  gStyle->SetPalette(1);
-  gStyle->SetOptStat(0);
-  gStyle->SetOptTitle(0);
-
-  TGraph* NcolTanPlot = new TGraphErrors(Angles,TanAngle,Ncol,TanAngleError,NcolError);
-
-  NcolTanPlot->SetTitle(" ");
-  NcolTanPlot->GetYaxis()->SetTitle("Mean Number of columns");
-  NcolTanPlot->GetXaxis()->SetTitle("Tan(Angle)");
-  NcolTanPlot->SetMarkerSize(2.5);
-  NcolTanPlot->SetLineColor(kBlue);
-  NcolTanPlot->SetMarkerColor(kBlue);
-  NcolTanPlot->SetMarkerStyle(20);
-  NcolTanPlot->SetLineWidth(2);
-  NcolTanPlot->SetLineStyle(2);
-  //  NcolTanPlot->GetXaxis()->SetRangeUser(0.017,0.018);
-  NcolTanPlot->GetXaxis()->SetLimits(0.,0.6);
-  NcolTanPlot->GetYaxis()->SetRangeUser(0.,3.);
-  NcolTanPlot->Draw("AEPL");
-  NcolTanPlot->Fit("pol1");
-  NcolTanPlot->Draw("ALPEsame");
-
-  TLegend* leg4 = new TLegend(0.65,0.4,0.75,0.5);
-  leg4->SetLineColor(0);
-  leg4->SetTextSize(0.03);
-  leg4->AddEntry(NcolTanPlot,"DUT "+detectorB , "ep");
-  leg4->Draw();
-
-  
-  c5->SaveAs(outputDir+"Ncol_vs_tanangle_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".eps");
-  c5->SaveAs(outputDir+"Ncol_vs_tanangle_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".root");
-
-  /*
-  TCanvas *c = new TCanvas("c", "resolution vs inverse beam energy", 1500, 900);
-  gPad->SetTicks(1,1);
-  TGraph* resolutionPlotInv = new TGraphErrors(Angles,BeamEnergyInverse,Resolution,BeamEnergyError,ResolutionError);
-
-  resolutionPlotInv->SetTitle(" ");
-  resolutionPlotInv->GetYaxis()->SetTitle("Resolution [#mum]");
-  resolutionPlotInv->GetXaxis()->SetTitle("1/Beam Energy [GeV^{-1}]");
-  resolutionPlotInv->SetMarkerSize(2.5);
-  resolutionPlotInv->SetLineColor(2);
-  resolutionPlotInv->SetMarkerColor(2);
-  resolutionPlotInv->SetMarkerStyle(20);
-  resolutionPlotInv->SetLineWidth(2);
-  resolutionPlotInv->SetLineStyle(2);
-  resolutionPlotInv->GetYaxis()->SetRangeUser(0.,20.);
-  resolutionPlotInv->GetXaxis()->SetLimits(0.,1.);
-
-  //  TF1 *fit1 = new TF1("fit1","pol1", 0.15, 1.255); 
-  TF1 *fit1 = new TF1("fit1","sqrt([0]*[0]+([1]*x)*([1]*x))", 0., 0.8); 
-  fit1->SetLineColor(kBlue);
-  fit1->SetParameter(0,3);
-  fit1->SetParameter(1,15);
-  fit1->SetParName(0,"#sigma_{hit}");
-  fit1->SetParName(1,"#sigma_{MS}");
-  
-  resolutionPlotInv->Fit("fit1","R");
-  resolutionPlotInv->Draw("AEP");
-
-  // TPaveStats * ps = (TPaveStats *)fit1->FindObject("stats");
-  // ps->SetX1NDC(0.2);
-  // ps->SetX2NDC(0.2);
-  gStyle->SetStatX(0.5);
-  gStyle->SetStatY(0.85);
-  
-  TLegend* leg = new TLegend(0.65,0.4,0.75,0.6);
-  leg->SetLineColor(0);
-  leg->SetTextSize(0.03);
-  leg->AddEntry(resolutionPlotInv,"DUT "+detectorB , "ep");
-  //  leg->AddEntry(fit1,"p_{0}+x*p_{1}" , "l");
-  leg->AddEntry(fit1,"#sqrt{#sigma_{hit}^{2}+(#sigma_{MS}/p)^{2}}" , "l");
-  leg->Draw();
-
-  c->SaveAs("/home/irene/Documents/CMS_material/DESY_TB/Plot/Res_vs_InvEnergy_newFit_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".png");  
-  c->SaveAs("/home/irene/Documents/CMS_material/DESY_TB/Plot/Res_vs_InvEnergy_newFit_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".eps");
-  c->SaveAs("/home/irene/Documents/CMS_material/DESY_TB/Plot/Res_vs_InvEnergy_newFit_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".pdf");
-
-
-  TCanvas *c4 = new TCanvas("c4", "resolution vs inverse beam energy squared", 1500, 900);
-  gPad->SetTicks(1,1);
-
-  TGraph* resolutionPlotInvGeorg = new TGraphErrors(Angles,BeamEnergyInverseSquare,ResolutionSquare,BeamEnergyError,ResolutionErrorSquare);
-
-  resolutionPlotInvGeorg->SetTitle(" ");
-  resolutionPlotInvGeorg->GetYaxis()->SetTitle("Resolution^{2} [#mum^{2}]");
-  resolutionPlotInvGeorg->GetXaxis()->SetTitle("1/(Beam Energy)^{2} [GeV^{-2}]");
-  resolutionPlotInvGeorg->SetMarkerSize(2.5);
-  resolutionPlotInvGeorg->SetLineColor(2);
-  resolutionPlotInvGeorg->SetMarkerColor(2);
-  resolutionPlotInvGeorg->SetMarkerStyle(20);
-  resolutionPlotInvGeorg->SetLineWidth(2);
-  resolutionPlotInvGeorg->SetLineStyle(2);
-  //  resolutionPlotInvGeorg->GetYaxis()->SetRangeUser(0.,40.);
-  resolutionPlotInvGeorg->GetXaxis()->SetLimits(0.,1.);
-
-  //  TF1 *fit1 = new TF1("fit1","pol1", 0.15, 1.255); 
-  TF1 *fit3 = new TF1("fit3","pol1", 0., 0.8); 
-  fit3->SetLineColor(kBlue);
-  //  fit1->SetParameter(0,3);
-  //fit1->SetParameter(1,15);
-  fit3->SetParName(0,"#sigma_{hit}^{2}");
-  fit3->SetParName(1,"#sigma_{MS}^{2}");
-  
-  resolutionPlotInvGeorg->Fit("fit3","R");
-  resolutionPlotInvGeorg->Draw("AEP");
-
-  // TPaveStats * ps = (TPaveStats *)fit1->FindObject("stats");
-  // ps->SetX1NDC(0.2);
-  // ps->SetX2NDC(0.2);
-  gStyle->SetStatX(0.5);
-  gStyle->SetStatY(0.85);
-
-  ostringstream strfit[2];
-  TString ss_fit[2];
-  ostringstream strfit_err[2];
-  TString ss_fit_err[2];
-  for(int i=0; i<2;i++)
     {
-      strfit[i] << setprecision(3) << sqrt(fit3->GetParameter(i));
-      ss_fit[i]=strfit[i].str();
-      strfit_err[i] << setprecision(1) << 0.5*fit3->GetParError(i)/sqrt(fit3->GetParameter(i));
-      ss_fit_err[i]=strfit_err[i].str();
+      auto it2 = res_map.find(std::make_pair(Run[i]+"_"+ss_dphcut[0]+"_"+Label[0],Hist));
+      if(it2  != res_map.end())
+	{
+	  if(print)               cout << " found map " << endl;
+	  if(print)               cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
+
+	  DrawHist(it2->second, Run[i]+"_"+ss_Angle[i], ss_dphcut[0], Label[0], Hist,0.,10.,0., 50000.)  ;
+
+	}
+
     }
   
-  TLatex Tl_2;
-  Tl_2.SetTextAlign(12);
-  Tl_2.SetTextSize(0.04);
-  Tl_2.DrawLatexNDC(0.15,0.6,"#sigma_{hit} = ("+ss_fit[0]+" #pm "+ss_fit_err[0]+") #mum");
-  Tl_2.DrawLatexNDC(0.15,0.52,"#sigma_{MS} = ("+ss_fit[1]+" #pm "+ss_fit_err[1]+") #mum*GeV");
-  
-  
-  TLegend* leg4 = new TLegend(0.75,0.4,0.85,0.6);
-  leg4->SetLineColor(0);
-  leg4->SetTextSize(0.03);
-  leg4->AddEntry(resolutionPlotInvGeorg,"DUT "+detectorB , "ep");
-  leg4->AddEntry(fit3,"#sigma_{hit}^{2}+(#sigma_{MS}/p)^{2}" , "l");
-  leg4->Draw();
 
-  
-  c4->SaveAs("/home/irene/Documents/CMS_material/DESY_TB/Plot/Res_vs_InvEnergySquared_newFit_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".png");  
-  c4->SaveAs("/home/irene/Documents/CMS_material/DESY_TB/Plot/Res_vs_InvEnergySquared_newFit_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".eps");
-  c4->SaveAs("/home/irene/Documents/CMS_material/DESY_TB/Plot/Res_vs_InvEnergySquared_newFit_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".pdf");
 
-  
-
-  TCanvas *c3 = new TCanvas("c3", "resolution vs inverse beam energy old", 1500, 900);
-  gPad->SetTicks(1,1);
-
-  TGraph* resolutionPlotInvOLD = new TGraphErrors(Angles,BeamEnergyInverse,Resolution,BeamEnergyError,ResolutionError);
-
-  resolutionPlotInvOLD->SetTitle(" ");
-  resolutionPlotInvOLD->GetYaxis()->SetTitle("Resolution [#mum]");
-  resolutionPlotInvOLD->GetXaxis()->SetTitle("1/Beam Energy [GeV^{-1}]");
-  resolutionPlotInvOLD->SetMarkerSize(2.5);
-  resolutionPlotInvOLD->SetLineColor(2);
-  resolutionPlotInvOLD->SetMarkerColor(2);
-  resolutionPlotInvOLD->SetMarkerStyle(20);
-  resolutionPlotInvOLD->SetLineWidth(2);
-  resolutionPlotInvOLD->SetLineStyle(2);
-  resolutionPlotInvOLD->GetYaxis()->SetRangeUser(0.,20.);
-  resolutionPlotInvOLD->GetXaxis()->SetLimits(0.,1.6);
-
-  TF1 *fit2 = new TF1("fit2","pol1", 0.15, 1.255); 
-  //  TF1 *fit1 = new TF1("fit1","sqrt([0]*[0]+([1]*x)*([1]*x))", 0., 0.8); 
-  fit2->SetLineColor(kBlue);
-  // fit1->SetParameter(0,3);
-  // fit1->SetParameter(1,15);
-  // fit1->SetParameterName(0,"#sigma_{hit}");
-  // fit1->SetParameterName(1,"#sigma_{MS}");
-  
-  resolutionPlotInvOLD->Fit("fit2");
-  resolutionPlotInvOLD->Draw("AEP");
-
-  // TPaveStats * ps = (TPaveStats *)fit1->FindObject("stats");
-  // ps->SetX1NDC(0.2);
-  // ps->SetX2NDC(0.2);
-  gStyle->SetStatX(0.5);
-  gStyle->SetStatY(0.85);
-  
-  TLegend* leg3 = new TLegend(0.65,0.4,0.75,0.6);
-  leg3->SetLineColor(0);
-  leg3->SetTextSize(0.03);
-  leg3->AddEntry(resolutionPlotInvOLD,"DUT "+detectorB , "ep");
-  leg3->AddEntry(fit2,"p_{0}+x*p_{1}" , "l");
-  //  leg->AddEntry(fit1,"#sqrt{#sigma_{hit}^{2}+(#sigma_{MS}/p)^{2}}" , "l");
-  leg3->Draw();
-
-  
-  c3->SaveAs("/home/irene/Documents/CMS_material/DESY_TB/Plot/Res_vs_InvEnergy_oldFit_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".eps");
-
-  */
-
-  
 }//resolution 
 
