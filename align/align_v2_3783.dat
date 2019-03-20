@@ -1,0 +1,27 @@
+# alignment for run 3778
+iteration 7
+alignxA    -1.04034
+alignyA  -0.0801468
+alignfA   0.0128038
+alignxC    -1.06911
+alignyC  -0.0213174
+alignfC  0.00453793
+gainA /mnt/pixeldata/a/148-drei-scancal-hold32.dat
+gainB /mnt/pixeldata/b/194i-drei-chilled-scancal-hold32-2019-03-12.dat
+gainC /mnt/pixeldata/c/150-drei-scancal-hold32.dat
+keA       0.038
+keB      0.0367
+keC       0.054
+beamEnergy         5.2
+pitch          25
+qL           9
+qR          15
+qLB           9
+qRB          15
+TsunamiA           0
+TsunamiB           0
+TsunamiC           0
+dphcutA          12
+dphcutB          15
+dphcutC          12
+dx3c -0.000652641
