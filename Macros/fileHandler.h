@@ -1,7 +1,7 @@
 #include "resolution.h"
 typedef std::map<std::pair<TString, TString>, TH1F*> MapTH1;
 
-void DrawTGraphWithError(int comparisons, int * i_dphcut, float * mean, float * rms, TString Hist,TString Run, TString Label, TString Name, TString yaxistitle, float xmin,float xmax,float ymin, float ymax, TString scan = "thresholds", TString xaxistitle =  "ph cut [ADC]")
+void DrawTGraphWithError(int comparisons, int *i_dphcut, float * mean, float * rms, TString Hist,TString Run, TString Label, TString Name, TString yaxistitle, float xmin,float xmax,float ymin, float ymax, TString scan = "thresholds", TString xaxistitle =  "ph cut [ADC]")
 {
 
   TString outputDir = "/home/zoiirene/Output/Plots/";
@@ -14,7 +14,7 @@ void DrawTGraphWithError(int comparisons, int * i_dphcut, float * mean, float * 
       f_dphcut[i] = (float) i_dphcut[i];
       errx[i]=0;
     }
-  
+
   TCanvas *c2 = new TCanvas("c2", "c2", 1500, 900);
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
@@ -22,7 +22,7 @@ void DrawTGraphWithError(int comparisons, int * i_dphcut, float * mean, float * 
   gStyle->SetPadGridY(0);
   gStyle->SetPalette(1);
   //  gStyle->SetOptStat();
-  //gStyle->SetOptStat(1110);
+  gStyle->SetOptStat(1110);
   gStyle->SetOptTitle(0);
 
   TGraphErrors * gr = new TGraphErrors(comparisons, f_dphcut, mean,errx,rms);//, errx, rms);
@@ -34,6 +34,63 @@ void DrawTGraphWithError(int comparisons, int * i_dphcut, float * mean, float * 
   gr->GetXaxis()->SetRangeUser(xmin,xmax);
   gr->SetMinimum(ymin);
   gr->SetMaximum(ymax);
+
+  //  gr->SetTitle("Option ACP example");
+  gr->GetXaxis()->SetTitle(xaxistitle);
+  gr->GetYaxis()->SetTitle(yaxistitle);
+  //gr->SetFillStyle(3003);
+  //gr->SetFillColor(kRed-8);
+
+
+  gr->GetXaxis()->SetRangeUser(xmin,xmax);
+  gr->SetMinimum(ymin);
+  gr->SetMaximum(ymax);
+
+  gr->Draw("ALPE");
+
+
+  TString name;
+  name = outputDir+"compare_"+scan+"_"+Run+"_"+Label+"_"+Hist+"_"+Name;
+  c2->SaveAs(name+".eps");
+  c2->SaveAs(name+".pdf");
+  c2->SaveAs(name+".png");
+  c2->SaveAs(name+".root");
+}
+void DrawTGraphWithErrorDouble(int comparisons, double * i_dphcut, double * mean, double * rms, TString Hist,TString Run, TString Label, TString Name, TString yaxistitle, float xmin,float xmax,float ymin, float ymax, TString scan = "thresholds", TString xaxistitle =  "ph cut [ADC]")
+{
+
+  TString outputDir = "/home/zoiirene/Output/Plots/";
+  TString ss_dphcut[comparisons];
+
+  double errx[comparisons];
+  for(int i =0; i< comparisons;i++)
+    {
+      ss_dphcut[i].Form("%f",i_dphcut[i]);
+      
+      errx[i]=0;
+    }
+  
+  TCanvas *c2 = new TCanvas("c2", "c2", 1500, 900);
+  gPad->SetTicks(1,1);
+  gROOT->SetStyle("Plain");
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+  //  gStyle->SetOptStat();
+  gStyle->SetOptStat(1110);
+  gStyle->SetOptTitle(0);
+
+  TGraphErrors * gr = new TGraphErrors(comparisons, i_dphcut, mean,errx,rms);//, errx, rms);
+  gr->SetLineColor(kAzure);
+  gr->SetLineWidth(2);
+  gr->SetMarkerColor(kAzure);
+  gr->SetMarkerSize(1.5);
+  gr->SetMarkerStyle(21);
+  gr->GetXaxis()->SetRangeUser(xmin,xmax);
+  gr->SetMinimum(ymin);
+  gr->SetMaximum(ymax);
+
+
   
   //  gr->SetTitle("Option ACP example");
   gr->GetXaxis()->SetTitle(xaxistitle);
@@ -71,7 +128,7 @@ void DrawTGraph(int comparisons, int * i_dphcut, int * entries, TString Hist,TSt
   gStyle->SetPadGridY(0);
   gStyle->SetPalette(1);
   //  gStyle->SetOptStat();
-  //gStyle->SetOptStat(1110);
+  gStyle->SetOptStat(1110);
   gStyle->SetOptTitle(0);
 
   TGraph * gr = new TGraph(comparisons, i_dphcut, entries);
@@ -112,13 +169,17 @@ void DrawTGraphError(int comparisons, int * i_dphcut, float * mean, float * rms,
     }
   
   TCanvas *c2 = new TCanvas("c2", "c2", 1500, 900);
+  c2->SetLeftMargin(0.1);
+  c2->SetTopMargin(0.05);
+  c2->SetBottomMargin(0.2);
+  
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
   gStyle->SetPadGridX(0);
   gStyle->SetPadGridY(0);
   gStyle->SetPalette(1);
   //  gStyle->SetOptStat();
-  //gStyle->SetOptStat(1110);
+  gStyle->SetOptStat(1110);
   gStyle->SetOptTitle(0);
 
   TGraph *  grgreen = new TGraph(2*comparisons);
@@ -129,6 +190,21 @@ void DrawTGraphError(int comparisons, int * i_dphcut, float * mean, float * rms,
   gr->SetMarkerColor(kAzure);
   gr->SetMarkerSize(1.5);
   gr->SetMarkerStyle(21);
+
+  grgreen->GetXaxis()->SetLabelFont(42);
+  grgreen->GetXaxis()->SetLabelSize(0.07);
+  grgreen->GetXaxis()->SetTitleSize(0.07);
+  grgreen->GetXaxis()->SetTitleOffset(0.9);
+  grgreen->GetXaxis()->SetTitleFont(42);
+
+  grgreen->GetYaxis()->SetLabelFont(42);
+  grgreen->GetYaxis()->SetLabelSize(0.07);
+  grgreen->GetYaxis()->SetTitleSize(0.07);
+  grgreen->GetYaxis()->SetTitleOffset(0.6);
+  grgreen->GetYaxis()->SetTitleFont(42);
+  grgreen->GetYaxis()->SetNoExponent(3);
+  
+
   grgreen->GetXaxis()->SetRangeUser(xmin,xmax);
   grgreen->SetMinimum(ymin);
   grgreen->SetMaximum(ymax);
@@ -367,7 +443,7 @@ void DrawThrScanHists(MapTH1 * map,int comparisons, TString Run, int * i_dphcut,
       gStyle->SetPadGridX(0);
       gStyle->SetPadGridY(0);
       gStyle->SetPalette(1);
-      gStyle->SetOptStat();
+      //      gStyle->SetOptStat();
       gStyle->SetOptStat(1110);
       gStyle->SetOptTitle(0);
 
@@ -417,10 +493,10 @@ void DrawThrScanHists(MapTH1 * map,int comparisons, TString Run, int * i_dphcut,
 	  if(Hist[k] == "dx3"||   Hist[k] == "dx3_clchargeAC90evR" ||   Hist[k] == "dx3_clchargeABC90evR"    )
 	    {
 	      cout << " RMS 95" << endl;
-	      FitTH1(it3->second, &(rms_d), &(rmserr), "thrScan", Run, Label, Hist[k],"RMS");
+	      FitTH1(it3->second, &(rms_d), &(rmserr), "dphcut"+ss_dphcut[i], Run, Label, Hist[k],"RMS");
 	      cout << " success" << endl;
-	      rms[k][i] = (float) rms_d/1000.;
-	      rmserror[k][i] = (float) rmserr/1000.;
+	      rms[k][i] = (float) rms_d;
+	      rmserror[k][i] = (float) rmserr;
 
 	    }
 
@@ -434,6 +510,8 @@ void DrawThrScanHists(MapTH1 * map,int comparisons, TString Run, int * i_dphcut,
 	  it3->second->GetYaxis()->SetRangeUser(ymin[k],ymax[k]);
 	  it3->second->Draw("histsames");
 	  c2->Update();
+
+	  /*
 	  TPaveStats *Stats =   (TPaveStats*)it3->second->GetListOfFunctions()->FindObject("stats");
 	      
 	  Stats->SetX1NDC(0.55);
@@ -503,6 +581,7 @@ void DrawThrScanHists(MapTH1 * map,int comparisons, TString Run, int * i_dphcut,
 	    }  
 	  Stats->SetTextColor(color);
 	  Stats->SetTextSize(0.02);
+	  */	  
 	  gPad->Modified();
 	  //      c2->Update();
 	}
@@ -529,21 +608,21 @@ void DrawThrScanHists(MapTH1 * map,int comparisons, TString Run, int * i_dphcut,
       double xminr,xmaxr;
       if(Hist[k] == "dx3")
 	{
-	  xminr=0.0037;
-	  xmaxr=0.0045;
+	  xminr=0.005;//0.0038;
+	  xmaxr=0.007;//0.0045;
 	}
       if( Hist[k] == "dx3_clchargeAC90evR")
 	{
-	  xminr=0.0033;
-	  xmaxr=0.0037;
+	  xminr=0.004;////0.0035;
+	  xmaxr=0.006;//0.0038;
 	}
       if( Hist[k] == "dx3_clchargeABC90evR"     )
 	{
-	  xminr=0.003;//0.004
-	  xmaxr=0.0033;//0.006
+	  xminr=0.004;//0.0032;//0.004
+	  xmaxr=0.005;//0.0035;//0.006
 	}
       DrawTGraphWithError(comparisons, i_dphcut, rms[k], rmserror[k], Hist[k],Run, Label, "RMS95_error", yaxistitle,  i_dphcut[0],i_dphcut[comparisons-1],xminr,xmaxr);
-      DrawTGraphError(comparisons,i_dphcut, rms[k], rmserror[k],Hist[k],Run,Label,"RMS95" , yaxistitle,  i_dphcut[0],i_dphcut[comparisons-1],0.,0.005);
+      DrawTGraphError(comparisons,i_dphcut, rms[k], rmserror[k],Hist[k],Run,Label,"RMS95" , yaxistitle,  i_dphcut[0],i_dphcut[comparisons-1],0.,7.);
     }
     }
   
@@ -581,8 +660,9 @@ void DrawHists(MapTH1 * map,int comparisons, TString Run, bool dphcut, TString s
   gStyle->SetPadGridX(0);
   gStyle->SetPadGridY(0);
   gStyle->SetPalette(1);
-  gStyle->SetOptStat();
+  //  gStyle->SetOptStat();
   gStyle->SetOptStat(1110);
+
   gStyle->SetOptTitle(0);
 
   TLegend* leg2 = new TLegend(0.15,0.55,0.45,0.75);
@@ -603,6 +683,19 @@ void DrawHists(MapTH1 * map,int comparisons, TString Run, bool dphcut, TString s
       if(it3  != map->end())
 	{
 
+	  it3->second->GetXaxis()->SetLabelFont(42);
+	  it3->second->GetXaxis()->SetLabelSize(0.04);
+	  it3->second->GetXaxis()->SetTitleSize(0.05);
+	  it3->second->GetXaxis()->SetTitleOffset(0.8);
+	  it3->second->GetXaxis()->SetTitleFont(42);
+
+	  it3->second->GetYaxis()->SetLabelFont(42);
+	  it3->second->GetYaxis()->SetLabelSize(0.04);
+	  it3->second->GetYaxis()->SetTitleSize(0.05);
+	  it3->second->GetYaxis()->SetTitleOffset(1.);
+	  it3->second->GetYaxis()->SetTitleFont(42);
+	  it3->second->GetYaxis()->SetNoExponent(3);	  
+	  //	  SetExponentOffset()
 	  it3->second->SetLineWidth(2);
 	  it3->second->SetLineStyle(color);
 	  it3->second->SetLineColor(color);
@@ -660,13 +753,46 @@ void DrawHists(MapTH1 * map,int comparisons, TString Run, bool dphcut, TString s
 
 
 
-
+  //  if(Hist == "clchargeB") gStyle->SetOptStat(0);
 
   //  leg2->Draw();
 
   TString name;
   if(dphcut)  name = outputDir+"compare_"+Run+"_"+ss_dphcut+"_"+Hist;
   else name = outputDir+"compare_"+Run+"_"+Hist;
+  c2->SaveAs(name+".eps");
+  c2->SaveAs(name+".pdf");
+  c2->SaveAs(name+".png");
+  c2->SaveAs(name+".root");
+  //gStyle->SetOptStat(1);
+}//DrawHists
+
+
+void DrawHist(TH1F * h, TString Run, TString ss_dphcut, TString Label, TString Hist,float xmin,float xmax,float ymin, float ymax)
+{
+
+  TString outputDir = "/home/zoiirene/Output/Plots/";
+  
+  TCanvas *c2 = new TCanvas("c2", "c2", 1500, 900);
+  gPad->SetTicks(1,1);
+  gROOT->SetStyle("Plain");
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+  //gStyle->SetOptStat();
+  gStyle->SetOptStat(1110);
+  gStyle->SetOptTitle(0);
+
+
+  h->SetLineWidth(2);
+  h->SetLineColor(kBlue);
+  h->GetXaxis()->SetRangeUser(xmin,xmax);
+  h->GetYaxis()->SetRangeUser(ymin,ymax);
+	  //	  leg2->AddEntry(h,Label[i], "l");
+  h->Draw("hist");
+  if(Hist == "clchargeB") gStyle->SetOptStat(0);
+  c2->Update();
+  TString name = outputDir+"compare_"+Run+"_"+Label+"_"+ss_dphcut+"_"+Hist;
   c2->SaveAs(name+".eps");
   c2->SaveAs(name+".pdf");
   c2->SaveAs(name+".png");
