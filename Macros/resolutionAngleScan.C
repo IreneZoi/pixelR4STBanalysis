@@ -17,7 +17,7 @@ using namespace std;
 #define anglesPirr2 28
 #define anglesNirr4 9
 
-#define irradiation 3
+#define irradiations 3
 
 void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", bool unfolding = false)
 {
@@ -32,45 +32,90 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
   TString inputDir="/home/zoiirene/Output/TextFiles/";
   TString outputDir="/home/zoiirene/Output/Plots/";
 
-  TString filenames[irradiation];
+  int measurements[irradiations];
+  measurements[0] = 29;
+  measurements[1] = 28;
+  measurements[2] = 9;
+  
+  TString filenames[irradiations];
   filenames[0] = "Ascan_res_148_RMS.txt";
   filenames[1] = "Ascan_res_120i_RMS.txt ";
   filenames[2] = "Ascan_194i_RMS_800_res.txt";
 
   
-  TString angle[measurements];
-  TString filename[irradiation];
-
-      = inputDir+"/TextFiles/resolution_25gain1_"+func+".txt";
-  cout << filename << endl;
-  ifstream stream(filename);
-  int i=0;
-  std::string line;
-  if(!stream.is_open())
+  TString angle,irr;
+  double res,reserror;
+  
+  TString filename[irradiations];
+  for(int i =0; i< irradiations; i++)
     {
-      cout << " File " << filename << " not opened" << endl;
-    }
-  else
-    {
-      std::getline(stream,line);
-      if(print) cout << " first line " << line << endl;
-      //      while(!stream.eof())
-	for(i= 0; i < measurements; i++)
+      filename[i]      = inputDir+filenames[i];
+      cout << filename[i] << endl;
+      ifstream stream(filename[i]);
+      
+      std::string line;
+      if(!stream.is_open())
 	{
-	  stream  >> sensor[i] >> irr[i] >> pitch[i] >> bias[i] >> angle[i] >> beam[i] >> Resolution[i] >> ResolutionError[i] >>runs[i] >> specific[i] >> Short[i] >> thr[i];
-	  if(print)	 cout << "line " << i << endl;
-	  if(print)	 cout  << sensor[i] << " " << irr[i] << " " << pitch[i] << " " << bias[i] << " " << angle[i] << " " << beam[i] << " " << Resolution[i] << " " << ResolutionError[i] <<" " << runs[i] << " " << specific[i] << " " << Short[i] << " " << thr[i] << endl;
+	  cout << " File " << filename[i] << " not opened" << endl;
+	}
+      else
+	{
+	  for(int k =0; k<7;k++)
+	    {
+	      std::getline(stream,line);
+	      if(print) cout << k << " line " << line << endl;
+	    }
+      //      while(!stream.eof())
+	  for(int j= 0; j < measurements[i]; j++)
+	    {
+	      stream  >> angle >> res >> reserror ;
+	      if(print)	 cout << "line " << j+7 << endl;
+	      if(print)	 cout  << angle << " " << res << " " << reserror << endl;
 	  //  i++;
-	  if(irr[i] == 0) ss_irr[i] = "no irr";
-	  else if (irr[i] == 2) ss_irr[i] = "2#times10^{15}";
-	  else if (irr[i] == 4) ss_irr[i] = "4#times10^{15}";
+	  if(i == 0) irr = "no irr";
+	  else if (i == 1) irr = "p2#times10^{15}neq";
+	  else if (i == 2) irr = "p4#times10^{15}neq";
 	  //	  ss_irr[i].Form("%f",irr[i]);
-	  cout << " resolution for sensor " << sensor[i] << " is " << Resolution[i] << endl;
+	  ResolutionUnfolded.insert(std::make_pair(std::make_pair(angle,irr),res));
+	  auto it= ResolutionUnfolded.find(std::make_pair(angle,irr));
+	  if(it  != ResolutionUnfolded.end())
+	    {
+	      cout << " it  != maResolutionUnfolded.end() " << endl;
+	      if(print)           cout << " found map " << endl;
+	      cout << "map key " << it->first.first << " " << it->first.second << endl;
+	      
+	      if(print) cout  << "  res " << it->second << endl;
+
+	    }
+	  else
+	    {
+	      cout << " it  == ResolutionUnfolded.end() " << endl;
+	    }
+
+	  ResolutionUnfoldedError.insert(std::make_pair(std::make_pair(angle,irr),reserror));
+	  auto ite= ResolutionUnfoldedError.find(std::make_pair(angle,irr));
+	  if(ite  != ResolutionUnfoldedError.end())
+	    {
+	      cout << " ite  != maResolutionUnfoldedError.end() " << endl;
+	      if(print)           cout << " found map " << endl;
+	      cout << "map key " << ite->first.first << " " << ite->first.second << endl;
+	      
+	      if(print) cout  << "  res error" << ite->second << endl;
+
+	    }
+	  else
+	    {
+	      cout << " ite  == ResolutionUnfoldedError->end() " << endl;
+	    }
+	      
 	}
     }
 
 
-  Double_t x1[irradiation] ={irr[0],irr[1],irr[2]};
+
+    }//main
+      /*
+  Double_t x1[irradiations] ={irr[0],irr[1],irr[2]};
   Double_t Pstop_default_FTH_25_irr[] = {Resolution[0]};
   Double_t Pstop_default_FTH_25_irr_err[] = {ResolutionError[0]};
   Double_t Pstop_default_FDB_25_preirr[] = {Resolution[1]};
@@ -192,7 +237,8 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
 */ 
  //legFDB2->AddEntry(resolutionPlotBdot,"Bias dot large", "p");
   //legFDB2->AddEntry(resolutionPlotBdotW,"Bias dot wiggle", "p");
-  legFDB2->Draw();
+      /*
+      legFDB2->Draw();
 
   
   TString  outname = outputDir+"ResolutionSummary_25gain1_"+name;
