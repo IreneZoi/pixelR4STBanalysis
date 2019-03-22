@@ -26,7 +26,7 @@ void resolutionVSbias194n_RMS(TString func = "RMS")
   TString detectorB="194i";
   TString detectorC="150";
   TString labelA="FDB150P_12_R4S100x25-P4_1, thr 12 ADC";
-  TString labelB="FDB150P_12_R4S100x25-P1_1, 120 V, thr 15 ADC";
+  TString labelB="FDB150P_12_R4S100x25-P1_1, thr 15 ADC";
   TString labelC="FDB150P_12_R4S100x25-P1_3, thr 12 ADC";
 
   
@@ -218,6 +218,32 @@ void resolutionVSbias194n_RMS(TString func = "RMS")
     }
   
 
+
+
+
+  ofstream myfileBias[BiasVoltages];
+  for(int j = 0; j < BiasVoltages; j++)
+    {
+      
+      myfileBias[j].open ("/home/zoiirene/Output/TextFiles/Ascan_"+detectorB+"_"+func+"_"+ss_BiasVoltage[j]+"_rms.txt");
+      myfileBias[j] << "A " << detectorA << "\n";
+      myfileBias[j] << labelA << "\n";
+      myfileBias[j] << "B " << detectorB<< "\n";
+      myfileBias[j] << labelB << "\n";
+      myfileBias[j] << "C " << detectorC<< "\n";
+      myfileBias[j] << labelC << "\n";
+
+      myfileBias[j] << "Angle(deg) RMS(um) Error\n";
+      
+      for(int i=0; i<Angles; i++)
+	{
+	      myfileBias[j] << ss_Angle[i] << " " << Resolution[i][j] << " " << ResolutionError[i][j] << "\n";
+	}
+      myfileBias[j].close();
+    }
+      
+
+  
   //////////////          RESOLUTION ///////////////////////
   double freshres = 2.03;
   double freshres_err = 0.01;
@@ -238,6 +264,30 @@ void resolutionVSbias194n_RMS(TString func = "RMS")
     }
   
 
+  ofstream myfileBiasUnf[BiasVoltages];
+  for(int j = 0; j < BiasVoltages; j++)
+    {
+
+      myfileBiasUnf[j].open ("/home/zoiirene/Output/TextFiles/Ascan_"+detectorB+"_"+func+"_"+ss_BiasVoltage[j]+"_res.txt");
+      myfileBiasUnf[j] << "A " << detectorA << "\n";
+      myfileBiasUnf[j] << labelA << "\n";
+      myfileBiasUnf[j] << "B " << detectorB<< "\n";
+      myfileBiasUnf[j] << labelB << "\n";
+      myfileBiasUnf[j] << "C " << detectorC<< "\n";
+      myfileBiasUnf[j] << labelC << "\n";
+
+      myfileBiasUnf[j] << "Angle(deg) RES(um) Error\n";
+
+      for(int i=0; i<Angles; i++)
+	{
+	  myfileBiasUnf[j] << ss_Angle[i] << " " << Resolution[i][j] << " " << ResolutionError[i][j] << "\n";
+	}
+      myfileBiasUnf[j].close();
+    }
+  
+
+
+  
   Double_t resolution[BiasVoltages][Angles];
   Double_t resolutionError[BiasVoltages][Angles];
   
