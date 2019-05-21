@@ -105,7 +105,7 @@ bool dphcut = true;
 
   for(int k=0; k<hists; k++)
     {
-      if(k ==0 || k == 5 || k ==6)
+      if(k ==0 || k == 5 || k ==6 )
 	{
 
 	  name = outputDir+"compare_thresholdsResolution_"+Run[0]+"_"+Label[0]+"_"+Hist[k];//+"_"+Hist;
@@ -132,7 +132,7 @@ bool dphcut = true;
 	      
 	      for(int k=0; k<hists; k++)
 		{
-		  if(k ==0 || k == 5 || k ==6)
+		  if(k ==0 || k == 5 || k ==6 )
 		    {
 		      myfile[k] << i_dphcut[l] ;
 		      

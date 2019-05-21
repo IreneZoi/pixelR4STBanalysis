@@ -12,7 +12,7 @@
 #include <sstream>
 #include "fileHandler.h"
 
-#define Angles 28
+#define Angles 29
 bool print=true;
 #define dphcuts  1
 #define comparisons 1
@@ -20,57 +20,33 @@ bool print=true;
 using namespace std;
 TString outputDir = "/home/zoiirene/Output/Plots/";
   
-void resolutionVSangle2789_studentT(TString function = "RMS")
+void resolutionVSanglePIXELAV_RMS(TString function = "RMS")
 {
 
-  TString detectorA="148";
-  TString detectorB="120i";
-  TString detectorC="163";
-  TString labelA="Pstop_RD53Apads_FDB, thr 12 ADC";
-  TString labelB="Pstop_default_FTH, 800V, thr 15 ADC";
-  TString labelC="Pspray_RD53Apads_FDB, thr 12 ADC";
-  TString info = "beam energy 5.6 GeV";
-  
-  
-  Double_t Angle[Angles];
+  Double_t Angle[Angles] = {-5,-3.75,-2.5,-1.25,0,1.25,2.5,3.75,5,6.25,7.5,8.75,10,11.25,12.5,13.75,15,16.25,17.5,18.75,20,21.25,22.5,23.75,25,26.25,27.5,28.75,30 };
+  TString Angle0[Angles] = {"-005","-003","-002","-001","0000","0001","0002","0003","0005","0006","0007","0008","0010","0011","0012","0013","0015","0016","0017","0018","0020","0021","0022","0023","0025","0026","0027","0028","0030"};
   Double_t AngleError[Angles];
   Double_t TanAngle[Angles];
   Double_t TanAngleError[Angles];
   Double_t Resolution[Angles];
   Double_t RMS[Angles];
-  Double_t Ncol[Angles];
-  Double_t NcolError[Angles];
+  //  Double_t Ncol[Angles];
+  //Double_t NcolError[Angles];
   Double_t ResolutionError[Angles];
   Double_t RMSError[Angles];
   TString ss_Angle[Angles];
   
   TH1F * h_res;//[Angles];
+  TString pitch[Angles];
+  
 
-  Int_t run=2789;
-  TString Run[Angles];
-  ostringstream strs[Angles];
-  float angleunit = 1.25;  
-
-
+  
   if(print) cout << "Getting files "  << endl;
-  for(int i=0; i<11; i++)
+
+  for(int i=0; i<Angles; i++)
     {
-	  Run[i].Form("%d",run+i);
-	  if(print) cout << "Run: " << Run << endl;
-    }
-  for(int i=11; i<Angles; i++)
-    {
-	  Run[i].Form("%d",run+i+1);
-	  if(print) cout << "Run: " << Run << endl;
-    }
-
-
-
-      for(int i=0; i<Angles; i++)
-	{
-	  Angle[i] = -4+i;
+      pitch[i] = "25";
       ss_Angle[i].Form("%d",i);
-      Angle[i]=Angle[i]*angleunit; //grad
       TanAngle[i]=TMath::Tan(Angle[i]*TMath::Pi()/((Double_t)180.));
       cout << " Angle " <<  Angle[i] << " TanAngle " <<  TanAngle[i] << endl;
       AngleError[i]=1; //grad
@@ -84,44 +60,37 @@ void resolutionVSangle2789_studentT(TString function = "RMS")
 
 
   MapTH1 res_map;
-  int i_dphcut[dphcuts] = {15};
-  TString ss_dphcut[dphcuts] = {"15"};
 
-  TString Label[comparisons] = {"straightTracksY_isoAandCandB_straightTracksX"};
-  TString Hist = "dx3_clchargeABC90evR";
-  bool dphcut = true;
+  TString Hist = "hdycq0";
 
-  GetHists(&res_map,Angles, dphcuts, comparisons,dphcut, Run, i_dphcut, Label, Hist, h_res);
+  GetPixelavHists(&res_map,Angles, Angle0, pitch,Hist, h_res);
 
 
 
   
-
+  
 
   if(print) cout << "Fit:"  << endl;
   
   ofstream myfile;
-  myfile.open ("/home/zoiirene/Output/TextFiles/Ascan_"+detectorB+"_"+function+".txt");
-  myfile << "A " << detectorA << "\n";
-  myfile << labelA << "\n";
-  myfile << "B " << detectorB<< "\n";
-  myfile << labelB << "\n";
-  myfile << "C " << detectorC<< "\n";
-  myfile << labelC << "\n";
-  myfile << info << "\n";
+  myfile.open ("/home/zoiirene/Output/TextFiles/Ascan_pixelav_"+function+".txt");
+  myfile << "Non irradiated \n";
   myfile << "Angle Resolution(um) Error\n";
 
   for(int i=0; i<Angles; i++)
     {
 
-      auto it2 = res_map.find(std::make_pair(Run[i]+"_"+ss_dphcut[0]+"_"+Label[0],Hist));
+
+      auto it2 = res_map.find(std::make_pair(Angle0[i]+"_"+pitch[i],Hist));
       if(it2  != res_map.end())
 	{
 	  if(print)               cout << " found map " << endl;
 	  if(print)                   cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
 	  
-	  FitTH1(it2->second, &(RMS[i]), &(RMSError[i]), ss_Angle[i], detectorA, detectorB, detectorC, function );
-	  if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> Resolution: " << RMS[i] << " and res err: " << ResolutionError[i] << endl;
+	  FitTH1(it2->second, &(RMS[i]), &(RMSError[i]), ss_Angle[i], "pixelav" , "nonirr", "2um", function );
+	  RMS[i]/=1000.;
+	  RMSError[i]/=1000.;
+	  if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> Resolution: " << RMS[i] << " and res err: " << RMSError[i] << endl;
 	  myfile << Angle[i] << " "  << RMS[i] << " " << RMSError[i] << "\n";
 	}
     }
@@ -134,57 +103,12 @@ void resolutionVSangle2789_studentT(TString function = "RMS")
 
 
 
-  DrawTGraphWithErrorDouble(Angles, Angle, RMS, RMSError, Hist,"2789", Label[0], "angleScan_rms", "RMS 95% [#mum]",-7.,29.,0.,8., "angleScan", "Angle [degrees]"  );
+  DrawTGraphWithErrorDouble(Angles, Angle, RMS, RMSError, Hist,"pixelav", "nonirr", "angleScan_rms", "Resolution (RMS 95%) [#mum]",-7.,29.,0.,8., "angleScan", "Angle [degrees]"  );
 
-  double freshres = 2.68;
-  double freshres_err = 0.01;
-  //if(print) cout << "scaling residual to get resolution " <<  conversion <<endl;
-
-
-  ofstream myfile2;
-  myfile2.open ("/home/zoiirene/Output/TextFiles/Ascan_res_"+detectorB+"_"+function+".txt");
-  myfile2 << "A " << detectorA << "\n";
-  myfile2 << labelA << "\n";
-  myfile2 << "B " << detectorB<< "\n";
-  myfile2 << labelB << "\n";
-  myfile2 << "C " << detectorC<< "\n";
-  myfile2 << labelC << "\n";
-  myfile2 << info << "\n";
-  myfile2 << "Angle RMS(um) Error\n";
-
-
-  for(int i=0; i<Angles; i++)
-    {
-
-      Resolution[i] = RMS[i];
-      ResolutionError[i] = RMSError[i];
-      if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> RMS: " << RMS[i] << " and res err: " << RMSError[i] << endl;
-
-      ExtractRes(&(Resolution[i]), &(ResolutionError[i]), true,freshres,freshres_err);
-      if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << endl;
-      myfile2 << " " << Angle[i] << " " << Resolution[i] << " " << ResolutionError[i] << "\n";
-    }
-  myfile2.close();
-
-
-  DrawTGraphWithErrorDouble(Angles, Angle, Resolution, ResolutionError, Hist,"2789", Label[0], "angleScan_res", "Resolution [#mum]",-7.,29.,0.,8., "angleScan", "Angle [degrees]"  );
-
-
-
+  /*
   Hist = "nrowB";
   GetHists(&res_map,Angles, dphcuts, comparisons,dphcut, Run, i_dphcut, Label, Hist, h_res);
 
-  ofstream myfile3;
-  myfile3.open ("/home/zoiirene/Output/TextFiles/Ascan_clsizeB_"+detectorB+"_"+function+".txt");
-  myfile3 << "A " << detectorA << "\n";
-  myfile3 << labelA << "\n";
-  myfile3 << "B " << detectorB<< "\n";
-  myfile3 << labelB << "\n";
-  myfile3 << "C " << detectorC<< "\n";
-  myfile3 << labelC << "\n";
-  myfile3 << info << "\n";
-  myfile3 << "Angle MeanNrowB Error\n";
-  
   Double_t NrowB[Angles];
   Double_t NrowBerror[Angles];
   for(int i=0; i<Angles; i++)
@@ -199,14 +123,12 @@ void resolutionVSangle2789_studentT(TString function = "RMS")
 
 	  NrowB[i] = it2->second->GetMean();
 	  NrowBerror[i] = it2->second->GetMeanError();
-	  myfile3 << " " << Angle[i] << " " << NrowB[i]<< " " << NrowBerror[i] << "\n";
+
 	  if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> nrowB: " << NrowB[i] << " and err: " << NrowBerror[i] << endl;
 
 	}
 
     }
-  myfile3.close();
-  
   DrawTGraphWithErrorDouble(Angles, TanAngle, NrowB, NrowBerror, Hist,"2789", Label[0], "angleScan_nrowB_vs_tanangle", "nrowB",-7.,29.,0.,5., "angleScan", "Tan angle"  );
   DrawTGraphWithErrorDouble(Angles, Angle, NrowB, NrowBerror, Hist,"2789", Label[0], "angleScan_nrowB_vs_angle", "nrowB",-7.,29.,0.,5., "angleScan", "Angle [degrees]"  );
 
@@ -227,7 +149,7 @@ void resolutionVSangle2789_studentT(TString function = "RMS")
 	}
 
     }
-
+  */
   
   
   /*

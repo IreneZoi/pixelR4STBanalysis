@@ -306,6 +306,63 @@ void GetCheckHists(MapTH1 * map,int runs, int dphcuts, bool dphcut, TString * Ru
     
 }//
 
+void GetPixelavHists(MapTH1 * map,int runs, TString * Run, TString * pitch, TString Hist, TH1F * h)
+{
+  TString inputDir="/home/zoiirene/Output/";
+  TString inputfile, Path;
+
+  TFile * file[runs];
+  bool print = true;
+  TString key;
+  if(print) cout << "Getting runs "  << endl;
+  for(int i=0; i<runs; i++)
+    {
+      
+      
+      if(print) cout << "Run: "<< i <<" " << Run[i] << endl;
+      inputfile = "pixelav-r"+Run[i]+".out.root";
+      if(print) cout << "File Name: " << inputfile << endl;
+      Path=inputDir+inputfile;
+      file[i] = new TFile(Path);
+      if(print) cout << "File Path: " << Path << endl;
+
+
+       key = Run[i]+"_"+pitch[i];
+       cout << "key " << key << " hist " << Hist << endl;
+	  
+       auto it = map->find(std::make_pair(key,Hist));
+	  
+	  
+       if(it  != map->end())
+	 {
+	   cout << " it  != map->end() " << endl;
+	   if(print)		  cout << " found map " << endl;
+	   cout << "map key " << it->first.first << " " << it->first.second << endl;
+	   
+	   if(print) cout << Path << "  entries " << it->second->GetEntries() << endl;
+	  	  
+	 }
+       else
+	 {
+	   cout << " it  == map->end() " << endl;
+	   
+	   h = (TH1F*)file[i]->Get(Hist);
+	   cout << " Hist " << Hist << " " << h->GetEntries() << endl;
+	   map->insert(std::make_pair(std::make_pair(key,Hist),h));
+	   it = map->find(std::make_pair(key,Hist));
+	   
+	   cout << "map key " << it->first.first << " " << it->first.second << endl;
+	 }
+       
+
+
+	  //	      if(print) cout << Path << "  entries " << h->GetEntries() << endl;
+	
+
+    }//runs
+    
+}//pixelav hists
+
 void GetHists(MapTH1 * map,int runs, int dphcuts, int comparisons,  bool dphcut, TString * Run, int * i_dphcut, TString * Label, TString Hist, TH1F * h, bool extraname = false, TString name = " ")
 {
   TString inputDir="/home/zoiirene/Output/";

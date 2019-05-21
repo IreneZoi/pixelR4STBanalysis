@@ -16,35 +16,71 @@ using namespace std;
 #define anglesNONirr 29
 #define anglesPirr2 28
 #define anglesNirr4 9
-
+#define IEEE 2
 #define irradiations 3
 
 void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", bool unfolding = false)
 {
 
-  typedef std::map<std::pair<TString, TString>, double> MapRes;
-    
-  //  Double_t Resolution[measurements];
-  MapRes ResolutionUnfolded;
-  //Double_t ResolutionError[measurements];
-  MapRes ResolutionUnfoldedError;
+
+
+  // 194i  4 25   800   12   5.6   3.86636   0.0322234   3839   FDB150P_12_R4S100x25-P1_1   Pstop_default_FDB   15 
+
   
   TString inputDir="/home/zoiirene/Output/TextFiles/";
   TString outputDir="/home/zoiirene/Output/Plots/";
 
-  int measurements[irradiations];
-  measurements[0] = 29;
-  measurements[1] = 28;
-  measurements[2] = 9;
+  int measurements[irradiations+2];
+  measurements[0] = anglesNONirr;
+  measurements[1] = anglesPirr2;
+  measurements[2] = anglesNirr4;
+  measurements[3] = 1;
+  measurements[4] = anglesNONirr;
   
-  TString filenames[irradiations];
+  TString filenames[irradiations+1];
   filenames[0] = "Ascan_res_148_RMS.txt";
-  filenames[1] = "Ascan_res_120i_RMS.txt ";
+  filenames[1] = "Ascan_res_120i_RMS.txt";
   filenames[2] = "Ascan_194i_RMS_800_res.txt";
+  filenames[3] = "Ascan_pixelav_RMS.txt";
+
+  TString filenames2[IEEE];
+  filenames2[0] = "Ascan_clsizeB_148_RMS.txt";
+  filenames2[1] = "Ascan_clsizeB_120i_RMS.txt";
 
   
-  TString angle,irr;
-  double res,reserror;
+  TString irr[irradiations+2];
+  irr[0] = "no irr, 5.6 GeV";
+  irr[1] = "proton irr at #phi_{eq}=2#times10^{15} cm^{-2}, 5.6 GeV";
+  irr[2] = "neutron irr at #phi_{eq}=4#times10^{15} cm^{-2}, 5.2 GeV";
+  irr[3] = "neutron irr at #phi_{eq}=4#times10^{15} cm^{-2}, 5.6 GeV";
+  irr[4] = "no irr, pixelav";
+  
+  double angle_0[anglesNONirr];
+  double angle_1[anglesPirr2];
+  double angle_2[anglesNirr4];
+  double angle_3[] = {12};
+  double angle_4[anglesNONirr];
+
+  double angleerr_0[anglesNONirr];
+  double angleerr_1[anglesPirr2];
+  double angleerr_2[anglesNirr4];
+  double angleerr_3[]= {1};
+  double angleerr_4[anglesNONirr];
+
+  double res_0[anglesNONirr];
+  double res_1[anglesPirr2];
+  double res_2[anglesNirr4];
+  double res_3[] = {3.87};
+  double res_4[anglesNONirr];
+
+  double reserr_0[anglesNONirr];
+  double reserr_1[anglesPirr2];
+  double reserr_2[anglesNirr4];
+  double reserr_3[] = {0.03};
+  double reserr_4[anglesNONirr];
+  
+  double angle;
+  double res,reserror,angleerr;
   
   TString filename[irradiations];
   for(int i =0; i< irradiations; i++)
@@ -60,79 +96,127 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
 	}
       else
 	{
-	  for(int k =0; k<7;k++)
+	  for(int k =0; k<8;k++)
 	    {
 	      std::getline(stream,line);
 	      if(print) cout << k << " line " << line << endl;
 	    }
-      //      while(!stream.eof())
+	  //      while(!stream.eof())
 	  for(int j= 0; j < measurements[i]; j++)
 	    {
 	      stream  >> angle >> res >> reserror ;
 	      if(print)	 cout << "line " << j+7 << endl;
-	      if(print)	 cout  << angle << " " << res << " " << reserror << endl;
-	  //  i++;
-	  if(i == 0) irr = "no irr";
-	  else if (i == 1) irr = "p2#times10^{15}neq";
-	  else if (i == 2) irr = "p4#times10^{15}neq";
-	  //	  ss_irr[i].Form("%f",irr[i]);
-	  ResolutionUnfolded.insert(std::make_pair(std::make_pair(angle,irr),res));
-	  auto it= ResolutionUnfolded.find(std::make_pair(angle,irr));
-	  if(it  != ResolutionUnfolded.end())
-	    {
-	      cout << " it  != maResolutionUnfolded.end() " << endl;
-	      if(print)           cout << " found map " << endl;
-	      cout << "map key " << it->first.first << " " << it->first.second << endl;
-	      
-	      if(print) cout  << "  res " << it->second << endl;
+	      if(i==0)
+		{
+		  angle_0[j] = angle;
+		  angleerr_0[j] = 1;
+		  res_0[j] = res;
+		  reserr_0[j] = reserror;
+		  if(print)	 cout  << angle_0[j] << " " << res_0[j] << " " << reserr_0[j] << endl;
+		}
+	      if(i==1)
+		{
+		  angle_1[j] = angle;
+		  angleerr_1[j] = 1;
+		  res_1[j] = res;
+		  reserr_1[j] = reserror;
+		  if(print)	 cout  << angle_1[j] << " " << res_1[j] << " " << reserr_1[j] << endl;
+		}
+	      if(i==2)
+		{
+		  angle_2[j] = angle;
+		  angleerr_2[j] = 1;
+		  res_2[j] = res;
+		  reserr_2[j] = reserror;
+		  if(print)	 cout  << angle_2[j] << " " << res_2[j] << " " << reserr_2[j] << endl;
+		}
 
-	    }
-	  else
-	    {
-	      cout << " it  == ResolutionUnfolded.end() " << endl;
-	    }
+	    }//measurements
+	}//file scanning
+    }//irradiations
 
-	  ResolutionUnfoldedError.insert(std::make_pair(std::make_pair(angle,irr),reserror));
-	  auto ite= ResolutionUnfoldedError.find(std::make_pair(angle,irr));
-	  if(ite  != ResolutionUnfoldedError.end())
-	    {
-	      cout << " ite  != maResolutionUnfoldedError.end() " << endl;
-	      if(print)           cout << " found map " << endl;
-	      cout << "map key " << ite->first.first << " " << ite->first.second << endl;
-	      
-	      if(print) cout  << "  res error" << ite->second << endl;
-
-	    }
-	  else
-	    {
-	      cout << " ite  == ResolutionUnfoldedError->end() " << endl;
-	    }
-	      
-	}
-    }
-
-
-
-    }//main
-      /*
-  Double_t x1[irradiations] ={irr[0],irr[1],irr[2]};
-  Double_t Pstop_default_FTH_25_irr[] = {Resolution[0]};
-  Double_t Pstop_default_FTH_25_irr_err[] = {ResolutionError[0]};
-  Double_t Pstop_default_FDB_25_preirr[] = {Resolution[1]};
-  Double_t Pstop_default_FDB_25_preirr_err[] = {ResolutionError[1]};
-  Double_t x2[] = {irr[0]};
-  Double_t x3[] = {irr[1]};
-  Double_t x4[] = {irr[2]};
-  Double_t Pstop_RD53Apads_FDB_25[] = {Resolution[2]};
-  Double_t Pstop_RD53Apads_FDB_25_err[] = {ResolutionError[2]};
-  Double_t Pspray_default_FDB_25[] = {Resolution[3]};
-  Double_t Pspray_default_FDB_25_err[] = {ResolutionError[3]};
-  Double_t Pspray_RD53Apads_FDB_25[] = {Resolution[4]};
-  Double_t Pspray_RD53Apads_FDB_25_err[] = {ResolutionError[4]};
-
-  Double_t Pstop_default_FDB_25_irr[] = {Resolution[5]};
-  Double_t Pstop_default_FDB_25_irr_err[] = {ResolutionError[5]};
+  //clsize file for IEEE
+  double clsize_0[anglesNONirr];
+  double clsize_1[anglesPirr2];
+  double clsizeerr_0[anglesNONirr];
+  double clsizeerr_1[anglesPirr2];
+  double clsize,clsizeerr;
+  TString filename2[IEEE];
   
+  for(int i =0; i< IEEE; i++)
+    {
+      filename2[i]      = inputDir+filenames2[i];
+      cout << filename2[i] << endl;
+      ifstream stream(filename2[i]);
+      
+      std::string line;
+      if(!stream.is_open())
+	{
+	  cout << " File " << filename2[i] << " not opened" << endl;
+	}
+      else
+	{
+	  for(int k =0; k<8;k++)
+	    {
+	      std::getline(stream,line);
+	      if(print) cout << k << " line " << line << endl;
+	    }
+	  //      while(!stream.eof())
+	  for(int j= 0; j < measurements[i]; j++)
+	    {
+	      stream  >> angle >> clsize >> clsizeerr ;
+	      if(print)	 cout << "line " << j+7 << endl;
+	      if(i==0)
+		{
+		  clsize_0[j] = clsize;
+		  clsizeerr_0[j] = clsizeerr;
+		  if(print)	 cout  << angle_0[j] << " " << clsize_0[j] << " " << clsizeerr_0[j] << endl;
+		}
+	      if(i==1)
+		{
+		  clsize_1[j] = clsize;
+		  clsizeerr_1[j] = clsizeerr;
+		  if(print)	 cout  << angle_1[j] << " " << clsize_1[j] << " " << clsizeerr_1[j] << endl;
+		}
+
+	    }//measurements
+	}//file scanning
+    }//IEEE
+
+
+
+  
+  if(print) cout << " opening sim file "  << endl;
+  
+  TString pixelavFile =inputDir+filenames[3];
+  cout << pixelavFile << endl;
+  ifstream stream(pixelavFile);
+      
+  std::string line;
+  if(!stream.is_open())
+    {
+      cout << " File " << pixelavFile << " not opened" << endl;
+    }
+  else
+    {
+      for(int k =0; k<2;k++)
+	{
+	  std::getline(stream,line);
+	  if(print) cout << k << " line " << line << endl;
+	}
+      //      while(!stream.eof())
+      for(int j= 0; j < measurements[4]; j++)
+	{
+	  stream  >> angle >> res >> reserror ;
+	  if(print)	 cout << "line " << j+2 << endl;
+
+	  angle_4[j] = angle;
+	  angleerr_4[j] = 1;
+	  res_4[j] = res;
+	  reserr_4[j] = reserror;
+	  if(print)	 cout  << angle_4[j] << " " << res_4[j] << " " << reserr_4[j] << endl;
+	}//measurements
+    }//file scanning
 
   TCanvas *cFDB2 = new TCanvas("cFDB2", "FDB resolution", 1500, 900);
   gPad->SetTicks(1,1);
@@ -143,276 +227,214 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
 
-  Double_t FDB1[] = {0};
-  Double_t FDB2[] = {1};
-  Double_t FDB3[] = {2};
-  Double_t FDB4[] = {3};
-  Double_t FTH[] = {4};
-  Double_t FDB5[] = {5};
-
-  int gain1_25 = measurements;
-  TGraphErrors* resolutionPlot[gain1_25];
+  TGraphErrors* resolutionPlot[irradiations+2];
   
-  resolutionPlot[0] = new TGraphErrors(1,FDB1,Pstop_default_FDB_25_preirr,0,Pstop_default_FDB_25_preirr_err);
-  resolutionPlot[1] = new TGraphErrors(1,FDB2,Pstop_RD53Apads_FDB_25,0,Pstop_RD53Apads_FDB_25_err);
-  resolutionPlot[2] = new TGraphErrors(1,FDB3,Pspray_default_FDB_25,0,Pspray_default_FDB_25_err);
-  resolutionPlot[3] = new TGraphErrors(1,FDB4,Pspray_RD53Apads_FDB_25,0,Pspray_RD53Apads_FDB_25_err);//,0,0_err);
-  resolutionPlot[4] = new TGraphErrors(1,FTH,Pstop_default_FTH_25_irr,0,Pstop_default_FTH_25_irr_err);//Pspray_RD53Apads_FDB_25);//,0,0);
-  resolutionPlot[5] = new TGraphErrors(1,FDB5,Pstop_default_FDB_25_irr,0,Pstop_default_FDB_25_irr_err);
-
+  resolutionPlot[0] = new TGraphErrors(anglesNONirr,angle_0,res_0,angleerr_0,reserr_0);
+  resolutionPlot[1] = new TGraphErrors(anglesPirr2,angle_1,res_1,angleerr_1,reserr_1);
+  resolutionPlot[2] = new TGraphErrors(anglesNirr4,angle_2,res_2,angleerr_2,reserr_2);
+  resolutionPlot[3] = new TGraphErrors(1,angle_3,res_3,angleerr_3,reserr_3);
+  resolutionPlot[4] = new TGraphErrors(anglesNONirr,angle_4,res_4,angleerr_4,reserr_4);
 
   resolutionPlot[0]->SetTitle(" ");
   resolutionPlot[0]->GetYaxis()->SetTitle("Resolution [#mum]");
-  resolutionPlot[0]->GetXaxis()->SetTitle("Tested samples");
+  resolutionPlot[0]->GetXaxis()->SetTitle("Angle [deg]");
   resolutionPlot[0]->SetMarkerSize(2.5);
-  resolutionPlot[0]->SetMarkerColor(kBlue);
+  resolutionPlot[0]->SetMarkerColor(kRed);
+  resolutionPlot[0]->SetLineColor(kRed);
   resolutionPlot[0]->SetMarkerStyle(20);
-  resolutionPlot[0]->GetXaxis()->SetLimits(-1.,6.);
-  resolutionPlot[0]->GetYaxis()->SetRangeUser(0.,6.);
+  resolutionPlot[0]->GetXaxis()->SetLimits(-6.,31.);
+  resolutionPlot[0]->GetYaxis()->SetRangeUser(0.,10.);
   resolutionPlot[0]->Draw("AEP");
 
   resolutionPlot[1]->SetMarkerSize(2.5);
-  resolutionPlot[1]->SetMarkerColor(kBlue);
+  resolutionPlot[1]->SetMarkerColor(kBlack);
   resolutionPlot[1]->SetMarkerStyle(21);
   resolutionPlot[1]->Draw("EPsame");
 				      
   resolutionPlot[2]->SetMarkerSize(2.5);
   resolutionPlot[2]->SetMarkerColor(kBlue);
-  resolutionPlot[2]->SetMarkerStyle(24);
+  resolutionPlot[2]->SetLineColor(kBlue);
+  resolutionPlot[2]->SetMarkerStyle(22);
   resolutionPlot[2]->Draw("EPsame");
 
   resolutionPlot[3]->SetMarkerSize(2.5);
   resolutionPlot[3]->SetMarkerColor(kBlue);
-  resolutionPlot[3]->SetMarkerStyle(25);
+  resolutionPlot[3]->SetLineColor(kBlue);
+  resolutionPlot[3]->SetMarkerStyle(23);
   resolutionPlot[3]->Draw("EPsame");
 
   resolutionPlot[4]->SetMarkerSize(2.5);
-  resolutionPlot[4]->SetMarkerColor(kBlue+2);
-  resolutionPlot[4]->SetMarkerStyle(20);
-  resolutionPlot[4]->Draw("EPsame");
+  resolutionPlot[4]->SetMarkerColor(kRed);
+  resolutionPlot[4]->SetLineColor(kRed);
+  resolutionPlot[4]->SetMarkerStyle(24);
+  //  resolutionPlot[4]->Draw("EPsame");
 
 
-  resolutionPlot[5]->SetMarkerSize(2.5);
-  resolutionPlot[5]->SetMarkerColor(kBlue);
-  resolutionPlot[5]->SetMarkerStyle(20);
-  resolutionPlot[5]->Draw("EPsame");
-  
-
-  TLegend* legFDB2 = new TLegend(0.15,0.2,0.35,0.4);
+  TLegend* legFDB2 = new TLegend(0.65,0.15,0.85,0.35);
   legFDB2->SetLineColor(0);
   legFDB2->SetTextSize(0.027);
+  for(int i =0; i < irradiations+1; i++)
+    legFDB2->AddEntry(resolutionPlot[i],irr[i],"lp");
 
-  int sens[] = {1,2,3,4,0,5};
-  for(int i =0; i<gain1_25; i++)
-    legFDB2->AddEntry(resolutionPlot[i],pitch[sens[i]]+"#mum, "+Short[sens[i]]+", "+bias[sens[i]]+"V ("+ss_irr[sens[i]]+"), thr"+thr[sens[i]], "p");
-  
-  /*
-  legFDB2->AddEntry(resolutionPlotFDB2,"FDB, default, p-stop", "p"); //Pstop_default_FDB_25
-  legFDB2->AddEntry(resolutionPlotFDB3,"FDB, RD53A pads, p-stop", "p"); //Pstop_RD53Apads_FDB_25
-  legFDB2->AddEntry(resolutionPlotFDB4,"FDB, default, p-spray", "p");//Pspray_default_FDB_25
-  legFDB2->AddEntry(resolutionPlotFDB5,"FDB, RD53A pads, p-spray", "p");//Pspray_RD53Apads_FDB_25
-  */
-
-  //  legFDB2->AddEntry(resolutionPlot25,"25 #mum pitch", "p");
-  //  legFDB2->AddEntry(resolutionPlot50,"50 #mum pitch", "p");
-  /*
-  legFDB2->AddEntry(resolutionPlotPstop,"P stop", "p");
-  legFDB2->AddEntry(resolutionPlotPspray,"P spray", "p");
-  */
-
-  //legFDB2->AddEntry(resolutionPlotFTH25,"25 #mum pitch, bulk FTH", "p");
-
-  /*
-  legFDB2->AddEntry(resolutionPlotFDB25,"25 #mum pitch, bulk FDB", "p");
-  */
-
-  //legFDB2->AddEntry(resolutionPlotFDD25,"25 #mum pitch, bulk FDD", "p");
-  //legFDB2->AddEntry(resolutionPlotFTH50,"50 #mum pitch, bulk FTH", "p");
-  //legFDB2->AddEntry(resolutionPlotFDB50,"50 #mum pitch, bulk FDB", "p");
-  //legFDB2->AddEntry(resolutionPlotFDD50,"50 #mum pitch, bulk FDD", "p");
-
-/*
-  legFDB2->AddEntry(resolutionPlotDefault,"Default", "p");
-  legFDB2->AddEntry(resolutionPlotRD53,"RD53A pads", "p");
-*/ 
- //legFDB2->AddEntry(resolutionPlotBdot,"Bias dot large", "p");
-  //legFDB2->AddEntry(resolutionPlotBdotW,"Bias dot wiggle", "p");
-      /*
-      legFDB2->Draw();
+  legFDB2->Draw();
 
   
-  TString  outname = outputDir+"ResolutionSummary_25gain1_"+name;
+  TString  outname = outputDir+"ResolutionSummary_angleScans25_"+name;
   cFDB2->SaveAs(outname+".eps");
   cFDB2->SaveAs(outname+".png");
   cFDB2->SaveAs(outname+".pdf");
   cFDB2->SaveAs(outname+".root");
+  cFDB2->SaveAs(outname+".C");
 
-  /*
-  TCanvas *c = new TCanvas("c", "resolution vs inverse beam energy", 1500, 900);
+  ////// for finn
+  TCanvas *c2 = new TCanvas("c2", "FDB resolution", 1500, 900);
   gPad->SetTicks(1,1);
+  gROOT->SetStyle("Plain");
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(0);
+  gStyle->SetOptTitle(0);
 
-  TGraph* resolutionPlotInv = new TGraphErrors(measurements,BeamEnergyInverse,Resolution,BeamEnergyError,ResolutionError);
+  resolutionPlot[0]->Draw("AEP");
 
-  resolutionPlotInv->SetTitle(" ");
-  resolutionPlotInv->GetYaxis()->SetTitle("Resolution [#mum]");
-  resolutionPlotInv->GetXaxis()->SetTitle("1/Beam Energy [GeV^{-1}]");
-  resolutionPlotInv->SetMarkerSize(2.5);
-  resolutionPlotInv->SetLineColor(2);
-  resolutionPlotInv->SetMarkerColor(2);
-  resolutionPlotInv->SetMarkerStyle(20);
-  resolutionPlotInv->SetLineWidth(2);
-  resolutionPlotInv->SetLineStyle(2);
-  resolutionPlotInv->GetYaxis()->SetRangeUser(0.,20.);
-  resolutionPlotInv->GetXaxis()->SetLimits(0.,1.);
+  resolutionPlot[1]->Draw("EPsame");
+				      
+  TLegend* leg2 = new TLegend(0.65,0.15,0.85,0.25);
+  leg2->SetLineColor(0);
+  leg2->SetTextSize(0.027);
+  leg2->AddEntry(resolutionPlot[0],irr[0],"lp");
+  leg2->AddEntry(resolutionPlot[1],irr[1],"lp");
 
-  //  TF1 *fit1 = new TF1("fit1","pol1", 0.15, 1.255); 
-  TF1 *fit1 = new TF1("fit1","sqrt([0]*[0]+([1]*x)*([1]*x))", 0., 0.8); 
-  fit1->SetLineColor(kBlue);
-  fit1->SetParameter(0,3);
-  fit1->SetParameter(1,15);
-  fit1->SetParName(0,"#sigma_{hit}");
-  fit1->SetParName(1,"#sigma_{MS}");
+  leg2->Draw();
+
+
+
+
   
-  resolutionPlotInv->Fit("fit1","R");
-  resolutionPlotInv->Draw("AEP");
-
-  // TPaveStats * ps = (TPaveStats *)fit1->FindObject("stats");
-  // ps->SetX1NDC(0.2);
-  // ps->SetX2NDC(0.2);
-  gStyle->SetStatX(0.5);
-  gStyle->SetStatY(0.85);
-  
-  TLegend* leg = new TLegend(0.65,0.4,0.75,0.6);
-  leg->SetLineColor(0);
-  leg->SetTextSize(0.03);
-  leg->AddEntry(resolutionPlotInv,"DUT "+detectorB , "ep");
-  //  leg->AddEntry(fit1,"p_{0}+x*p_{1}" , "l");
-  leg->AddEntry(fit1,"#sqrt{#sigma_{hit}^{2}+(#sigma_{MS}/p)^{2}}" , "l");
-  leg->Draw();
-
-  name = outputDir+"Res_vs_InvEnergy_newFit_updatedcode_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC;
-  c->SaveAs(name+".eps");
-  c->SaveAs(name+".pdf");
-  c->SaveAs(name+".png");
+  outname = outputDir+"ResolutionSummary_angleScans25_freshVSprot_"+name;
+  c2->SaveAs(outname+".eps");
+  c2->SaveAs(outname+".png");
+  c2->SaveAs(outname+".pdf");
+  c2->SaveAs(outname+".root");
+  c2->SaveAs(outname+".C");
 
 
-  TCanvas *c4 = new TCanvas("c4", "resolution vs inverse beam energy squared", 1500, 900);
+
+  ////// for IEEE
+  TCanvas *c3 = new TCanvas("c3", "FDB resolution", 1500, 900);
   gPad->SetTicks(1,1);
-
-  TGraph* resolutionPlotInvGeorg = new TGraphErrors(measurements,BeamEnergyInverseSquare,ResolutionSquare,BeamEnergyError,ResolutionErrorSquare);
-
-  resolutionPlotInvGeorg->SetTitle(" ");
-  resolutionPlotInvGeorg->GetYaxis()->SetTitle("Resolution^{2} [#mum^{2}]");
-  resolutionPlotInvGeorg->GetXaxis()->SetTitle("1/(Beam Energy)^{2} [GeV^{-2}]");
-  resolutionPlotInvGeorg->SetMarkerSize(2.5);
-  resolutionPlotInvGeorg->SetLineColor(2);
-  resolutionPlotInvGeorg->SetMarkerColor(2);
-  resolutionPlotInvGeorg->SetMarkerStyle(20);
-  resolutionPlotInvGeorg->SetLineWidth(2);
-  resolutionPlotInvGeorg->SetLineStyle(2);
-  resolutionPlotInvGeorg->GetYaxis()->SetRangeUser(0.,300.);
-  resolutionPlotInvGeorg->GetXaxis()->SetLimits(0.,1.);
-
-  //  TF1 *fit1 = new TF1("fit1","pol1", 0.15, 1.255); 
-  TF1 *fit3 = new TF1("fit3","pol1", 0., 0.8); 
-  fit3->SetLineColor(kBlue);
-  //  fit1->SetParameter(0,3);
-  //fit1->SetParameter(1,15);
-  fit3->SetParName(0,"#sigma_{hit}^{2}");
-  fit3->SetParName(1,"#sigma_{MS}^{2}");
+  gROOT->SetStyle("Plain");
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(0);
+  gStyle->SetOptTitle(0);
+  TPad *pad1 = new TPad("pad1","",0,0,1,1);
+  TPad *pad2 = new TPad("pad2","",0,0,1,1);
+  pad2->SetFillStyle(4000); //will be transparent
+  pad2->SetFrameFillStyle(0);
   
-  resolutionPlotInvGeorg->Fit("fit3","R");
-  resolutionPlotInvGeorg->Draw("AEP");
+  pad1->Draw();
+  pad1->cd();
+  resolutionPlot[0]->Draw("AEP");
 
-  // TPaveStats * ps = (TPaveStats *)fit1->FindObject("stats");
-  // ps->SetX1NDC(0.2);
-  // ps->SetX2NDC(0.2);
-  gStyle->SetStatX(0.5);
-  gStyle->SetStatY(0.85);
+  resolutionPlot[1]->Draw("EPsame");
+				      
+  pad2->Draw();
+  pad2->cd();
+  TGraphErrors* clsizePlot[IEEE];
+  
+  clsizePlot[0] = new TGraphErrors(anglesNONirr,angle_0,clsize_0,angleerr_0,clsizeerr_0);
+  clsizePlot[1] = new TGraphErrors(anglesPirr2,angle_1,clsize_1,angleerr_1,clsizeerr_1);
 
-  ostringstream strfit[2];
-  TString ss_fit[2];
-  ostringstream strfit_err[2];
-  TString ss_fit_err[2];
-  for(int i=0; i<2;i++)
-    {
-      strfit[i] << setprecision(3) << sqrt(fit3->GetParameter(i));
-      ss_fit[i]=strfit[i].str();
-      strfit_err[i] << setprecision(1) << 0.5*fit3->GetParError(i)/sqrt(fit3->GetParameter(i));
-      ss_fit_err[i]=strfit_err[i].str();
-    }
-  
-  TLatex Tl_2;
-  Tl_2.SetTextAlign(12);
-  Tl_2.SetTextSize(0.03);
-  Tl_2.DrawLatexNDC(0.55,0.8,"#sigma_{hit} = ("+ss_fit[0]+" #pm "+ss_fit_err[0]+") #mum");
-  Tl_2.DrawLatexNDC(0.55,0.72,"#sigma_{MS} = ("+ss_fit[1]+" #pm "+ss_fit_err[1]+") #mum*GeV");
-  
-  
-  TLegend* leg4 = new TLegend(0.45,0.15,0.8,0.35);
-  leg4->SetLineColor(0);
-  leg4->SetTextSize(0.025);
-  leg4->AddEntry(resolutionPlot,"c"+detectorB+" "+labelB , "ep");
-  leg4->AddEntry(resolutionPlot,"A: c"+detectorA+" "+labelA ,"");
-  leg4->AddEntry(resolutionPlot,"C: c"+detectorC+" "+labelC ,"");
-  leg4->AddEntry(resolutionPlot,info ,"");
-  leg4->AddEntry(fit3,"#sigma_{hit}^{2}+(#sigma_{MS}/p)^{2}" , "l");
-  leg4->Draw();
+  clsizePlot[0]->SetTitle(" ");
+  clsizePlot[0]->GetYaxis()->SetTitle("Average cluster size");
+  clsizePlot[0]->GetXaxis()->SetTitle("Angle [deg]");
+  clsizePlot[0]->SetMarkerSize(2.5);
+  clsizePlot[0]->SetMarkerColor(kRed);
+  clsizePlot[0]->SetLineColor(kRed);
+  clsizePlot[0]->SetMarkerStyle(24);
+  clsizePlot[0]->GetXaxis()->SetLimits(-6.,31.);
+  clsizePlot[0]->GetYaxis()->SetRangeUser(0.,10.);
+  clsizePlot[0]->Draw("AEPY+");
 
-  name = outputDir+"Res_vs_InvEnergySquared_newFit_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC;  
-  c4->SaveAs(name+".eps");
-  c4->SaveAs(name+".pdf");
-  c4->SaveAs(name+".png");
+  clsizePlot[1]->SetMarkerSize(2.5);
+  clsizePlot[1]->SetMarkerColor(kBlack);
+  clsizePlot[1]->SetMarkerStyle(25);
+  clsizePlot[1]->Draw("EPsame");
+
+
+
+
+  TLegend* leg3 = new TLegend(0.5,0.15,0.85,0.25);
+  leg3->SetLineColor(0);
+  leg3->SetTextSize(0.027);
+  leg3->AddEntry(resolutionPlot[0],irr[0],"lp");
+  leg3->AddEntry(resolutionPlot[1],irr[1],"lp");
+
+  leg3->Draw();
+
+
+
+
+  
+  outname = outputDir+"ResolutionSummary_angleScans25_freshVSprot_withclsize"+name;
+  c3->SaveAs(outname+".eps");
+  c3->SaveAs(outname+".png");
+  c3->SaveAs(outname+".pdf");
+  c3->SaveAs(outname+".root");
+  c3->SaveAs(outname+".C");
+
 
   
 
-  // TCanvas *c3 = new TCanvas("c3", "resolution vs inverse beam energy old", 1500, 900);
-  // gPad->SetTicks(1,1);
 
-  // TGraph* resolutionPlotInvOLD = new TGraphErrors(measurements,BeamEnergyInverse,Resolution,BeamEnergyError,ResolutionError);
+  //data vs simulation
+  TCanvas *c1 = new TCanvas("c1","3 Graphs",700,900);
 
-  // resolutionPlotInvOLD->SetTitle(" ");
-  // resolutionPlotInvOLD->GetYaxis()->SetTitle("Resolution [#mum]");
-  // resolutionPlotInvOLD->GetXaxis()->SetTitle("1/Beam Energy [GeV^{-1}]");
-  // resolutionPlotInvOLD->SetMarkerSize(2.5);
-  // resolutionPlotInvOLD->SetLineColor(2);
-  // resolutionPlotInvOLD->SetMarkerColor(2);
-  // resolutionPlotInvOLD->SetMarkerStyle(20);
-  // resolutionPlotInvOLD->SetLineWidth(2);
-  // resolutionPlotInvOLD->SetLineStyle(2);
-  // resolutionPlotInvOLD->GetYaxis()->SetRangeUser(0.,20.);
-  // resolutionPlotInvOLD->GetXaxis()->SetLimits(0.,1.6);
+  auto *p2 = new TPad("p2","p3",0.,0.,1.,0.3); p2->Draw();
+  p2->SetTopMargin(0.001);
+  p2->SetBottomMargin(0.3);
+  //p2->SetLogx ();
+  //p2->SetGrid();
 
-  // TF1 *fit2 = new TF1("fit2","pol1", 0.15, 1.255); 
-  // //  TF1 *fit1 = new TF1("fit1","sqrt([0]*[0]+([1]*x)*([1]*x))", 0., 0.8); 
-  // fit2->SetLineColor(kBlue);
-  // // fit1->SetParameter(0,3);
-  // // fit1->SetParameter(1,15);
-  // // fit1->SetParameterName(0,"#sigma_{hit}");
-  // // fit1->SetParameterName(1,"#sigma_{MS}");
+  auto *p1 = new TPad("p1","p1",0.,0.3,1.,1.);  p1->Draw();
+  p1->SetBottomMargin(0.001);
+  p1->cd();
+  //p1->SetGrid();
+  //  p1->SetLogx ();
+  //p1->SetLogy();
+
+
+  resolutionPlot[0]->Draw("AEP");
+  resolutionPlot[4]->Draw("EPsame");
   
-  // resolutionPlotInvOLD->Fit("fit2");
-  // resolutionPlotInvOLD->Draw("AEP");
+  TLegend* leg1 = new TLegend(0.65,0.1,0.85,0.25);
+  leg1->SetLineColor(0);
+  leg1->SetTextSize(0.027);
+  leg1->AddEntry(resolutionPlot[0],irr[0],"lp");
+  leg1->AddEntry(resolutionPlot[4],irr[4],"lp");
 
-  // // TPaveStats * ps = (TPaveStats *)fit1->FindObject("stats");
-  // // ps->SetX1NDC(0.2);
-  // // ps->SetX2NDC(0.2);
-  // gStyle->SetStatX(0.5);
-  // gStyle->SetStatY(0.85);
+  leg1->Draw();
   
-  // TLegend* leg3 = new TLegend(0.65,0.4,0.75,0.6);
-  // leg3->SetLineColor(0);
-  // leg3->SetTextSize(0.03);
-  // leg3->AddEntry(resolutionPlotInvOLD,"DUT "+detectorB , "ep");
-  // leg3->AddEntry(fit2,"p_{0}+x*p_{1}" , "l");
-  // //  leg->AddEntry(fit1,"#sqrt{#sigma_{hit}^{2}+(#sigma_{MS}/p)^{2}}" , "l");
-  // leg3->Draw();
 
-  // name = outputDir+"Res_vs_InvEnergy_oldFit_updatedcode_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC;
-  // c3->SaveAs(name+".png"); 
-  // c3->SaveAs(name+".pdf"); 
-  // c3->SaveAs(name+".eps"); 
-  */
+  // ratio
+  p2->cd();
+  TGraph*r = new TGraph(anglesNONirr); r->SetTitle("");
+  for (int i=0; i<anglesNONirr; i++) r->SetPoint(i, angle_0[i], res_0[i]/res_4[i]);
+  r->GetXaxis()->SetLabelSize(0.075);
+  r->GetYaxis()->SetLabelSize(0.075);
+  r->GetYaxis()->SetTitle("data/MC");
+  r->Draw("AL");
+  
+  outname = outputDir+"ResolutionSummary_angleScans25_dataVSpixelav_"+name;
+  c1->SaveAs(outname+".eps");
+  c1->SaveAs(outname+".png");
+  c1->SaveAs(outname+".pdf");
+  c1->SaveAs(outname+".root");
+
+  
 
   
 }//resolution 

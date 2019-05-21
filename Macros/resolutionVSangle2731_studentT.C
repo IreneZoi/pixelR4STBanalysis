@@ -144,6 +144,17 @@ void resolutionVSangle2731_studentT(TString function = "RMS")
   Hist = "nrowB";
   GetHists(&res_map,Angles, dphcuts, comparisons,dphcut, Run, i_dphcut, Label, Hist, h_res);
 
+  ofstream myfile3;
+  myfile3.open ("/home/zoiirene/Output/TextFiles/Ascan_clsizeB_"+detectorB+"_"+function+".txt");
+  myfile3 << "A " << detectorA << "\n";
+  myfile3 << labelA << "\n";
+  myfile3 << "B " << detectorB<< "\n";
+  myfile3 << labelB << "\n";
+  myfile3 << "C " << detectorC<< "\n";
+  myfile3 << labelC << "\n";
+  myfile3 << info << "\n";
+  myfile3 << "Angle MeanNrowB Error\n";
+
   Double_t NrowB[Angles];
   Double_t NrowBerror[Angles];
   for(int i=0; i<Angles; i++)
@@ -160,15 +171,20 @@ void resolutionVSangle2731_studentT(TString function = "RMS")
 	  NrowBerror[i] = it2->second->GetMeanError();
 
 	  if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> nrowB: " << NrowB[i] << " and err: " << NrowBerror[i] << endl;
-
+	  myfile3 << " " << Angle[i] << " " << NrowB[i]<< " " << NrowBerror[i] << "\n";
 	}
       
     }
+  myfile3.close();
+  
   DrawTGraphWithErrorDouble(Angles, TanAngle, NrowB, NrowBerror, Hist,"2743", Label[0], "angleScan_nrowB_vs_tanangle", "nrowB",-7.,29.,0.,5., "angleScan", "Tan angle"  );
   DrawTGraphWithErrorDouble(Angles, Angle, NrowB, NrowBerror, Hist,"2743", Label[0], "angleScan_nrowB_vs_angle", "nrowB",-7.,29.,0.,5., "angleScan", "Angle [degrees]"  );
   
   Hist = "clsizeB";
+
   GetHists(&res_map,Angles, dphcuts, comparisons,dphcut, Run, i_dphcut, Label, Hist, h_res);
+
+
 
   for(int i=0; i<Angles; i++)
     {
@@ -184,6 +200,7 @@ void resolutionVSangle2731_studentT(TString function = "RMS")
 
     }
   
+
 
 
 }//resolution 
