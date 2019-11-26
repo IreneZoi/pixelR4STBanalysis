@@ -11,6 +11,10 @@
 #include <TAxis.h>
 #include <sstream>
 
+#include "tdrstyle.C"
+#include "CMS_lumi.C"
+
+
 bool print=true;
 using namespace std;
 #define anglesNONirr 29
@@ -19,7 +23,10 @@ using namespace std;
 #define IEEE 2
 #define irradiations 3
 
-void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", bool unfolding = false)
+void TDR();
+void TDR2(TCanvas * c_all);
+
+void resolutionAngleScan(TString thr="700",TString name = "preliminary", TString func = "RMS", bool unfolding = false)
 {
 
 
@@ -41,11 +48,12 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
   filenames[0] = "Ascan_res_148_RMS.txt";
   filenames[1] = "Ascan_res_120i_RMS.txt";
   filenames[2] = "Ascan_194i_RMS_800_res.txt";
-  filenames[3] = "Ascan_pixelav_RMS.txt";
+  filenames[3] = "Ascan_pixelav_RMS_"+thr+".txt";
 
-  TString filenames2[IEEE];
+  TString filenames2[IEEE+1];
   filenames2[0] = "Ascan_clsizeB_148_RMS.txt";
   filenames2[1] = "Ascan_clsizeB_120i_RMS.txt";
+  filenames2[2] = "Ascan_clsizeB_pixelav_RMS_"+thr+".txt";
 
   
   TString irr[irradiations+2];
@@ -137,8 +145,10 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
 
   //clsize file for IEEE
   double clsize_0[anglesNONirr];
+  double clsize_2[anglesNONirr];
   double clsize_1[anglesPirr2];
   double clsizeerr_0[anglesNONirr];
+  double clsizeerr_2[anglesNONirr];
   double clsizeerr_1[anglesPirr2];
   double clsize,clsizeerr;
   TString filename2[IEEE];
@@ -184,14 +194,43 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
     }//IEEE
 
 
+  //clsize from pixelav
+  TString pixelavFileCl =inputDir+filenames2[2];
+  cout << pixelavFileCl << endl;
+  ifstream streamcl(pixelavFileCl);
+      
+  std::string linecl;
+  if(!streamcl.is_open())
+    {
+      cout << " File " << pixelavFileCl << " not opened" << endl;
+    }
+  else
+    {
+      for(int k =0; k<2;k++)
+	{
+	  std::getline(streamcl,linecl);
+	  if(print) cout << k << " line " << linecl << endl;
+	}
+      //      while(!stream.eof())
+      for(int j= 0; j < measurements[4]; j++)
+	{
 
-  
+	  streamcl  >> angle >> clsize >> clsizeerr ;
+	  if(print)  cout << "line " << j+2 << endl;
+
+	  clsize_2[j] = clsize;
+	  clsizeerr_2[j] = clsizeerr;
+	  if(print)      cout  << angle_0[j] << " " << clsize_2[j] << " " << clsizeerr_2[j] << endl;
+	}//measurements
+    }//file scanning
+
+
   if(print) cout << " opening sim file "  << endl;
   
   TString pixelavFile =inputDir+filenames[3];
   cout << pixelavFile << endl;
   ifstream stream(pixelavFile);
-      
+
   std::string line;
   if(!stream.is_open())
     {
@@ -218,6 +257,9 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
 	}//measurements
     }//file scanning
 
+  /////// plots!
+
+  
   TCanvas *cFDB2 = new TCanvas("cFDB2", "FDB resolution", 1500, 900);
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
@@ -287,6 +329,9 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
   cFDB2->SaveAs(outname+".C");
 
   ////// for finn
+  //  setTDRStyle();
+  TDR();
+
   TCanvas *c2 = new TCanvas("c2", "FDB resolution", 1500, 900);
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
@@ -311,7 +356,7 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
 
 
 
-  
+  TDR2(c2);
   outname = outputDir+"ResolutionSummary_angleScans25_freshVSprot_"+name;
   c2->SaveAs(outname+".eps");
   c2->SaveAs(outname+".png");
@@ -322,9 +367,12 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
 
 
   ////// for IEEE
+  TDR();
   TCanvas *c3 = new TCanvas("c3", "FDB resolution", 1500, 900);
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
+  c3->SetLeftMargin(1.);
+  c3->SetTopMargin(1.);
   gStyle->SetPadGridX(0);
   gStyle->SetPadGridY(0);
   gStyle->SetPalette(1);
@@ -343,11 +391,14 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
 				      
   pad2->Draw();
   pad2->cd();
-  TGraphErrors* clsizePlot[IEEE];
+  TGraphErrors* clsizePlot[IEEE+1];
   
   clsizePlot[0] = new TGraphErrors(anglesNONirr,angle_0,clsize_0,angleerr_0,clsizeerr_0);
   clsizePlot[1] = new TGraphErrors(anglesPirr2,angle_1,clsize_1,angleerr_1,clsizeerr_1);
+  clsizePlot[2] = new TGraphErrors(anglesNONirr,angle_0,clsize_2,angleerr_2,clsizeerr_2);
 
+
+  
   clsizePlot[0]->SetTitle(" ");
   clsizePlot[0]->GetYaxis()->SetTitle("Average cluster size");
   clsizePlot[0]->GetXaxis()->SetTitle("Angle [deg]");
@@ -364,7 +415,11 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
   clsizePlot[1]->SetMarkerStyle(25);
   clsizePlot[1]->Draw("EPsame");
 
-
+  TLine *  linea = new TLine( -6.,2.,31.,2.);
+  linea->SetLineColor(kBlue);
+  linea->SetLineWidth(2);
+  linea->SetLineStyle(2);
+  linea->Draw("same");
 
 
   TLegend* leg3 = new TLegend(0.5,0.15,0.85,0.25);
@@ -377,9 +432,9 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
 
 
 
-
-  
-  outname = outputDir+"ResolutionSummary_angleScans25_freshVSprot_withclsize"+name;
+  pad1->cd(); 
+  TDR2(c3);
+  outname = outputDir+"ResolutionSummary_angleScans25_freshVSprot_withclsize_line2"+name;
   c3->SaveAs(outname+".eps");
   c3->SaveAs(outname+".png");
   c3->SaveAs(outname+".pdf");
@@ -391,6 +446,7 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
 
 
   //data vs simulation
+  TDR();
   TCanvas *c1 = new TCanvas("c1","3 Graphs",700,900);
 
   auto *p2 = new TPad("p2","p3",0.,0.,1.,0.3); p2->Draw();
@@ -427,16 +483,102 @@ void resolutionAngleScan(TString name = "preliminary", TString func = "RMS", boo
   r->GetYaxis()->SetLabelSize(0.075);
   r->GetYaxis()->SetTitle("data/MC");
   r->Draw("AL");
-  
-  outname = outputDir+"ResolutionSummary_angleScans25_dataVSpixelav_"+name;
+  TDR2(c1);
+  outname = outputDir+"ResolutionSummary_angleScans25_dataVSpixelav_"+thr+"_"+name;
   c1->SaveAs(outname+".eps");
   c1->SaveAs(outname+".png");
   c1->SaveAs(outname+".pdf");
   c1->SaveAs(outname+".root");
 
+
+  //data vs simulation clustersize
+  TCanvas *c1c = new TCanvas("c1c","3 Graphs",700,900);
+
+  auto *p2c = new TPad("p2c","p3",0.,0.,1.,0.3); p2c->Draw();
+  p2c->SetTopMargin(0.001);
+  p2c->SetBottomMargin(0.3);
+  //p2c->SetLogx ();
+  //p2c->SetGrid();
+
+  auto *p1c = new TPad("p1c","p1c",0.,0.3,1.,1.);  p1c->Draw();
+  p1c->SetBottomMargin(0.001);
+  p1c->cd();
+  //p1c->SetGrid();
+  //  p1c->SetLogx ();
+  //p1c->SetLogy();
+
+
+  clsizePlot[0]->SetTitle(" ");
+  clsizePlot[0]->GetYaxis()->SetTitle("Average Cluster size");
+  clsizePlot[0]->GetXaxis()->SetTitle("Angle [deg]");
+  clsizePlot[0]->SetMarkerSize(2.5);
+  clsizePlot[0]->SetMarkerColor(kRed);
+  clsizePlot[0]->SetLineColor(kRed);
+  clsizePlot[0]->SetMarkerStyle(20);
+  clsizePlot[0]->GetXaxis()->SetLimits(-6.,31.);
+  clsizePlot[0]->GetYaxis()->SetRangeUser(0.,5.);
+
+  clsizePlot[0]->Draw("AEP");
+
+
+  clsizePlot[2]->SetMarkerSize(2.5);
+  clsizePlot[2]->SetMarkerColor(kRed);
+  clsizePlot[2]->SetLineColor(kRed);
+  clsizePlot[2]->SetMarkerStyle(24);
   
+  clsizePlot[2]->Draw("EPsame");
+  
+  TLegend* leg1c = new TLegend(0.65,0.1,0.85,0.25);
+  leg1c->SetLineColor(0);
+  leg1c->SetTextSize(0.027);
+  leg1c->AddEntry(clsizePlot[0],irr[0],"lp");
+  leg1c->AddEntry(clsizePlot[2],irr[4],"lp");
+
+  leg1c->Draw();
+  
+
+  // ratio
+  p2c->cd();
+  TGraph*rc = new TGraph(anglesNONirr); rc->SetTitle("");
+  for (int i=0; i<anglesNONirr; i++) rc->SetPoint(i, angle_0[i], clsize_0[i]/clsize_2[i]);
+  rc->GetXaxis()->SetLabelSize(0.075);
+  rc->GetYaxis()->SetLabelSize(0.075);
+  rc->GetYaxis()->SetTitle("data/MC");
+  rc->Draw("AL");
+  
+  outname = outputDir+"ClSizeSummary_angleScans25_dataVSpixelav_"+thr+"_"+name;
+  c1c->SaveAs(outname+".eps");
+  c1c->SaveAs(outname+".png");
+  c1c->SaveAs(outname+".pdf");
+  c1c->SaveAs(outname+".root");
+
+
 
   
 }//resolution 
 
 
+void TDR()
+{
+  setTDRStyle();
+  writeExtraText = true;       // if extra text
+  extraText  = "Work in progress";  // default extra text is "Preliminary"
+  lumi_sqrtS = "";
+  bool drawLogo = true;
+  int H_ref = 600;
+  int W_ref = 600;
+  float T = 0.07*H_ref;//0.07
+  float B = 0.11*H_ref;//0.12
+  float L = 0.12*W_ref;
+  float R = 0.01*W_ref;
+
+
+}
+
+void TDR2(TCanvas * c_all)
+{
+  CMS_lumi( c_all, 0, 11);
+  //  CMS_lumi( c_all, 0, 11);
+  c_all->Update();
+  c_all->RedrawAxis();
+}

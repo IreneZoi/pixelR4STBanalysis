@@ -12,6 +12,10 @@
 #include <sstream>
 #include "fileHandler.h"
 
+#include "tdrstyle.C"
+#include "CMS_lumi.C"
+
+
 #define Angles 29
 bool print=true;
 #define dphcuts  1
@@ -19,8 +23,13 @@ bool print=true;
 
 using namespace std;
 TString outputDir = "/home/zoiirene/Output/Plots/";
-  
-void resolutionVSanglePIXELAV_RMS(TString function = "RMS")
+
+void TDR();
+void TDR2(TCanvas * c_all);
+
+
+
+void resolutionVSanglePIXELAV_RMS(TString thr ="700", TString function = "RMS")
 {
 
   Double_t Angle[Angles] = {-5,-3.75,-2.5,-1.25,0,1.25,2.5,3.75,5,6.25,7.5,8.75,10,11.25,12.5,13.75,15,16.25,17.5,18.75,20,21.25,22.5,23.75,25,26.25,27.5,28.75,30 };
@@ -60,8 +69,8 @@ void resolutionVSanglePIXELAV_RMS(TString function = "RMS")
 
 
   MapTH1 res_map;
-
-  TString Hist = "hdycq0";
+  //hdycq0
+  TString Hist = "landau90/hdy";
 
   GetPixelavHists(&res_map,Angles, Angle0, pitch,Hist, h_res);
 
@@ -73,7 +82,7 @@ void resolutionVSanglePIXELAV_RMS(TString function = "RMS")
   if(print) cout << "Fit:"  << endl;
   
   ofstream myfile;
-  myfile.open ("/home/zoiirene/Output/TextFiles/Ascan_pixelav_"+function+".txt");
+  myfile.open ("/home/zoiirene/Output/TextFiles/Ascan_pixelav_"+function+"_"+thr+".txt");
   myfile << "Non irradiated \n";
   myfile << "Angle Resolution(um) Error\n";
 
@@ -101,9 +110,51 @@ void resolutionVSanglePIXELAV_RMS(TString function = "RMS")
 
   if(print) cout << "Plotting Res vs angle"  << endl;
 
+  Hist = "landau90_hdy";
+  
+
+  DrawTGraphWithErrorDouble(Angles, Angle, RMS, RMSError, Hist,"pixelav_"+thr, "nonirr", "angleScan_rms", "Resolution (RMS 95%) [#mum]",-7.,29.,0.,8., "angleScan", "Angle [degrees]"  );
 
 
-  DrawTGraphWithErrorDouble(Angles, Angle, RMS, RMSError, Hist,"pixelav", "nonirr", "angleScan_rms", "Resolution (RMS 95%) [#mum]",-7.,29.,0.,8., "angleScan", "Angle [degrees]"  );
+  ///////
+  Hist = "landau90/hnrow";
+  
+  GetPixelavHists(&res_map,Angles, Angle0, pitch,Hist, h_res);
+  
+  ofstream myfile3;
+  myfile3.open ("/home/zoiirene/Output/TextFiles/Ascan_clsizeB_pixelav_"+function+"_"+thr+".txt");
+  myfile3 << "Non irradiated \n";
+  myfile3 << "Angle MeanNrowB Error\n";
+
+  Double_t NrowB[Angles];
+  Double_t NrowBerror[Angles];
+  for(int i=0; i<Angles; i++)
+    {
+      auto it2 = res_map.find(std::make_pair(Angle0[i]+"_"+pitch[i],Hist));
+      if(it2  != res_map.end())
+	{
+	  if(print)               cout << " found map " << endl;
+	  if(print)               cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
+
+
+
+	  NrowB[i] = it2->second->GetMean();
+	  NrowBerror[i] = it2->second->GetMeanError();
+
+	  if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> nrowB: " << NrowB[i] << " and err: " << NrowBerror[i] << endl;
+	  myfile3 << " " << Angle[i] << " " << NrowB[i]<< " " << NrowBerror[i] << "\n";
+	}
+
+    }
+  myfile3.close();
+
+  Hist = "landau90_hnrow";
+  
+  //  DrawTGraphWithErrorDouble(Angles, TanAngle, NrowB, NrowBerror, Hist,"pixelav", Label[0], "angleScan_nrowB_vs_tanangle", "nrowB",-7.,29.,0.,5., "angleScan", "Tan angle"  );
+  DrawTGraphWithErrorDouble(Angles, Angle, NrowB, NrowBerror, Hist,"pixelav_"+thr, "nonirr", "angleScan_nrowB_vs_angle", "nrow",-7.,29.,0.,5., "angleScan", "Angle [degrees]"  );
+  //DrawTGraphWithErrorDouble(Angles, Angle, RMS, RMSError, Hist,"pixelav", "nonirr", "angleScan_rms", "Resolution (RMS 95%) [#mum]",-7.,29.,0.,8., "angleScan", "Angle [degrees]"  );
+  
+  
 
   /*
   Hist = "nrowB";
@@ -394,4 +445,30 @@ void resolutionVSanglePIXELAV_RMS(TString function = "RMS")
 
   
 }//resolution 
+
+void TDR()
+{
+  setTDRStyle();
+  writeExtraText = true;       // if extra text
+  extraText  = "Work in progress";  // default extra text is "Preliminary"
+  lumi_sqrtS = "";
+  bool drawLogo = true;
+  int H_ref = 600;
+  int W_ref = 600;
+  float T = 0.07*H_ref;//0.07
+  float B = 0.11*H_ref;//0.12
+  float L = 0.12*W_ref;
+  float R = 0.01*W_ref;
+
+
+}
+
+void TDR2(TCanvas * c_all)
+{
+  CMS_lumi( c_all, 0, 11);
+  //  CMS_lumi( c_all, 0, 11);
+  c_all->Update();
+  c_all->RedrawAxis();
+}
+
 
