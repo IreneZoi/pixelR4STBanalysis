@@ -365,6 +365,7 @@ void GetPixelavHists(MapTH1 * map,int runs, TString * Run, TString * pitch, TStr
 
 void GetHists(MapTH1 * map,int runs, int dphcuts, int comparisons,  bool dphcut, TString * Run, int * i_dphcut, TString * Label, TString Hist, TH1F * h, bool extraname = false, TString name = " ")
 {
+  cout << "getting files " << endl;
   TString inputDir="/home/zoiirene/Output/";
   TString inputfile, Path;
   TString ss_dphcut[dphcuts];
@@ -386,9 +387,11 @@ void GetHists(MapTH1 * map,int runs, int dphcuts, int comparisons,  bool dphcut,
 	  if(dphcut)
 	    {
 	      inputfile = "drei-r"+Run[i]+"_irene_dphcutB"+ss_dphcut[l]+".root";
+	      if(extraname) inputfile = "drei-r"+Run[i]+"_irene_dphcutB"+ss_dphcut[l]+"_"+name+".root";
 	    }
-	  if(extraname) inputfile = "drei-r"+Run[i]+"_irene_"+name+".root";
-	  
+	  else{
+	    if(extraname) inputfile = "drei-r"+Run[i]+"_irene_"+name+".root";
+	  }
 	  if(print) cout << "File Name: " << inputfile << endl;
 	  Path=inputDir+inputfile;
 	  file[i][l] = new TFile(Path);
@@ -418,7 +421,7 @@ void GetHists(MapTH1 * map,int runs, int dphcuts, int comparisons,  bool dphcut,
 		}
 	      else
 		{
-		 
+		  
 		  h = (TH1F*)histodir->Get(Hist);
 		  map->insert(std::make_pair(std::make_pair(key,Hist),h));
 		  it = map->find(std::make_pair(key,Hist));
@@ -433,7 +436,7 @@ void GetHists(MapTH1 * map,int runs, int dphcuts, int comparisons,  bool dphcut,
 	    }//dphcuts
 	}//comparisons
     }//runs
-    
+  cout << " DONE GETTING HISTS!! ********************" << endl;
 }//
 
 
