@@ -14,8 +14,8 @@
 
 #define comparisons 1
 #define runs 1
-#define dphcuts 12
-#define hists 5
+#define dphcuts 11
+#define hists 6
 bool print=true;
 using namespace std;
 TString outputDir = "/home/zoiirene/Output/Plots/";
@@ -25,13 +25,13 @@ TString outputDir = "/home/zoiirene/Output/Plots/";
 void compareThresholdsHists()//TString hist1 = "clszBiii",TString hist2 = "clszBiii",TString run1 = "2743", TString label1 = "p-stop", TString run2 = "2832", TString label2 = "p-spray", bool norm = true)
 {
 
-  TString inputDir="/home/zoiirene/Output/";
+  TString inputDir="/home/zoiirene/Output/TextFiles/";
   TString inputfile, Path;
  
   TFile * file[runs];
   TDirectory * histodir;
   TString Run[runs];
-  Run[0] = "2801";
+  Run[0] = "1827";
   TString Hist[hists];
   Hist[0] = "dx3";
   Hist[1] = "clchargeB";
@@ -39,23 +39,27 @@ void compareThresholdsHists()//TString hist1 = "clszBiii",TString hist2 = "clszB
   Hist[3] = "clsizeB";
   Hist[4] = "nrowvsxmB3";
   //  Hist[5] = "dx3_clchargeAC90evR";
-  //Hist[6] = "dx3_clchargeABC90evR";
+  Hist[5] = "dx3_clchargeABC90evR";
   int i_dphcut[dphcuts];
-  i_dphcut[0] =  9 ;
-  i_dphcut[1] =  10 ;
-  i_dphcut[2] =  11 ;
-  i_dphcut[3] =  12 ;
-  i_dphcut[4] =  13 ;
-  i_dphcut[5] =  14 ;
-  i_dphcut[6] =  15 ;
-  i_dphcut[7] =  18 ;
-  i_dphcut[8] =  20 ;
-  i_dphcut[9] =  22 ;
-  i_dphcut[10] =  25 ;
-  i_dphcut[11] =  27 ;
+  //  i_dphcut[0] =  10 ;
+  // i_dphcut[1] =  11 ;
+  //i_dphcut[2] =  12 ;
+  i_dphcut[0] =  13 ;
+  i_dphcut[1] =  14 ;
+  i_dphcut[2] =  15 ;
+  i_dphcut[3] =  18 ;
+  i_dphcut[4] =  20 ;
+  i_dphcut[5] =  22 ;
+  i_dphcut[6] =  25 ;
+  i_dphcut[7] =  27 ;
+  i_dphcut[8] =  30 ;
+  i_dphcut[9] =  35 ;
+  i_dphcut[10] =  40 ;
 
   double sigma[dphcuts];
   double sigmaerr[dphcuts];
+  double RMS[dphcuts];
+  double RMSerr[dphcuts];
 
   TString ss_dphcut[dphcuts];
   for(int i =0; i< dphcuts;i++)
@@ -91,7 +95,7 @@ bool dphcut = true;
 
   for(int k=0; k<hists; k++)
     {
-      GetHists(&m_hists,runs, dphcuts, comparisons,  dphcut, Run, i_dphcut, Label,Hist[k], h[k]);
+      GetHists(&m_hists,runs, dphcuts, comparisons,  dphcut, Run, i_dphcut, Label,Hist[k], h[k], true, "AC15");
 
       for ( it = m_hists.begin(); it != m_hists.end(); it++ )
 	{
@@ -105,10 +109,10 @@ bool dphcut = true;
 
   for(int k=0; k<hists; k++)
     {
-      if(k ==0 || k == 5 || k ==6 )
+      if(k == 5 || k ==3 )
 	{
 
-	  name = outputDir+"compare_thresholdsResolution_"+Run[0]+"_"+Label[0]+"_"+Hist[k];//+"_"+Hist;
+	  name = outputDir+"compare_thresholdsAC15_RMS_"+Run[0]+"_"+Label[0]+"_"+Hist[k];//+"_"+Hist;
 	  myfile[k].open (name+".txt");
 	  
 	  myfile[k] << "\\begin{tabular}{|c|c|c|c|}\t\n";
@@ -121,6 +125,7 @@ bool dphcut = true;
 	}
     }
 
+  if(print) cout << " Initialized file " << name << endl;
   
   for(int i=0; i<runs; i++)
     {
@@ -132,7 +137,7 @@ bool dphcut = true;
 	      
 	      for(int k=0; k<hists; k++)
 		{
-		  if(k ==0 || k == 5 || k ==6 )
+		  if(k == 5 || k ==3 )
 		    {
 		      myfile[k] << i_dphcut[l] ;
 		      
@@ -142,9 +147,13 @@ bool dphcut = true;
 			  if(print)               cout << " found map " << endl;
 			  if(print)		      cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;  
 
-			  FitTH1(it2->second, &(sigma[k]), &(sigmaerr[k]), "dphcut"+ss_dphcut[l], Run[i], Label[j], Hist[k], "RMS");
-			  myfile[k] <<  "& " <<  setprecision(5) <<  it2->second->GetEntries() << "& " << setprecision(3) <<sigma[k] << "& " << setprecision(1) << sigmaerr[k];
-			    if(print) cout << " ***************** done RMS ********************** " << endl;
+			  FitTH1(it2->second, &(sigma[l]), &(sigmaerr[l]), "dphcut"+ss_dphcut[l], Run[i], Label[j], Hist[k], "RMS");
+			  myfile[k] <<  "& " <<  setprecision(5) <<  it2->second->GetEntries() << "& " << setprecision(3) <<sigma[l] << "& " << setprecision(1) << sigmaerr[l];
+                          if(k==5){
+			    RMS[l] = sigma[l];
+			    RMSerr[l] = sigmaerr[l];
+			  }
+			  if(print) cout << " ***************** done RMS ********************** " << endl;
 			}
 		      myfile[k] << "\\\\ \n";
 		      myfile[k] << "\\hline \n";
@@ -159,7 +168,7 @@ bool dphcut = true;
   
   for(int k=0; k<hists; k++)
     {
-      if(k ==0 || k == 5 || k ==6)
+      if(k == 5 || k ==3)
 	{
 	  
 	  myfile[k]<< "\\end{tabular} \n";
@@ -170,14 +179,64 @@ bool dphcut = true;
     }
   
 
+  ///pasting
+
+  TString detectorA="148";
+  TString detectorB="108";
+  TString detectorC="109";
+  TString labelA="Pstop_RD53Apads_FDB, thr 30 ADC";
+  TString labelB="Pstop_default_FTH, 200V";
+  TString labelC="Pstop_default_FTH, thr 30 ADC";
+  TString info = "beam energy 5.6 GeV";
+  
+  double Resolution[dphcuts];
+  double ResolutionError[dphcuts];
+  
+  
+  ofstream myfile2;
+  myfile2.open ("/home/zoiirene/Output/TextFiles/ThrscanAC15_res_"+detectorB+"_"+Run[0]+".txt");
+  myfile2 << "A " << detectorA << "\n";
+  myfile2 << labelA << "\n";
+  myfile2 << "B " << detectorB<< "\n";
+  myfile2 << labelB << "\n";
+  myfile2 << "C " << detectorC<< "\n";
+  myfile2 << labelC << "\n";
+  myfile2 << info << "\n";
+  myfile2 << "dphcut(ADC) res(um) Error\n";
+
+  for(int i=0; i<dphcuts; i++)
+    {
+
+      Resolution[i] = RMS[i];
+      ResolutionError[i] = RMSerr[i];
+      if(print) cout << "thr " << i<< ": " << ss_dphcut[i] << " ADC -> RMS: " << sigma[i] << " and res err: " << sigmaerr[i] << endl;
+
+      ExtractRes(&(Resolution[i]), &(ResolutionError[i]), false); //,freshres,freshres_err);
+      if(print) cout << "thr " << i<< ": " << ss_dphcut[i] << " ADC -> Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << endl;
+      myfile2 << " " << ss_dphcut[i] << " " << Resolution[i] << " " << ResolutionError[i] << "\n";
+    }
+
+  myfile2.close();
+
+
+
+			    
+
+
+  
+  ////////
+
+
+  
+  
 
   if(print) cout << " ***************** wrote tab file ********************** " << endl;
   
   if(print) cout << "Plotting"  << endl;
-  float xmin[hists]={-0.05,0,0,0,0};//,-0.05,-0.05};
-  float xmax[hists]={0.05,50,600,10,25};//,0.05,0.05};
-  float ymin[hists]={0,0,0,0,0};//,0,0};
-  float ymax[hists]={12000,4000,2500,50000,4.};//,10000,10000};
+  float xmin[hists]={-0.05,0,0,0,0,9};//,-0.05,-0.05};
+  float xmax[hists]={0.05,50,600,10,25,41};//,0.05,0.05};
+  float ymin[hists]={0,0,0,0,0,0.};//,0,0};
+  float ymax[hists]={6.,4000,2500,50000,4.,4.};//,10000,10000};
 
   DrawThrScanHists(&m_hists,dphcuts, Run[0], i_dphcut, Label[0], hists,Hist,xmin,xmax,ymin,ymax);
   DrawThresholdLegend(&m_hists,dphcuts, Run[0], ss_dphcut, Label[0], Hist[0]);
