@@ -6,22 +6,22 @@ alignfA 0.000602103
 alignxC    0.848057
 alignyC    0.133648
 alignfC -0.00374143
-gainA 
-gainB 
-gainC 
-keA 
-keB 
-keC 
-beamEnergy 
-pitch 
-qL 
-qR 
-qLB 
-qRB 
-TsunamiA 
-TsunamiB 
-TsunamiC 
-dphcutA 
-dphcutB 
-dphcutC 
-dx3c 
+gainA /mnt/pixeldata/a/scm146-scancal2-2018-03-12-hold20.dat
+gainB /mnt/pixeldata/b/scm148-scancal2-2018-03-12-hold24.dat
+gainC /mnt/pixeldata/c/scm109-scancal2-tb21-drei-2018-03-12-hold20.dat
+keA 0.0381
+keB 0.0307
+keC 0.0395
+beamEnergy 5.8  
+pitch 25
+qL 9
+qR 15
+qLB 9
+qRB 15
+TsunamiA 0.7 #irene guessing
+TsunamiB 0.7 #irene guessing
+TsunamiC 0.7 #from finn https://indico.desy.de/indico/event/19865/contribution/16/4/material/slides/0.pdf
+dphcutA  40
+dphcutB  40
+dphcutC  40
+dx3c  0.00028
