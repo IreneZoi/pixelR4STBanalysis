@@ -64,12 +64,42 @@ void bookHists();
 typedef std::map<TString, TH1*> histoMap;
 histoMap bookControlHists(TString selection, TFile * histofile);
 void fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC, int ncolB,int nrowB,double xmod,unsigned iev,double xB, double yB,double xAr, double yAr, double xCr, double yCr, double dxCA,double etaA, double etaB, double etaC, TFile * histofile, TString fileName, TH1I *hclphA,TH1I *hclphB,TH1I *hclphC, TH1I *hclqA, TH1I *hclqB, TH1I *hclqC);
+
 double xcoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr); 
 double ycoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pichr); 
 double eta(vector<cluster>::iterator c); 
 double alignx(TH1I * h, TString plane,TString run,int iteration);
 double aligny(TH1I * h, TString plane,TString run,int iteration);
 double alignangle(TProfile * h, TString plane,TString run,int iteration);
+
+
+
+//TH1I * hdx3b; // = new TH1I("dx3", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 ); 
+//TH1I * hdx3tree; // = new TH1I("dx3", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 ); 
+TH1I * hdx3tree2; //= new TH1I("hdx3tree2", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+// Create a ROOT Tree
+TTree * charge_res;
+
+Double_t dx3tree;
+
+Double_t clqAiii;
+Double_t clqBiii;
+Double_t clqCiii;
+Double_t clphAiii;
+Double_t clphBiii;
+Double_t clphCiii;
+
+
+Int_t clqAiiicut;
+Int_t clqBiiicut;
+Int_t clqCiiicut;
+Int_t clphAiiicut;
+Int_t clphBiiicut;
+Int_t clphCiiicut;
+
+TH1I * hdx3_clchargeABC90evR; // = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
+TH1I * hdx3_clphABC90evR;   // = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+
 
 
 TProfile phvsprev[DreiMasterPlanes];
@@ -176,3 +206,4 @@ TProfile * effvsiev;// ( "effvsiev", "eff vs event;event mod 200;DUT efficiency"
 TProfile * effvsmpxA;// ( "effvsmpxA", "eff vs occupancy A;occupancy A [pixels];DUT efficiency",		      50, 0.5, 50.5, -0.1, 1.1 );
 TProfile * effvsqA;// ( "effvsqA", "eff vs charge A;cluster charge A [ke];DUT efficiency",		    100, 0, 100, -0.1, 1.1 );
 TProfile * effvstxy;// ( "effvstxy", "eff vs angle;dxy CA [mm];DUT efficiency",		     100, 0, 0.2, -0.1, 1.1 );
+

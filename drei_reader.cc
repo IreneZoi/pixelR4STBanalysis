@@ -37,14 +37,15 @@
 #include <TProfile.h>
 #include <TProfile2D.h>
 #include <TF1.h>
+#include <TTree.h>
 #include <TCanvas.h>
 #include <TStyle.h>
 #include "./drei_reader.h"
 
-bool PRINT = false;
+bool PRINT = true;
 bool DOALIGNMENT = false;
 bool DPHCUT = false;
-
+bool DEBUG = false;
 //------------------------------------------------------------------------------
 
 int main( int argc, char* argv[] )
@@ -446,6 +447,7 @@ int main( int argc, char* argv[] )
   ///////     Big Loop on the event ///////
   for( ; evinfoB != infoB.end() && evA != evlistA.end() && evB != evlistB.end() && evC != evlistC.end();       ++evinfoA, ++evinfoB, ++evinfoC, ++evA, ++evB, ++evC )
     {
+      if(PRINT) cout << "#################    EVENT " << iev << endl;
 
       vector <cluster> vclA = *evA;
       vector <cluster> vclB = *evB;
@@ -487,7 +489,7 @@ int main( int argc, char* argv[] )
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       ////////////////                A-B cluster correlations:    //////////////////////////
-      
+      cout << "entering AB correlation loop " << endl;
       int nm = 0;
 
       for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )
@@ -543,7 +545,7 @@ int main( int argc, char* argv[] )
       
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       // B-C cluster correlations:
-      
+      cout << "entering BC correlation loop " << endl;
       nm = 0;
       
       for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
@@ -607,8 +609,8 @@ int main( int argc, char* argv[] )
 
       //filling hists for resolution studies
 
-
-      
+      /*
+      cout << " filling hists for resolution studies! " << endl;
       for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC )
 	{
 
@@ -660,11 +662,11 @@ int main( int argc, char* argv[] )
 		}
 	    }
 	}
-
-      
+      cout << " done filling hists for resolution studies! "<< endl;
+      */
       // ---------------------------------------
       ///////        A-C cluster correlations: ///////////
-
+      cout << "entering AC correlation loop " << endl;
       nm = 0;
 
       for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC )
@@ -698,7 +700,6 @@ int main( int argc, char* argv[] )
 	      hdxCA->Fill( dxCA );
 	      hdyCA->Fill( dyCA );
 
-	      if(PRINT) cout << "#################    EVENT " << iev << endl;
    
 	      // NB until I initialize cB, I am using cA instead!!!!
 	      fillControlHists(raw,"raw",0,0,cA,cA,cC,0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
@@ -766,7 +767,9 @@ int main( int argc, char* argv[] )
 		  double dx3 = xB - xavg;
 		  double dy3 = yB - yavg;
 
-
+                  dx3vsx->Fill( xB, dx3 ); // turn
+		  dx3vsy->Fill( yB, dx3 );
+		  
 		  
 		  fillControlHists(beforeCorrections,"beforeCorrections",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
@@ -796,10 +799,63 @@ int main( int argc, char* argv[] )
 			      if( fabs( dxCA ) < straightTracks * beamDivergenceScaled )
 				{ // track angle
 				  fillControlHists(straightTracksY_isoAandCandB_straightTracksX,"straightTracksY_isoAandCandB_straightTracksX",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+                  
+				  cout << " filling hists for resolution studies! " << endl;		  
+				  hclqAiii->Fill(cA->q);
+				  hclqBiii->Fill(cB->q); 
+				  hclqCiii->Fill(cC->q); 
+				  hclphAiii->Fill(cA->sum);
+				  hclphBiii->Fill(cB->sum);
+				  hclphCiii->Fill(cC->sum);
+				  cout << "done  filling hists for resolution studies! " << endl;		  
+                                  dx3tree = dx3;
+				  
+				  clqAiii = cA->q;
+				  clqBiii = cB->q;
+				  clqCiii = cC->q;
+				  clphAiii = cA->sum;
+				  clphBiii = cB->sum;
+				  clphCiii = cC->sum;
+				  
+                                  charge_res->Fill();
+				  cout << "done  filling the tree " << endl;
 				  
 				}//fabs( dxCA ) < straightTracks * beamDivergenceScaled 
 
-			      
+			    }//iso B
+			}//iso CA
+		    }//straight tracks Y
+
+		}//clB
+	    }//clA
+	}//clC
+    }//first big loop on events
+
+  charge_res->Print();
+  /*
+  for( ; evinfoB != infoB.end() && evA != evlistA.end() && evB != evlistB.end() && evC != evlistC.end();       ++evinfoA, ++evinfoB, ++evinfoC, ++evA, ++evB, ++evC ){
+    vector <cluster> vclA = *evA;
+    vector <cluster> vclB = *evB;
+    vector <cluster> vclC = *evC;
+
+    ++iev;
+    if( iev%10000 == 0 )
+      cout << " " << iev << flush;
+
+    if( evinfoA->filled == ADD ) cout << endl << "ev " << iev << " added A" << endl;
+    if( evinfoB->filled == ADD ) cout << endl << "ev " << iev << " added B" << endl;
+    if( evinfoC->filled == ADD ) cout << endl << "ev " << iev << " added C" << endl;
+    
+      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ){
+      for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ){
+	      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ){
+	      if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 )
+		    { 
+		      
+		      if( cA->iso && cC->iso )
+			{
+			  if( cB->iso )
+			    {
 			      if( (cA->q <= qR) && (cC->q <= qR))
 				{
 				  if(PRINT) cout << "cA->q " << cA->q << " >= qR " << qR << " && cC->q " << cC->q << "  >= qR " << endl;
@@ -899,12 +955,156 @@ int main( int argc, char* argv[] )
 
     
     } // events
+  */
   /////////    end of the big loop on the events!!! //////////////////
   cout << endl;
   if(PRINT) cout << " after big loop on events!!!************************" << endl;
   if(PRINT)cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
   if(PRINT)cout << hdt->GetTitle() << " entries " << hdt->GetEntries() << endl;
+  cout << "tree entries " << charge_res->GetEntries() << endl;  
+  TH1I * hdx3tree = new TH1I("hdx3tree", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+  charge_res->Draw("dx3tree>>hdx3tree","","goff");
+  hdx3tree = (TH1I*)gDirectory->Get("hdx3tree");
+  //charge_res->Branch("hdx3tree","TH1F",&hdx3tree,64000,0);
+  //  charge_res->Fill();
+  cout << hdx3tree->GetTitle() << " entries " << hdx3tree->GetEntries() << endl;
 
+  //  hdx3tree->Draw();
+  hdx3tree->Write();
+  //  TH1I * hdx3tree2 = new TH1I("hdx3tree2", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+  for(int i =0; i<hdx3tree->GetEntries(); i++)
+    {
+      
+      hdx3tree2->SetBinContent(i+1,hdx3tree->GetBinContent(i+1));
+    }
+  cout << hdx3tree2->GetTitle() << " entries " << hdx3tree2->GetEntries() << endl;
+  hdx3tree2->Write();
+
+
+  double integral[DreiMasterPlanes];
+  double integralPH[DreiMasterPlanes];
+
+  double integral90[DreiMasterPlanes];
+  double integralPH90[DreiMasterPlanes];
+  
+  int high90[DreiMasterPlanes];
+  int highPH90[DreiMasterPlanes];
+
+  TH1I * hclq[DreiMasterPlanes];
+  hclq[0]=hclqAiii;
+  hclq[1]=hclqBiii;
+  hclq[2]=hclqCiii;
+
+  TH1I * hclph[DreiMasterPlanes];
+  hclph[0]=hclphAiii;
+  hclph[1]=hclphBiii;
+  hclph[2]=hclphCiii;
+
+  
+  for(int j =0; j < DreiMasterPlanes; j++)
+    {
+      if(PRINT)   cout << " plane " << j << endl;
+      integral[j] = hclq[j]->Integral();
+      if(PRINT)   cout << " integral " << integral[j] << endl;
+
+      integralPH[j] = hclph[j]->Integral();
+      if(PRINT)   cout << " integralPH " << integralPH[j] << endl;
+
+      integral90[j] = 0.9*hclq[j]->Integral(); //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
+      if(DEBUG)   cout << " integral90 " << integral90[j] << endl;
+
+      integralPH90[j] = 0.9*hclph[j]->Integral();
+
+      high90[j] = 0;
+
+      highPH90[j] = 0;
+    
+  int i = 0;
+  while(integral[j]>integral90[j])
+    {
+      cout << " while "<< i << endl;
+      integral[j] = hclq[j]->Integral(1,hclq[j]->GetNbinsX()-i);
+      high90[j] = hclq[j]->GetBinCenter(hclq[j]->GetNbinsX()-i);
+      cout << " integral " << integral[j] << " high " << high90[j] << endl;
+      i++;
+    }
+  cout << " integral90 " << integral90[j] << endl;
+  i=0;
+  while(integralPH[j]>integralPH90[j])
+    {
+      //      cout << " while "<< i << endl;
+      integralPH[j] = hclph[j]->Integral(1,hclph[j]->GetNbinsX()-i);
+      highPH90[j] = hclph[j]->GetBinCenter(hclph[j]->GetNbinsX()-i);
+      //cout << " integral " << integral << " low " << low << " high " << high << endl;
+      i++;
+    }
+
+  
+}
+   TString qA;
+   qA.Form("%d",high90[0]);
+   TString qB;
+   qB.Form("%d",high90[1]);
+   TString qC;
+   qC.Form("%d",high90[2]);
+  
+  //  TCut mycut("clqAiiitree<200");
+  TH1D * hdx3treeq = new TH1D("hdx3treeq", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+  charge_res->Draw("dx3tree>>hdx3treeq","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC,"goff");
+  //  charge_res->Draw("dx3tree>>hdx3treeq","clqAiiitree<clqAiiicut&&clqBiiitree<clqBiiicut&&clqCiiitree<clqCiiicut","goff");
+    hdx3treeq = (TH1D*)gDirectory->Get("hdx3treeq");
+  //charge_res->Branch("hdx3tree","TH1F",&hdx3tree,64000,0);
+  //  charge_res->Fill();
+    cout << hdx3treeq->GetTitle() << " entries " << hdx3treeq->GetEntries() << " mean " << hdx3treeq->GetMean() << " 20bin " << hdx3treeq->GetBinContent(20)<<endl;
+
+  //  hdx3tree->Draw();
+  hdx3treeq->Write();
+  //  TH1I * hdx3tree2 = new TH1I("hdx3tree2", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+  for(int i =0; i<hdx3treeq->GetEntries(); i++)
+    {
+      //cout << " bin " << i+1 << " content " << hdx3treeq->GetBinContent(i+1) << endl;
+      hdx3_clchargeABC90evR->SetBinContent(i+1,hdx3treeq->GetBinContent(i+1));
+      //cout << " bin " << i+1 <<" content " << hdx3_clchargeABC90evR->GetBinContent(i+1) <<endl;
+    }
+  cout << hdx3_clchargeABC90evR->GetTitle() << " entries " << hdx3_clchargeABC90evR->GetEntries() << "mean " << hdx3_clchargeABC90evR->GetMean() << endl;
+  hdx3_clchargeABC90evR->Write();
+
+
+   TString phA;
+   phA.Form("%d",highPH90[0]);
+   TString phB;
+   phB.Form("%d",highPH90[1]);
+   TString phC;
+   phC.Form("%d",highPH90[2]);
+
+
+  
+  TH1I * hdx3treeph = new TH1I("hdx3treeph", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+  //charge_res->Draw("dx3tree>>hdx3treeph","clphAiiitree<clphAiiicut&&clphBiiitree<clphBiiicut&&clphCiiitree<clphCiiicut","goff");
+  charge_res->Draw("dx3tree>>hdx3treeph","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC,"goff");
+  
+  hdx3treeph = (TH1I*)gDirectory->Get("hdx3treeph");
+  //charge_res->Branch("hdx3tree","TH1F",&hdx3tree,64000,0);
+  //  charge_res->Fill();
+  cout << hdx3treeph->GetTitle() << " entries " << hdx3treeph->GetEntries() << endl;
+
+  //  hdx3tree->Draw();
+  hdx3treeph->Write();
+  //  TH1I * hdx3tree2 = new TH1I("hdx3tree2", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+  for(int i =0; i<hdx3treeph->GetEntries(); i++)
+    {
+
+      hdx3_clphABC90evR->SetBinContent(i+1,hdx3treeph->GetBinContent(i+1));
+    }
+  cout << hdx3_clphABC90evR->GetTitle() << " entries " << hdx3_clphABC90evR->GetEntries() << endl;
+  hdx3_clphABC90evR->Write();
+  
+
+
+
+
+  
+  //charge_res->Print();
 
   clock_gettime( CLOCK_REALTIME, &ts );
   time_t s3 = ts.tv_sec; // seconds since 1.1.1970
@@ -939,7 +1139,7 @@ int main( int argc, char* argv[] )
        << endl << "involuntary context switches " << usage.ru_nivcsw
        << endl;
   if(PRINT) cout << " going to write the hist file" << endl;
-  histoFile->Write();
+  histoFile->Write("",TObject::kOverwrite);
   if(PRINT) cout << " wrote the hist file" << endl;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1107,7 +1307,6 @@ double alignx(TH1I * h, TString plane,TString run,int iteration)
   c->SetFrameFillStyle(1000);
   c->SetFrameFillColor(0);
   gPad->SetTicks(1,1);
-
 
   h->GetXaxis()->SetLabelFont(42);
   h->GetXaxis()->SetLabelSize(0.025);
@@ -1354,7 +1553,7 @@ vector<cluster> getClus( vector <pixel> pb, int fCluCut ) // 1 = no gap
 
       c.size = c.vpix.size();
 
-      if(PRINT) cout << "(cluster with " << c.vpix.size() << " pixels)" << endl;
+      //if(PRINT) cout << "(cluster with " << c.vpix.size() << " pixels)" << endl;
 
       //cluster coordinates is the average of the pixel coordianates 
       c.col /= c.q;
@@ -1467,11 +1666,11 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
     //do the analysis only for filled events
     if( filled == F )
       {
-	if(PRINT)  cout << "Analayzing filled data" << endl; 
+	//if(PRINT)  cout << "Analayzing filled data" << endl; 
 	string roi;
 	getline( Xstream, roi );
-	if(PRINT)  cout << "roi: " << roi << endl;
-	if(PRINT) cout << "roi size: " << roi.size() << endl;
+	//if(PRINT)  cout << "roi: " << roi << endl;
+	//if(PRINT) cout << "roi size: " << roi.size() << endl;
 	size_t start = 0;
 	size_t gap = 0;
 	unsigned ng = 0; // 3 entries per pixel (col, row and ph)
@@ -1499,21 +1698,21 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 		//getting pixel column
 		gap = roi.find( BLANK, start );
 		string s1( roi.substr( start, gap - start ) );
-		if(PRINT) cout << " " << s1 << "(" << gap << ")"<<endl;
+		//if(PRINT) cout << " " << s1 << "(" << gap << ")"<<endl;
 		int col = atoi( s1.c_str() ); // 4% faster
 		start = gap + BLANK.size();
 	    
 		//getting pixel row
 		gap = roi.find( BLANK, start );
 		string s2( roi.substr( start, gap - start ) );
-		if(PRINT) cout << " " << s2 << "(" << gap << ")";
+		//if(PRINT) cout << " " << s2 << "(" << gap << ")";
 		int row = atoi( s2.c_str() );
 		start = gap + BLANK.size();
 
 		//getting pixel puls height
 		gap = roi.find( BLANK, start );
 		string s3( roi.substr( start, gap - start ) );
-		if(PRINT) cout << " " << s1 << "(" << gap << ")";
+		//if(PRINT) cout << " " << s1 << "(" << gap << ")";
 		double ph = atof(s3.c_str());
 		start = gap + BLANK.size();
 
@@ -2062,11 +2261,11 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   mapOfHists.insert(std::make_pair("dx3_clphAC20hR",hdx3_clphAC20hR));
   mapOfHists.insert(std::make_pair("dx3_clchargeAC30hR",hdx3_clchargeAC30hR));
   mapOfHists.insert(std::make_pair("dx3_clphAC30hR",hdx3_clphAC30hR));
-  */
+  
   
   mapOfHists.insert(std::make_pair("dx3_clchargeABC90evR",hdx3_clchargeABC90evR));
   mapOfHists.insert(std::make_pair("dx3_clphABC90evR",hdx3_clphABC90evR));
-  /*
+  
   mapOfHists.insert(std::make_pair("dx3_clchargeABC80evR",hdx3_clchargeABC80evR));
   mapOfHists.insert(std::make_pair("dx3_clphABC80evR",hdx3_clphABC80evR));
   mapOfHists.insert(std::make_pair("dx3_clchargeABC70evR",hdx3_clchargeABC70evR));
@@ -2116,54 +2315,54 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 
   
   auto search =  mapOfHists.find("xA");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(xAr);
   } else {
     if(PRINT) std::cout << "Not found "<< "xA" << endl;
   }
 
   search =  mapOfHists.find("yA");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(yAr);
   } else {
     if(PRINT) std::cout << "Not found "<< "yAr" << endl;
   }
 
   search =  mapOfHists.find("xB");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(xB);
   } else {
     if(PRINT) std::cout << "Not found "<< "xB" << endl;
   }
 
   search =  mapOfHists.find("yB");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(yB);
   } else {
     if(PRINT) std::cout << "Not found "<< "yB" << endl;
   }
 
   search =  mapOfHists.find("xC");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(xCr);
   } else {
     if(PRINT) std::cout << "Not found "<< "xC" << endl;
   }
 
   search =  mapOfHists.find("yC");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(yCr);
   } else {
     if(PRINT) std::cout << "Not found "<< "yCr" << endl;
@@ -2172,9 +2371,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 
   
   search =  mapOfHists.find("dx3");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(dx3);
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3" << endl;
@@ -2182,36 +2381,36 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 
 
   search =  mapOfHists.find("dy3");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(dy3);
   } else {
     if(PRINT) std::cout << "Not found "<< "dy3" << endl;
   }
 
   search =  mapOfHists.find("clsizeA");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterA->size);
   } else {
     if(PRINT) std::cout << "Not found "<< "clsizeA" << endl;
   }
 
   search =  mapOfHists.find("clsizeB");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterB->size);
   } else {
     if(PRINT) std::cout << "Not found "<< "clsizeB" << endl;
   }
 
     search =  mapOfHists.find("clsizeC");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterC->size);
   } else {
     if(PRINT) std::cout << "Not found "<< "clsizeC" << endl;
@@ -2219,45 +2418,45 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 
 
   search =  mapOfHists.find("nrowB");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(nrowB);
   } else {
     if(PRINT) std::cout << "Not found "<< "nrowB" << endl;
   }
 
   search =  mapOfHists.find("ncolB");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(ncolB);
   } else {
     if(PRINT) std::cout << "Not found "<< "ncolB" << endl;
   }
 
   search =  mapOfHists.find("clmapA");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterA->col, clusterA->row);
   } else {
     if(PRINT) std::cout << "Not found "<< "clmapA" << endl;
   }
 
   search =  mapOfHists.find("clmapB");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterB->col, clusterB->row);
   } else {
     if(PRINT) std::cout << "Not found "<< "clmapB" << endl;
   }
 
   search =  mapOfHists.find("clmapC");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterC->col, clusterC->row);
   } else {
     if(PRINT) std::cout << "Not found "<< "clmapC" << endl;
@@ -2265,108 +2464,108 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 
 
   search =  mapOfHists.find("clchargeA");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterA->q);
   } else {
     if(PRINT) std::cout << "Not found "<< "clchargeA" << endl;
   }
 
     search =  mapOfHists.find("clchargeB");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterB->q);
   } else {
     if(PRINT) std::cout << "Not found "<< "clchargeB" << endl;
   }
 
     search =  mapOfHists.find("clchargeC");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterC->q);
   } else {
     if(PRINT) std::cout << "Not found "<< "clchargeC" << endl;
   }
 
   search =  mapOfHists.find("clphA");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterA->sum);
   } else {
     if(PRINT) std::cout << "Not found "<< "clphA" << endl;
   }
 
     search =  mapOfHists.find("clphB");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterB->sum);
   } else {
     if(PRINT) std::cout << "Not found "<< "clphB" << endl;
   }
 
   search =  mapOfHists.find("clphC");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterC->sum);
   } else {
     if(PRINT) std::cout << "Not found "<< "clphC" << endl;
   }
 
   search =  mapOfHists.find("pxphA");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     for( int ipx = 0; ipx < clusterA->size; ++ipx )     search->second->Fill( clusterA->vpix[ipx].ph );
   } else {
     if(PRINT) std::cout << "Not found "<< "pxphA" << endl;
   }
 
   search =  mapOfHists.find("pxchargeA");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     for( int ipx = 0; ipx < clusterA->size; ++ipx )     search->second->Fill( clusterA->vpix[ipx].q );
   } else {
     if(PRINT) std::cout << "Not found "<< "pxchargeA" << endl;
   }
 
   search =  mapOfHists.find("pxphB");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     for( int ipx = 0; ipx < clusterB->size; ++ipx )     search->second->Fill( clusterB->vpix[ipx].ph );
   } else {
     if(PRINT) std::cout << "Not found "<< "pxphB" << endl;
   }
 
   search =  mapOfHists.find("pxchargeB");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     for( int ipx = 0; ipx < clusterB->size; ++ipx )     search->second->Fill( clusterB->vpix[ipx].q );
   } else {
     if(PRINT) std::cout << "Not found "<< "pxchargeB" << endl;
   }
 
   search =  mapOfHists.find("pxphC");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     for( int ipx = 0; ipx < clusterC->size; ++ipx )     search->second->Fill( clusterC->vpix[ipx].ph );
   } else {
     if(PRINT) std::cout << "Not found "<< "pxphC" << endl;
   }
 
   search =  mapOfHists.find("pxchargeC");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     for( int ipx = 0; ipx < clusterC->size; ++ipx )     search->second->Fill( clusterC->vpix[ipx].q );
   } else {
     if(PRINT) std::cout << "Not found "<< "pxchargeC" << endl;
@@ -2374,9 +2573,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 
 
   search =  mapOfHists.find("etaA");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterA->size ==2)
       search->second->Fill(etaA);
   } else {
@@ -2384,9 +2583,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("etaB");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->size ==2)
       search->second->Fill(etaB);
   } else {
@@ -2394,9 +2593,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("etaC");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterC->size ==2)
       search->second->Fill(etaC);
   } else {
@@ -2404,9 +2603,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 		    
   search =  mapOfHists.find("pxchargeB1st");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->size ==2)
       search->second->Fill( clusterB->vpix[0].q );
   } else {
@@ -2414,9 +2613,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("pxchargeB2nd");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->size ==2)
       search->second->Fill( clusterB->vpix[1].q );
   } else {
@@ -2427,9 +2626,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 
 
   search =  mapOfHists.find("nrowvsxmB3");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
   if( fifty )
     search->second->Fill( xmod*1E3, ncolB );
@@ -2441,107 +2640,107 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("clqvsxmB3");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill( xmod*1E3, clusterB->q );
   } else {
     if(PRINT) std::cout << "Not found "<< "clqvsxmB3" << endl;
   }
 
   search =  mapOfHists.find("dx3vsev");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill( iev, dx3 );
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3vsev" << endl;
   }
 
   search =  mapOfHists.find("dx3vsx");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill( xB, dx3 ); // turn 
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3vsx" << endl;
   }
 
   search =  mapOfHists.find("dx3vsy");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill( yB, dx3 ); // rot
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3vsy" << endl;
   }
 
   search =  mapOfHists.find("dx3vsxm");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill( xmod*1E3, dx3 ); // rot
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3vsxm" << endl;
   }
   search =  mapOfHists.find("madx3vsdx");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill( dxCA*1E3, fabs(dx3) ); // dxCA
   } else {
     if(PRINT) std::cout << "Not found "<< "madx3vsdx" << endl;
   }
 
   search =  mapOfHists.find("madx3vsx");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill( xB, fabs(dx3) );
   } else {
     if(PRINT) std::cout << "Not found "<< "madx3vsx" << endl;
   }
 
   search =  mapOfHists.find("madx3vsy");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill( yB, fabs(dx3) );
       } else {
     if(PRINT) std::cout << "Not found "<< "madx3vsy" << endl;
   }
 
   search =  mapOfHists.find("madx3vsxm");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(xmod*1E3, fabs(dx3) );
       } else {
     if(PRINT) std::cout << "Not found "<< "madx3vsxm" << endl;
   }
 
   search =  mapOfHists.find("madx3vsq");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterB->q, fabs(dx3) );
       } else {
     if(PRINT) std::cout << "Not found "<< "madx3vsq" << endl;
   }
 
   search =  mapOfHists.find("madx3vsn");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     search->second->Fill(clusterB->size, fabs(dx3) );
       } else {
     if(PRINT) std::cout << "Not found "<< "madx3vsn" << endl;
   }
 
   search =  mapOfHists.find("etavsxmB3");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end() ) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->size == 2)
       search->second->Fill( xmod*1E3, etaB ); // sine 
   } else {
@@ -2549,9 +2748,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
   
   search =  mapOfHists.find("madx3vseta");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end() ) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->size == 2)
       search->second->Fill( etaB, fabs(dx3) ); // flat 
   } else {
@@ -2560,9 +2759,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   
 
   search =  mapOfHists.find("dx3_clsizeB1");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->size ==1)
       search->second->Fill(dx3);
   } else {
@@ -2570,9 +2769,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clsizeB2");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->size ==2)
       search->second->Fill(dx3);
   } else {
@@ -2580,9 +2779,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clsizeB3");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->size ==3)
       search->second->Fill(dx3);
   } else {
@@ -2590,36 +2789,36 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clsizeB4");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->size ==4)
       search->second->Fill(dx3);
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3_clsizeB4" << endl;
   }
   search =  mapOfHists.find("dx3_clsizeB5");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->size ==5)
       search->second->Fill(dx3);
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3_clsizeB5" << endl;
   }
   search =  mapOfHists.find("dx3_clsizeB6");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->size ==6)
       search->second->Fill(dx3);
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3_clsizeB6" << endl;
   }
   search =  mapOfHists.find("dx3_clsizeB7m");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->size >6)
       search->second->Fill(dx3);
   } else {
@@ -2629,9 +2828,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 
   /*
   search =  mapOfHists.find("dx3_clchargeB2e");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->q <= 2)
       search->second->Fill(dx3);
   } else {
@@ -2639,9 +2838,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clchargeB2e5e");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->q > 2 && clusterB->q <=5)
       search->second->Fill(dx3);
   } else {
@@ -2649,9 +2848,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clchargeB5e8e");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->q > 5 && clusterB->q <=8)
       search->second->Fill(dx3);
   } else {
@@ -2659,9 +2858,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clchargeB8e10e");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->q > 8 && clusterB->q <=10)
       search->second->Fill(dx3);
   } else {
@@ -2669,9 +2868,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clchargeB10e13e");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->q > 10 && clusterB->q <=13)
       search->second->Fill(dx3);
   } else {
@@ -2679,9 +2878,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clchargeB13e16e");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->q > 13 && clusterB->q <=16)
       search->second->Fill(dx3);
   } else {
@@ -2689,9 +2888,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clchargeB16e22e");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->q > 16 && clusterB->q <=22)
       search->second->Fill(dx3);
   } else {
@@ -2699,9 +2898,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clchargeB22e40e");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->q > 22 && clusterB->q <=40)
       search->second->Fill(dx3);
   } else {
@@ -2709,9 +2908,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clchargeB40e");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->q > 40 )
       search->second->Fill(dx3);
   } else {
@@ -2719,9 +2918,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphB50adc");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->sum <= 50)
       search->second->Fill(dx3);
   } else {
@@ -2729,9 +2928,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphB50adc100adc");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->sum > 50 && clusterB->sum <=100)
       search->second->Fill(dx3);
   } else {
@@ -2739,9 +2938,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphB100adc150adc");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->sum > 100 && clusterB->sum <=150)
       search->second->Fill(dx3);
   } else {
@@ -2749,9 +2948,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphB150adc200adc");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->sum > 150 && clusterB->sum <=200)
       search->second->Fill(dx3);
   } else {
@@ -2759,9 +2958,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphB200adc250adc");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->sum > 200 && clusterB->sum <=250)
       search->second->Fill(dx3);
   } else {
@@ -2769,9 +2968,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphB250adc300adc");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->sum > 250 && clusterB->sum <=300)
       search->second->Fill(dx3);
   } else {
@@ -2779,9 +2978,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphB300adc400adc");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->sum > 300 && clusterB->sum <=400)
       search->second->Fill(dx3);
   } else {
@@ -2789,9 +2988,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphB400adc500adc");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->sum > 400 && clusterB->sum <=500)
       search->second->Fill(dx3);
   } else {
@@ -2799,9 +2998,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphB500adc600adc");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->sum > 500 && clusterB->sum <=600)
       search->second->Fill(dx3);
   } else {
@@ -2809,9 +3008,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphB600adc700adc");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->sum > 600 && clusterB->sum <=700)
       search->second->Fill(dx3);
   } else {
@@ -2819,15 +3018,15 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphB700adc");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
     if(clusterB->sum > 700)
       search->second->Fill(dx3);
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3_clphB700adc" << endl;
   }
-  */
+  
   
   double integral[DreiMasterPlanes];
   double integralPH[DreiMasterPlanes];
@@ -2848,15 +3047,15 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 
   for(int j =0; j < DreiMasterPlanes; j++)
     {
-      if(PRINT)   cout << " plane " << j << endl;
+      if(DEBUG)   cout << " plane " << j << endl;
       integral[j] = hclq[j]->Integral();
-      if(PRINT)   cout << " integral " << integral[j] << endl;
+      if(DEBUG)   cout << " integral " << integral[j] << endl;
 
       integralPH[j] = hclph[j]->Integral();
-      if(PRINT)   cout << " integralPH " << integralPH[j] << endl;
+      if(DEBUG)   cout << " integralPH " << integralPH[j] << endl;
 
       integral90[j] = 0.9*hclq[j]->Integral(); //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
-      if(PRINT)   cout << " integral90 " << integral90[j] << endl;
+      if(DEBUG)   cout << " integral90 " << integral90[j] << endl;
       integral80[j] = 0.8*hclq[j]->Integral(); //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
       integral70[j] = 0.7*hclq[j]->Integral(); //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
 
@@ -2881,7 +3080,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 	  //cout << " integral " << integral << " low " << low << " high " << high << endl;
 	  i++;
 	}
-      if(PRINT)    cout << "final integral 90 " << integral[j] << " high " << high90[j] << endl;
+      if(DEBUG)    cout << "final integral 90 " << integral[j] << " high " << high90[j] << endl;
       i = 0;
       while(integral[j]>integral80[j])
 	{
@@ -2891,7 +3090,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 	  //cout << " integral " << integral << " low " << low << " high " << high << endl;
 	  i++;
 	}
-      if(PRINT)    cout << "final integral 80 " << integral[j] << " high " << high80[j] << endl;
+      if(DEBUG)    cout << "final integral 80 " << integral[j] << " high " << high80[j] << endl;
       i = 0;
       while(integral[j]>integral70[j])
 	{
@@ -2901,7 +3100,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 	  //cout << " integral " << integral << " low " << low << " high " << high << endl;
 	  i++;
 	}
-      if(PRINT)    cout << "final integral 70 " << integral[j] << " high " << high70[j] << endl;
+      if(DEBUG)    cout << "final integral 70 " << integral[j] << " high " << high70[j] << endl;
 
       i=0;
       while(integralPH[j]>integralPH90[j])
@@ -2923,7 +3122,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 	  //cout << " integral " << integral << " low " << low << " high " << high << endl;
 	  i++;
 	}
-      if(PRINT)  cout << "final integralPH 80 " << integralPH[j]  << " high " << highPH80[j] << endl;
+      if(DEBUG)  cout << "final integralPH 80 " << integralPH[j]  << " high " << highPH80[j] << endl;
 
       i=0;
       while(integralPH[j]>integralPH70[j])
@@ -2934,15 +3133,15 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 	  //cout << " integral " << integral << " low " << low << " high " << high << endl;
 	  i++;
 	}
-      if(PRINT)  cout << "final integralPH 70 " << integralPH[j]  << " high " << highPH70[j] << endl;
+      if(DEBUG)  cout << "final integralPH 70 " << integralPH[j]  << " high " << highPH70[j] << endl;
 
     }
 
   /*
   search =  mapOfHists.find("dx3_clchargeAC90evR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterA->q <= hclq[0]->GetBinCenter(high90[0]) && clusterC->q <= hclq[2]->GetBinCenter(high90[2]))
        search->second->Fill(dx3);
@@ -2951,11 +3150,11 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clchargeAC90evR" << endl;
   }  
 
-  */
+  
   search =  mapOfHists.find("dx3_clchargeABC90evR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterB->q <= hclq[1]->GetBinCenter(high90[1]) && clusterA->q <= hclq[0]->GetBinCenter(high90[0]) && clusterC->q <= hclq[2]->GetBinCenter(high90[2]))
        search->second->Fill(dx3);
@@ -2965,11 +3164,11 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
 
-  /*
+  
   search =  mapOfHists.find("dx3_clchargeAC80evR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterA->q <= hclq[0]->GetBinCenter(high80[0]) && clusterC->q <= hclq[2]->GetBinCenter(high80[2]))
        search->second->Fill(dx3);
@@ -2978,9 +3177,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clchargeAC80evR" << endl;
   }
   search =  mapOfHists.find("dx3_clchargeABC80evR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterB->q <= hclq[1]->GetBinCenter(high80[1]) && clusterA->q <= hclq[0]->GetBinCenter(high80[0]) && clusterC->q <= hclq[2]->GetBinCenter(high80[2]))
        search->second->Fill(dx3);
@@ -2990,9 +3189,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clchargeAC80evR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterA->q <= hclq[0]->GetBinCenter(high80[0]) && clusterC->q <= hclq[2]->GetBinCenter(high80[2]))
        search->second->Fill(dx3);
@@ -3001,9 +3200,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clchargeAC80evR" << endl;
   }
   search =  mapOfHists.find("dx3_clchargeABC70evR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterB->q <= hclq[1]->GetBinCenter(high70[1]) && clusterA->q <= hclq[0]->GetBinCenter(high70[0]) && clusterC->q <= hclq[2]->GetBinCenter(high70[2]))
        search->second->Fill(dx3);
@@ -3015,9 +3214,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 
 
   search =  mapOfHists.find("dx3_clphAC90evR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if( clusterA->sum <= hclph[0]->GetBinCenter(highPH90[0]) && clusterC->sum <= hclph[2]->GetBinCenter(highPH90[2]))
        search->second->Fill(dx3);
@@ -3026,11 +3225,11 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clphAC90evR" << endl;
   }
 
-  */
+  
   search =  mapOfHists.find("dx3_clphABC90evR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterB->sum <= hclph[1]->GetBinCenter(highPH90[1]) && clusterA->sum <= hclph[0]->GetBinCenter(highPH90[0]) && clusterC->sum <= hclph[2]->GetBinCenter(highPH90[2]))
        search->second->Fill(dx3);
@@ -3040,11 +3239,11 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
 
-  /*
+  
   search =  mapOfHists.find("dx3_clphAC80evR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if( clusterA->sum <= hclph[0]->GetBinCenter(highPH80[0]) && clusterC->sum <= hclph[2]->GetBinCenter(highPH80[2]))
        search->second->Fill(dx3);
@@ -3054,9 +3253,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphABC80evR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterB->sum <= hclph[1]->GetBinCenter(highPH80[1]) && clusterA->sum <= hclph[0]->GetBinCenter(highPH80[0]) && clusterC->sum <= hclph[2]->GetBinCenter(highPH80[2]))
        search->second->Fill(dx3);
@@ -3066,9 +3265,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphAC70evR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if( clusterA->sum <= hclph[0]->GetBinCenter(highPH70[0]) && clusterC->sum <= hclph[2]->GetBinCenter(highPH70[2]))
        search->second->Fill(dx3);
@@ -3078,9 +3277,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphABC70evR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterB->sum <= hclph[1]->GetBinCenter(highPH70[1]) && clusterA->sum <= hclph[0]->GetBinCenter(highPH70[0]) && clusterC->sum <= hclph[2]->GetBinCenter(highPH70[2]))
        search->second->Fill(dx3);
@@ -3157,9 +3356,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     }
 
   search =  mapOfHists.find("dx3_clchargeAC10hR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     
     if( clusterA->q <= hclq[0]->GetBinCenter(bin10[0]) && clusterC->q <= hclq[2]->GetBinCenter(bin10[2]))
@@ -3170,9 +3369,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clchargeABC10hR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     
     if(clusterB->q <= hclq[1]->GetBinCenter(bin10[1]) && clusterA->q <= hclq[0]->GetBinCenter(bin10[0]) && clusterC->q <= hclq[2]->GetBinCenter(bin10[2]))
@@ -3183,9 +3382,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clchargeAC20hR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     
     if( clusterA->q <= hclq[0]->GetBinCenter(bin20[0]) && clusterC->q <= hclq[2]->GetBinCenter(bin20[2]))
@@ -3195,9 +3394,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clchargeAC20hR" << endl;
   }
   search =  mapOfHists.find("dx3_clchargeABC20hR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     
     if(clusterB->q <= hclq[1]->GetBinCenter(bin20[1]) && clusterA->q <= hclq[0]->GetBinCenter(bin20[0]) && clusterC->q <= hclq[2]->GetBinCenter(bin20[2]))
@@ -3208,9 +3407,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clchargeAC30hR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     
     if( clusterA->q <= hclq[0]->GetBinCenter(bin30[0]) && clusterC->q <= hclq[2]->GetBinCenter(bin30[2]))
@@ -3220,9 +3419,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clchargeAC30hR" << endl;
   }
   search =  mapOfHists.find("dx3_clchargeABC30hR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     
     if(clusterB->q <= hclq[1]->GetBinCenter(bin30[1]) && clusterA->q <= hclq[0]->GetBinCenter(bin30[0]) && clusterC->q <= hclq[2]->GetBinCenter(bin30[2]))
@@ -3235,9 +3434,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 
 
   search =  mapOfHists.find("dx3_clphABC10hR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterB->sum <= hclph[1]->GetBinCenter(bin10[1]) && clusterA->sum <= hclph[0]->GetBinCenter(bin10[0]) && clusterC->sum <= hclph[2]->GetBinCenter(bin10[2]))
        search->second->Fill(dx3);
@@ -3247,9 +3446,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphAC10hR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterA->sum <= hclph[0]->GetBinCenter(bin10[0]) && clusterC->sum <= hclph[2]->GetBinCenter(bin10[2]))
        search->second->Fill(dx3);
@@ -3260,9 +3459,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
 
 
   search =  mapOfHists.find("dx3_clphABC20hR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterB->sum <= hclph[1]->GetBinCenter(bin20[1]) && clusterA->sum <= hclph[0]->GetBinCenter(bin20[0]) && clusterC->sum <= hclph[2]->GetBinCenter(bin20[2]))
        search->second->Fill(dx3);
@@ -3272,9 +3471,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphAC20hR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterA->sum <= hclph[0]->GetBinCenter(bin20[0]) && clusterC->sum <= hclph[2]->GetBinCenter(bin20[2]))
        search->second->Fill(dx3);
@@ -3284,9 +3483,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphABC30hR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterB->sum <= hclph[1]->GetBinCenter(bin30[1]) && clusterA->sum <= hclph[0]->GetBinCenter(bin30[0]) && clusterC->sum <= hclph[2]->GetBinCenter(bin30[2]))
        search->second->Fill(dx3);
@@ -3296,9 +3495,9 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
   search =  mapOfHists.find("dx3_clphAC30hR");
-  if(PRINT) cout << "search" << endl;
+  if(DEBUG) cout << "search" << endl; 
   if (search !=  mapOfHists.end()) {
-    if(PRINT) std::cout << "Found " << search->first  << '\n';
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
 
     if(clusterA->sum <= hclph[0]->GetBinCenter(bin30[0]) && clusterC->sum <= hclph[2]->GetBinCenter(bin30[2]))
        search->second->Fill(dx3);
@@ -3323,6 +3522,31 @@ void bookHists()
     nby = 160;
   }
 
+
+  //hdx3b = new TH1I("hdx3", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+  // hdx3tree = new TH1I("hdx3tree", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+ hdx3_clchargeABC90evR = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
+ hdx3_clphABC90evR = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  // Create a ROOT Tree
+  hdx3tree2 = new TH1I("hdx3tree2", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+ 
+ charge_res = new TTree("charge_res","landau and residuals");
+ charge_res->Branch("dx3tree",&dx3tree);
+ charge_res->Branch("clqAiiitree",&clqAiii);
+ charge_res->Branch("clqBiiitree",&clqBiii);
+ charge_res->Branch("clqCiiitree",&clqCiii);
+ charge_res->Branch("clphAiiitree",&clphAiii);
+ charge_res->Branch("clphBiiitree",&clphBiii);
+ charge_res->Branch("clphCiiitree",&clphCiii);
+
+ charge_res->Branch("clqAiiicut",&clqAiiicut);
+ charge_res->Branch("clqBiiicut",&clqBiiicut);
+ charge_res->Branch("clqCiiicut",&clqCiiicut);
+ charge_res->Branch("clphAiiicut",&clphAiiicut);
+ charge_res->Branch("clphBiiicut",&clphBiiicut);
+ charge_res->Branch("clphCiiicut",&clphCiiicut);
+
+  
   for( unsigned ipl = 0; ipl < DreiMasterPlanes; ++ipl ) {
 
     phvsprev[ipl] = TProfile( Form( "phvsprev%s", PN[ipl].c_str() ),
@@ -3464,6 +3688,11 @@ void bookHists()
   effvsqA = new TProfile( "effvsqA", "eff vs charge A;cluster charge A [ke];DUT efficiency",		    100, 0, 100, -0.1, 1.1 );
   effvstxy = new TProfile("effvstxy", "eff vs angle;dxy CA [mm];DUT efficiency",		     100, 0, 0.2, -0.1, 1.1 );
 
+  //  hdx3 = new TH1I("dx3", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+
+
+
+  
 }
 
 
