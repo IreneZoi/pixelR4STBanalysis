@@ -458,12 +458,11 @@ int main( int argc, char* argv[] )
       
       ++iev;
       cout << " event " << iev << " cl A " << vclA.size() << " B " << vclB.size() << " C " << vclC.size() << endl;
-     
       if(vclA.size()!=1 || vclB.size()!=1 || vclC.size() !=1){
 	cout << " more than 1 clusters on at least one plane! " << endl;
 	continue;
       }
-     
+      
       if( iev%10000 == 0 )
 	cout << " " << iev << flush;
       
@@ -793,7 +792,7 @@ int main( int argc, char* argv[] )
 		  if(PRINT) cout << "nocuts" << endl;
 		  
 		  
-		  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled ) //+ 0.05 )
+		  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 )
 		    { // cut on y, look at x, see madx3vsy
 		    
 		      fillControlHists(straightTracksY,"straightTracksY",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
@@ -1084,15 +1083,52 @@ int main( int argc, char* argv[] )
   cout << hdx3_clphABC90evR->GetTitle() << " entries " << hdx3_clphABC90evR->GetEntries() << endl;
   hdx3_clphABC90evR->Write();
 
-  double dlow, dhigh;
+
+
+
+  // now fill the 95 % rms
+  
+  double tolerance = (hdx3treeq->GetBinContent(0)+hdx3treeq->GetBinContent(hdx3treeq->GetNbinsX()+1))/hdx3treeq->GetEntries(); // since we are not working with continuous quantities but with binned hists, the difference between the integral and the 95% it may not be zero, so we ask it to be lower than 15% (before I was using 1.1% but since I changed to use the full range of hists, the overflow bin plays a too bigger role when stats is low and the 1.1% is not reached. 
+  
+  cout << " RMS method charge based with tolerance " << tolerance << endl;
+  double maximum = hdx3treeq->GetMaximum();
+  int maxbin = hdx3treeq->GetMaximumBin();
+  cout <<  " maxbin " << maxbin << " at " << hdx3treeq->GetBinCenter(maxbin)<<endl;
+  cout << "intital sigma = " << hdx3treeq->GetRMS() * 1000 << " sigmaerr = " << hdx3treeq->GetRMSError() * 1000 << endl;
+  double Integral = hdx3treeq->Integral(0,hdx3treeq->GetNbinsX()+1);
+  cout << " integral " << Integral << " entries " << hdx3treeq->GetEntries() << endl;
+  double integral95 = 0.95*Integral;
+  cout << " integral95 " << integral95 << endl;
+  int i = 0;
+
+  double low = 0;
+  double high = 0;
+  for(int i =0; i<hdx3treeq->GetNbinsX()/2; i++)
+    {
+      low = maxbin-i;
+      high = maxbin+i;
+
+      Integral = hdx3treeq->Integral(low,high);
+      cout << " integral " << Integral << " low " << low << " high " << high << endl;
+      cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
+
+      //      if(fabs(Integral-integral95)/integral95 < 0.011 || Integral>integral95)//integral>integral95)
+      if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
+	break;
+
+
+    }
+  cout << "final integral " << Integral << " low " << low <<" high " << high << endl;
+  hdx3treeq->GetXaxis()->SetRange(low,high);
+
+  double sigma = hdx3treeq->GetRMS() * 1000;
+  double sigmaerr = hdx3treeq->GetRMSError() * 1000;
+  cout << " resolution " << sigma << " ± " << sigmaerr << endl;
+
   TString ss_low,ss_high;
-
-  cout << "charge 95 " << endl;
-
-  getPercentRange(hdx3treeq, &(dlow),&(dhigh), 0.95);
-
-  ss_low.Form("%f",dlow);
-  ss_high.Form("%f",dhigh);
+  cout << " low and hig bin centers strings " << hdx3treeq->GetBinCenter(low) << " " << hdx3treeq->GetBinCenter(high) << endl;
+  ss_low.Form("%f",hdx3treeq->GetBinCenter(low));
+  ss_high.Form("%f",hdx3treeq->GetBinCenter(high));
   cout << " low and hig bin centers strings " << ss_low << " " << ss_high << endl;
   TH1D * hdx3treeq95 = new TH1D("hdx3treeq95", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   charge_res->Draw("dx3tree>>hdx3treeq95","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
@@ -1157,12 +1193,46 @@ int main( int argc, char* argv[] )
   hclB_q5->Write();
 
 
-  cout << "ph 95 " << endl;
 
-  getPercentRange(hdx3treeph, &(dlow),&(dhigh), 0.95);
+  
 
-  ss_low.Form("%f",dlow);
-  ss_high.Form("%f",dhigh);
+  tolerance = (hdx3treeph->GetBinContent(0)+hdx3treeph->GetBinContent(hdx3treeph->GetNbinsX()+1))/hdx3treeph->GetEntries();
+  cout << " RMS method PH based with tolerance " << tolerance << endl;
+  maximum = hdx3treeph->GetMaximum();
+  maxbin = hdx3treeph->GetMaximumBin();
+  cout <<  " maxbin " << maxbin << " at " << hdx3treeph->GetBinCenter(maxbin)<<endl;
+  cout << "intital sigma = " << hdx3treeph->GetRMS() * 1000 << " sigmaerr = " << hdx3treeph->GetRMSError() * 1000 << endl;
+  Integral = hdx3treeph->Integral(0,hdx3treeph->GetNbinsX()+1);
+  cout << " integral " << Integral << " entries " << hdx3treeph->GetEntries() << endl;
+  integral95 = 0.95*Integral;
+  cout << " integral95 " << integral95 << endl;
+  i = 0;
+
+  low = 0;
+  high = 0;
+  for(int i =0; i<hdx3treeph->GetNbinsX()/2; i++)
+    {
+      low = maxbin-i;
+      high = maxbin+i;
+
+      Integral = hdx3treeph->Integral(low,high);
+      cout << " integral " << Integral << " low " << low << " high " << high << endl;
+      cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
+
+      if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
+	break;
+
+
+    }
+  cout << "final integral " << Integral << " low " << low <<" high " << high << endl;
+  hdx3treeph->GetXaxis()->SetRange(low,high);
+
+  sigma = hdx3treeph->GetRMS() * 1000;
+  sigmaerr = hdx3treeph->GetRMSError() * 1000;
+  cout << " resolution " << sigma << " ± " << sigmaerr << endl;
+
+  ss_low.Form("%f",hdx3treeph->GetBinCenter(low));
+  ss_high.Form("%f",hdx3treeph->GetBinCenter(high));
   TH1D * hdx3treeph95 = new TH1D("hdx3treeph95", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   charge_res->Draw("dx3tree>>hdx3treeph95","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hdx3treeph95 = (TH1D*)gDirectory->Get("hdx3treeph95");
@@ -1173,8 +1243,9 @@ int main( int argc, char* argv[] )
     hdx3_clphABC90evR95->SetBinContent(i+1,hdx3treeph95->GetBinContent(i+1));
   }
   cout << hdx3_clphABC90evR95->GetTitle() << " entries " << hdx3_clphABC90evR95->GetEntries() << "mean " << hdx3_clphABC90evR95->GetMean() << endl;
-  
-  cout << "TO COMPARE resolution " <<  hdx3_clphABC90evR95->GetRMS() * 1000 << " ± " <<  hdx3_clphABC90evR95->GetRMSError() * 1000 << endl;
+  sigma = hdx3_clphABC90evR95->GetRMS() * 1000;
+  sigmaerr = hdx3_clphABC90evR95->GetRMSError() * 1000;
+  cout << "TO COMPARE resolution " << sigma << " ± " << sigmaerr << endl;
   
   hdx3_clphABC90evR95->Write();
 
@@ -1229,146 +1300,6 @@ int main( int argc, char* argv[] )
   hclB_ph5->Write();
 
 
-  cout << "charge 99 " << endl;
-
-  getPercentRange(hdx3treeq, &(dlow),&(dhigh), 0.993);
-
-  ss_low.Form("%f",dlow);
-  ss_high.Form("%f",dhigh);
-  cout << " low and hig bin centers strings " << ss_low << " " << ss_high << endl;
-  TH1D * hdx3treeq99 = new TH1D("hdx3treeq99", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeq99","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hdx3treeq99 = (TH1D*)gDirectory->Get("hdx3treeq99");
-  cout << hdx3treeq99->GetTitle() << " entries " << hdx3treeq99->GetEntries() << " mean " << hdx3treeq99->GetMean() << endl; 
-  hdx3treeq99->Write();
-
-  for(int i =0; i<hdx3treeq99->GetEntries(); i++)    {
-    hdx3_clchargeABC90evR99->SetBinContent(i+1,hdx3treeq99->GetBinContent(i+1));
-  }
-  cout << hdx3_clchargeABC90evR99->GetTitle() << " entries " << hdx3_clchargeABC90evR99->GetEntries() << "mean " << hdx3_clchargeABC90evR99->GetMean() << endl;
-  hdx3_clchargeABC90evR99->Write();
-
-  TH1I * hnrowBtreeq99 = new TH1I("hnrowBtreeq99", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeq99","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hnrowBtreeq99 = (TH1I*)gDirectory->Get("hnrowBtreeq99");
-  cout << hnrowBtreeq99->GetTitle() << " entries " << hnrowBtreeq99->GetEntries() << " mean " << hnrowBtreeq99->GetMean() << endl;
-  hnrowBtreeq99->Write();
-
-  for(int i =0; i<hnrowBtreeq99->GetEntries(); i++)    {
-    hnrowB_q99->SetBinContent(i+1,hnrowBtreeq99->GetBinContent(i+1));
-  }
-  cout << hnrowB_q99->GetTitle() << " entries " << hnrowB_q99->GetEntries() << "mean " << hnrowB_q99->GetMean() << endl;
-  hnrowB_q99->Write();
-
-  TH1I * hnrowBtreeq1 = new TH1I("hnrowBtreeq1", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeq1","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hnrowBtreeq1 = (TH1I*)gDirectory->Get("hnrowBtreeq5");
-  cout << hnrowBtreeq5->GetTitle() << " entries " << hnrowBtreeq1->GetEntries() << " mean " << hnrowBtreeq1->GetMean() << endl;
-  hnrowBtreeq1->Write();
-
-  for(int i =0; i<hnrowBtreeq1->GetEntries(); i++)    {
-    hnrowB_q1->SetBinContent(i+1,hnrowBtreeq1->GetBinContent(i+1));
-  }
-  cout << hnrowB_q1->GetTitle() << " entries " << hnrowB_q1->GetEntries() << "mean " << hnrowB_q1->GetMean() << endl;
-  hnrowB_q1->Write();
-
-
-  
-  TH1I * hclBtreeq99 = new TH1I( "hclBtreeq99", "B cluster charge of 99% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
-  charge_res->Draw("clqBiiitree>>hclBtreeq99","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hclBtreeq99 = (TH1I*)gDirectory->Get("hclBtreeq99");
-  cout << hclBtreeq99->GetTitle() << " entries " << hclBtreeq99->GetEntries() << " mean " << hclBtreeq99->GetMean() << endl;
-  hclBtreeq99->Write();
-
-  for(int i =0; i<hclBtreeq99->GetEntries(); i++)    {
-    hclB_q99->SetBinContent(i+1,hclBtreeq99->GetBinContent(i+1));
-  }
-  cout << hclB_q99->GetTitle() << " entries " << hclB_q99->GetEntries() << "mean " << hclB_q99->GetMean() << endl;
-  hclB_q99->Write();
-
-  TH1I * hclBtreeq1 = new TH1I( "hclBtreeq1", "B cluster charge of 99% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
-  charge_res->Draw("clqBiiitree>>hclBtreeq1","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hclBtreeq1 = (TH1I*)gDirectory->Get("hclBtreeq1");
-  cout << hclBtreeq1->GetTitle() << " entries " << hclBtreeq1->GetEntries() << " mean " << hclBtreeq1->GetMean() << endl;
-  hclBtreeq1->Write();
-
-  for(int i =0; i<hclBtreeq1->GetEntries(); i++)    {
-    hclB_q1->SetBinContent(i+1,hclBtreeq1->GetBinContent(i+1));
-  }
-  cout << hclB_q1->GetTitle() << " entries " << hclB_q1->GetEntries() << "mean " << hclB_q1->GetMean() << endl;
-  hclB_q1->Write();
-
-
-  cout << "ph 99 " << endl;
-
-  getPercentRange(hdx3treeph, &(dlow),&(dhigh), 0.993);
-
-  ss_low.Form("%f",dlow);
-  ss_high.Form("%f",dhigh);
-  TH1D * hdx3treeph99 = new TH1D("hdx3treeph99", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hdx3treeph99 = (TH1D*)gDirectory->Get("hdx3treeph99");
-  cout << hdx3treeph99->GetTitle() << " entries " << hdx3treeph99->GetEntries() << " mean " << hdx3treeph99->GetMean() << endl; 
-  hdx3treeph99->Write();
-
-  for(int i =0; i<hdx3treeph99->GetEntries(); i++)    {
-    hdx3_clphABC90evR99->SetBinContent(i+1,hdx3treeph99->GetBinContent(i+1));
-  }
-  cout << hdx3_clphABC90evR99->GetTitle() << " entries " << hdx3_clphABC90evR99->GetEntries() << "mean " << hdx3_clphABC90evR99->GetMean() << endl;
-  cout << "TO COMPARE resolution " <<  hdx3_clphABC90evR99->GetRMS() * 1000 << " ± " <<  hdx3_clphABC90evR99->GetRMSError() * 1000 << endl;
-  hdx3_clphABC90evR99->Write();
-
-  TH1I * hnrowBtreeph99 = new TH1I("hnrowBtreeph99", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hnrowBtreeph99 = (TH1I*)gDirectory->Get("hnrowBtreeph99");
-  cout << hnrowBtreeph99->GetTitle() << " entries " << hnrowBtreeph99->GetEntries() << " mean " << hnrowBtreeph99->GetMean() << endl;
-  hnrowBtreeph99->Write();
-
-  for(int i =0; i<hnrowBtreeph99->GetEntries(); i++)    {
-    hnrowB_ph99->SetBinContent(i+1,hnrowBtreeph99->GetBinContent(i+1));
-  }
-  cout << hnrowB_ph99->GetTitle() << " entries " << hnrowB_ph99->GetEntries() << "mean " << hnrowB_ph99->GetMean() << endl;
-  hnrowB_ph99->Write();
-
-  TH1I * hnrowBtreeph1 = new TH1I("hnrowBtreeph1", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeph1","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hnrowBtreeph1 = (TH1I*)gDirectory->Get("hnrowBtreeph1");
-  cout << hnrowBtreeph1->GetTitle() << " entries " << hnrowBtreeph1->GetEntries() << " mean " << hnrowBtreeph1->GetMean() << endl;
-  hnrowBtreeph1->Write();
-
-  for(int i =0; i<hnrowBtreeph1->GetEntries(); i++)    {
-    hnrowB_ph1->SetBinContent(i+1,hnrowBtreeph1->GetBinContent(i+1));
-  }
-  cout << hnrowB_ph1->GetTitle() << " entries " << hnrowB_ph1->GetEntries() << "mean " << hnrowB_ph1->GetMean() << endl;
-  hnrowB_ph1->Write();
-
-
-  
-  TH1I * hclBtreeph99 = new TH1I( "hclBtreeph99", "B cluster charge of 99% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
-  charge_res->Draw("clphBiiitree>>hclBtreeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hclBtreeph99 = (TH1I*)gDirectory->Get("hclBtreeph99");
-  cout << hclBtreeph99->GetTitle() << " entries " << hclBtreeph99->GetEntries() << " mean " << hclBtreeph99->GetMean() << endl;
-  hclBtreeph99->Write();
-
-  for(int i =0; i<hclBtreeph99->GetEntries(); i++)    {
-    hclB_ph99->SetBinContent(i+1,hclBtreeph99->GetBinContent(i+1));
-  }
-  cout << hclB_ph99->GetTitle() << " entries " << hclB_ph99->GetEntries() << "mean " << hclB_ph99->GetMean() << endl;
-  hclB_ph99->Write();
-
-  TH1I * hclBtreeph1 = new TH1I( "hclBtreeph1", "B cluster charge of 99% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
-  charge_res->Draw("clphBiiitree>>hclBtreeph1","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hclBtreeph1 = (TH1I*)gDirectory->Get("hclBtreeph1");
-  cout << hclBtreeph1->GetTitle() << " entries " << hclBtreeph1->GetEntries() << " mean " << hclBtreeph1->GetMean() << endl;
-  hclBtreeph1->Write();
-
-  for(int i =0; i<hclBtreeph1->GetEntries(); i++)    {
-    hclB_ph1->SetBinContent(i+1,hclBtreeph1->GetBinContent(i+1));
-  }
-  cout << hclB_ph1->GetTitle() << " entries " << hclB_ph1->GetEntries() << "mean " << hclB_ph1->GetMean() << endl;
-  hclB_ph1->Write();
-
-
 
 
 
@@ -1379,7 +1310,7 @@ int main( int argc, char* argv[] )
 
 
   // preparation to find the 85 % of the Landau with the lowest charge in all three 3M planes
-  /*
+  
   double integral85[DreiMasterPlanes];
   double integralPH85[DreiMasterPlanes];
   
@@ -1423,7 +1354,7 @@ int main( int argc, char* argv[] )
 
   
 
-  
+
   // plot dx3 with above conditions
   //85 % Landau
   qA.Form("%d",high85[0]);
@@ -1462,7 +1393,7 @@ int main( int argc, char* argv[] )
 
 
 
-  tolerance = (hdx3treeq85->GetBinContent(0)+hdx3treeq85->GetBinContent(hdx3treeq85->GetNbinsX()+1))/hdx3treeq85->GetEntries(); // since we are not working with continuous quantities but with binned hists, the difference between the integral and the 99% it may not be zero, so we ask it to be lower than 15% (before I was using 1.1% but since I changed to use the full range of hists, the overflow bin plays a too bigger role when stats is low and the 1.1% is not reached. 
+  tolerance = (hdx3treeq85->GetBinContent(0)+hdx3treeq85->GetBinContent(hdx3treeq85->GetNbinsX()+1))/hdx3treeq85->GetEntries(); // since we are not working with continuous quantities but with binned hists, the difference between the integral and the 95% it may not be zero, so we ask it to be lower than 15% (before I was using 1.1% but since I changed to use the full range of hists, the overflow bin plays a too bigger role when stats is low and the 1.1% is not reached. 
   
   cout << " RMS method charge based with tolerance for 85" << tolerance << endl;
   maximum = hdx3treeq85->GetMaximum();
@@ -1471,8 +1402,8 @@ int main( int argc, char* argv[] )
   cout << "intital sigma = " << hdx3treeq85->GetRMS() * 1000 << " sigmaerr = " << hdx3treeq85->GetRMSError() * 1000 << endl;
   Integral = hdx3treeq85->Integral(0,hdx3treeq85->GetNbinsX()+1);
   cout << " integral " << Integral << " entries " << hdx3treeq85->GetEntries() << endl;
-  integral99 = 0.99*Integral;
-  cout << " integral99 " << integral99 << endl;
+  integral95 = 0.95*Integral;
+  cout << " integral95 " << integral95 << endl;
 
   low = 0;
   high = 0;
@@ -1483,7 +1414,7 @@ int main( int argc, char* argv[] )
 
       Integral = hdx3treeq85->Integral(low,high);
       cout << " integral " << Integral << " low " << low << " high " << high << endl;
-      cout << " while "<< i << " fabs(integral-integral99)/integral99 " << fabs(Integral-integral99)/integral95 << endl;
+      cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
 
       //      if(fabs(Integral-integral95)/integral95 < 0.011 || Integral>integral95)//integral>integral95)
       if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
@@ -1669,7 +1600,7 @@ int main( int argc, char* argv[] )
   }
   cout << hclB_ph5_85->GetTitle() << " entries " << hclB_ph5_85->GetEntries() << "mean " << hclB_ph5_85->GetMean() << endl;
   hclB_ph5_85->Write();
-  */
+
 
 
 
@@ -1866,54 +1797,6 @@ int main( int argc, char* argv[] )
 
 
 //------------------------------------------------------------------------------
-
-void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent){
-
-  double tolerance = (h->GetBinContent(0)+h->GetBinContent(h->GetNbinsX()+1))/h->GetEntries(); // since we are not working with continuous quantities but with binned hists, the difference between the integral and the 95% it may not be zero, so we ask it to be lower than 15% (before I was using 1.1% but since I changed to use the full range of hists, the overflow bin plays a too bigger role when stats is low and the 1.1% is not reached. 
-  
-  cout << " RMS method charge based with tolerance " << tolerance << endl;
-  double maximum = h->GetMaximum();
-  int maxbin = h->GetMaximumBin();
-  cout <<  " maxbin " << maxbin << " at " << h->GetBinCenter(maxbin)<<endl;
-  cout << "intital sigma = " << h->GetRMS() * 1000 << " sigmaerr = " << h->GetRMSError() * 1000 << endl;
-  double Integral = h->Integral(0,h->GetNbinsX()+1);
-  cout << " integral " << Integral << " entries " << h->GetEntries() << endl;
-  double integral95 = percent*Integral;
-  cout << " integra "<< percent << " " << integral95 << endl;
-  int i = 0;
-
-  double low = 0;
-  double high = 0;
-  for(int i =0; i<h->GetNbinsX()/2; i++)
-    {
-     low = maxbin-i;
-      high = maxbin+i;
-
-      Integral = h->Integral(low,high);
-      cout << " integral " << Integral << "low " <<low << " high " << high << endl;
-      cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
-
-      //      if(fabs(Integral-integral95)/integral95 < 0.011 || Integral>integral95)//integral>integral95)
-      if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
-	break;
-
-
-    }
-  cout << "final integral " << Integral << "low " <<low <<" high " << high << endl;
-  h->GetXaxis()->SetRange(low,high);
-
-  double sigma = h->GetRMS() * 1000;
-  double sigmaerr = h->GetRMSError() * 1000;
-  cout << " resolution " << sigma << " ± " << sigmaerr << endl;
-
-  cout << "low and hig bin centers strings " << h->GetBinCenter(low) << " " << h->GetBinCenter(high) << endl;
-  *dlow  = h->GetBinCenter(low);
-  *dhigh = h->GetBinCenter(high);
-  
-
-}
-
-
 
 double alignx(TH1I * h, TString plane,TString run,int iteration)
 {

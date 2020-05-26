@@ -71,7 +71,7 @@ double eta(vector<cluster>::iterator c);
 double alignx(TH1I * h, TString plane,TString run,int iteration);
 double aligny(TH1I * h, TString plane,TString run,int iteration);
 double alignangle(TProfile * h, TString plane,TString run,int iteration);
-void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent);
+
 
 
 //TH1I * hdx3b; // = new TH1I("dx3", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 ); 

@@ -1,5 +1,4 @@
 
-
 // Daniel Pitzl (DESY) Sep 2017
 // Jan 2018: version for openMP (faster)
 // 3 x R4S, 25x100 or 50x50 on rot90 PCB
@@ -38,12 +37,11 @@
 #include <TProfile.h>
 #include <TProfile2D.h>
 #include <TF1.h>
-#include <TTree.h>
 #include <TCanvas.h>
 #include <TStyle.h>
 #include "./drei_reader.h"
 
-bool PRINT = false;
+bool PRINT = true;
 bool DOALIGNMENT = false;
 bool DPHCUT = false;
 bool DEBUG = false;
@@ -453,21 +451,11 @@ int main( int argc, char* argv[] )
       vector <cluster> vclA = *evA;
       vector <cluster> vclB = *evB;
       vector <cluster> vclC = *evC;
-
-      
       
       ++iev;
-      cout << " event " << iev << " cl A " << vclA.size() << " B " << vclB.size() << " C " << vclC.size() << endl;
-     
-      if(vclA.size()!=1 || vclB.size()!=1 || vclC.size() !=1){
-	cout << " more than 1 clusters on at least one plane! " << endl;
-	continue;
-      }
-     
       if( iev%10000 == 0 )
 	cout << " " << iev << flush;
       
-
       if( evinfoA->filled == ADD ) cout << endl << "ev " << iev << " added A" << endl;
       if( evinfoB->filled == ADD ) cout << endl << "ev " << iev << " added B" << endl;
       if( evinfoC->filled == ADD ) cout << endl << "ev " << iev << " added C" << endl;
@@ -500,7 +488,7 @@ int main( int argc, char* argv[] )
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       ////////////////                A-B cluster correlations:    //////////////////////////
-      if(PRINT) cout << "entering AB correlation loop " << endl;
+      cout << "entering AB correlation loop " << endl;
       int nm = 0;
 
       for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )
@@ -556,7 +544,7 @@ int main( int argc, char* argv[] )
       
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       // B-C cluster correlations:
-      if(PRINT) cout << "entering BC correlation loop " << endl;
+      cout << "entering BC correlation loop " << endl;
       nm = 0;
       
       for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
@@ -620,7 +608,7 @@ int main( int argc, char* argv[] )
 
       //filling hists for resolution studies
 
-      /*
+
       cout << " filling hists for resolution studies! " << endl;
       for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC )
 	{
@@ -674,10 +662,10 @@ int main( int argc, char* argv[] )
 	    }
 	}
       cout << " done filling hists for resolution studies! "<< endl;
-      */
+      
       // ---------------------------------------
       ///////        A-C cluster correlations: ///////////
-      if(PRINT) cout << "entering AC correlation loop " << endl;
+      cout << "entering AC correlation loop " << endl;
       nm = 0;
 
       for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC )
@@ -778,9 +766,7 @@ int main( int argc, char* argv[] )
 		  double dx3 = xB - xavg;
 		  double dy3 = yB - yavg;
 
-                  dx3vsx->Fill( xB, dx3 ); // turn
-		  dx3vsy->Fill( yB, dx3 );
-		  
+
 		  
 		  fillControlHists(beforeCorrections,"beforeCorrections",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
@@ -793,7 +779,7 @@ int main( int argc, char* argv[] )
 		  if(PRINT) cout << "nocuts" << endl;
 		  
 		  
-		  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled ) //+ 0.05 )
+		  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 )
 		    { // cut on y, look at x, see madx3vsy
 		    
 		      fillControlHists(straightTracksY,"straightTracksY",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
@@ -810,64 +796,10 @@ int main( int argc, char* argv[] )
 			      if( fabs( dxCA ) < straightTracks * beamDivergenceScaled )
 				{ // track angle
 				  fillControlHists(straightTracksY_isoAandCandB_straightTracksX,"straightTracksY_isoAandCandB_straightTracksX",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
-                  
-				  if(PRINT) cout << " filling hists for resolution studies! " << endl;		  
-				  hclqAiii->Fill(cA->q);
-				  hclqBiii->Fill(cB->q); 
-				  hclqCiii->Fill(cC->q); 
-				  hclphAiii->Fill(cA->sum);
-				  hclphBiii->Fill(cB->sum);
-				  hclphCiii->Fill(cC->sum);
-				  if(PRINT) cout << "done  filling hists for resolution studies! " << endl;		  
-
-                                  dx3tree = dx3;
-				  
-				  clqAiii = cA->q;
-				  clqBiii = cB->q;
-				  clqCiii = cC->q;
-				  clphAiii = cA->sum;
-				  clphBiii = cB->sum;
-				  clphCiii = cC->sum;
-				  nrowBtree = nrowB;
-                                  charge_res->Fill();
-				  if(PRINT) cout << "done  filling the tree " << endl;
 				  
 				}//fabs( dxCA ) < straightTracks * beamDivergenceScaled 
 
-			    }//iso B
-			}//iso CA
-		    }//straight tracks Y
-
-		}//clB
-	    }//clA
-	}//clC
-    }//first big loop on events
-
-  charge_res->Print();
-  /*
-  for( ; evinfoB != infoB.end() && evA != evlistA.end() && evB != evlistB.end() && evC != evlistC.end();       ++evinfoA, ++evinfoB, ++evinfoC, ++evA, ++evB, ++evC ){
-    vector <cluster> vclA = *evA;
-    vector <cluster> vclB = *evB;
-    vector <cluster> vclC = *evC;
-
-    ++iev;
-    if( iev%10000 == 0 )
-      cout << " " << iev << flush;
-
-    if( evinfoA->filled == ADD ) cout << endl << "ev " << iev << " added A" << endl;
-    if( evinfoB->filled == ADD ) cout << endl << "ev " << iev << " added B" << endl;
-    if( evinfoC->filled == ADD ) cout << endl << "ev " << iev << " added C" << endl;
-    
-      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ){
-      for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ){
-	      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ){
-	      if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 )
-		    { 
-		      
-		      if( cA->iso && cC->iso )
-			{
-			  if( cB->iso )
-			    {
+			      
 			      if( (cA->q <= qR) && (cC->q <= qR))
 				{
 				  if(PRINT) cout << "cA->q " << cA->q << " >= qR " << qR << " && cC->q " << cC->q << "  >= qR " << endl;
@@ -967,718 +899,12 @@ int main( int argc, char* argv[] )
 
     
     } // events
-  */
   /////////    end of the big loop on the events!!! //////////////////
   cout << endl;
   if(PRINT) cout << " after big loop on events!!!************************" << endl;
   if(PRINT)cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
   if(PRINT)cout << hdt->GetTitle() << " entries " << hdt->GetEntries() << endl;
-  cout << "tree entries " << charge_res->GetEntries() << endl;  
-  TH1I * hdx3tree = new TH1I("hdx3tree", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3tree","","goff");
-  hdx3tree = (TH1I*)gDirectory->Get("hdx3tree");
-  cout << hdx3tree->GetTitle() << " entries " << hdx3tree->GetEntries() << endl;
-  hdx3tree->Write();
 
-  for(int i =0; i<hdx3tree->GetEntries(); i++)    {    
-      hdx3tree2->SetBinContent(i+1,hdx3tree->GetBinContent(i+1));
-    }
-  cout << hdx3tree2->GetTitle() << " entries " << hdx3tree2->GetEntries() << endl;
-  hdx3tree2->Write();
-
-
-  // preparation to find the 90 % of the Landau with the lowest charge in all three 3M planes
-  
-  double integral[DreiMasterPlanes];
-  double integralPH[DreiMasterPlanes];
-
-  double integral90[DreiMasterPlanes];
-  double integralPH90[DreiMasterPlanes];
-  
-  int high90[DreiMasterPlanes];
-  int highPH90[DreiMasterPlanes];
-
-  TH1I * hclq[DreiMasterPlanes];
-  hclq[0]=hclqAiii;
-  hclq[1]=hclqBiii;
-  hclq[2]=hclqCiii;
-
-  TH1I * hclph[DreiMasterPlanes];
-  hclph[0]=hclphAiii;
-  hclph[1]=hclphBiii;
-  hclph[2]=hclphCiii;
-
-  
-  for(int j =0; j < DreiMasterPlanes; j++)   {
-    if(PRINT)   cout << " plane " << j << endl;
-    integral[j] = hclq[j]->Integral(0,hclq[j]->GetNbinsX()+1);
-    if(PRINT)      cout << " integral " << integral[j] << " entries " << hclq[j]->GetEntries()<<  endl;
-    
-    integralPH[j] = hclph[j]->Integral(0,hclph[j]->GetNbinsX()+1);
-    if(PRINT)   cout << " integralPH " << integralPH[j] << endl;
-    
-    integral90[j] = 0.9*integral[j]; //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
-    if(DEBUG)   cout << " integral90 " << integral90[j] << endl;
-
-    integralPH90[j] = 0.9*integralPH[j];
-
-    high90[j] = 0;
-    highPH90[j] = 0;
-    
-    int i = 0;
-    while(integral[j]>integral90[j])    {
-      cout << " while "<< i << endl;
-      integral[j] = hclq[j]->Integral(1,hclq[j]->GetNbinsX()-i);
-      high90[j] = hclq[j]->GetBinCenter(hclq[j]->GetNbinsX()-i);
-      cout << " integral " << integral[j] << " high " << high90[j] << endl;
-      i++;
-    }
-    cout << " integral90 " << integral90[j] << endl;
-    i=0;
-    while(integralPH[j]>integralPH90[j])  {
-      integralPH[j] = hclph[j]->Integral(1,hclph[j]->GetNbinsX()-i);
-      highPH90[j] = hclph[j]->GetBinCenter(hclph[j]->GetNbinsX()-i);
-      i++;
-    } 
-  }
-
-  // plot dx3 with above conditions
-  //90 % Landau
-  TString qA;
-  qA.Form("%d",high90[0]);
-  TString qB;
-  qB.Form("%d",high90[1]);
-  TString qC;
-  qC.Form("%d",high90[2]);
-  
-  TH1D * hdx3treeq = new TH1D("hdx3treeq", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeq","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC,"goff");
-  hdx3treeq = (TH1D*)gDirectory->Get("hdx3treeq");
-  cout << hdx3treeq->GetTitle() << " entries " << hdx3treeq->GetEntries() << " mean " << hdx3treeq->GetMean() << " 20bin " << hdx3treeq->GetBinContent(20)<<endl;
-  hdx3treeq->Write();
-  
-  for(int i =0; i<hdx3treeq->GetEntries(); i++)    {
-      hdx3_clchargeABC90evR->SetBinContent(i+1,hdx3treeq->GetBinContent(i+1));
-  }
-  cout << hdx3_clchargeABC90evR->GetTitle() << " entries " << hdx3_clchargeABC90evR->GetEntries() << "mean " << hdx3_clchargeABC90evR->GetMean() << endl;
-  hdx3_clchargeABC90evR->Write();
-
-
-  TString phA;
-  phA.Form("%d",highPH90[0]);
-  TString phB;
-  phB.Form("%d",highPH90[1]);
-  TString phC;
-  phC.Form("%d",highPH90[2]);
-  
-  
-  TH1I * hdx3treeph = new TH1I("hdx3treeph", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeph","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC,"goff");
-  hdx3treeph = (TH1I*)gDirectory->Get("hdx3treeph");
-  cout << hdx3treeph->GetTitle() << " entries " << hdx3treeph->GetEntries() << endl;
-  hdx3treeph->Write();
-  
-  for(int i =0; i<hdx3treeph->GetEntries(); i++)  {
-    hdx3_clphABC90evR->SetBinContent(i+1,hdx3treeph->GetBinContent(i+1));
-  }
-  cout << hdx3_clphABC90evR->GetTitle() << " entries " << hdx3_clphABC90evR->GetEntries() << endl;
-  hdx3_clphABC90evR->Write();
-
-  double dlow, dhigh;
-  TString ss_low,ss_high;
-
-  cout << "charge 95 " << endl;
-
-  getPercentRange(hdx3treeq, &(dlow),&(dhigh), 0.95);
-
-  ss_low.Form("%f",dlow);
-  ss_high.Form("%f",dhigh);
-  cout << " low and hig bin centers strings " << ss_low << " " << ss_high << endl;
-  TH1D * hdx3treeq95 = new TH1D("hdx3treeq95", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeq95","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hdx3treeq95 = (TH1D*)gDirectory->Get("hdx3treeq95");
-  cout << hdx3treeq95->GetTitle() << " entries " << hdx3treeq95->GetEntries() << " mean " << hdx3treeq95->GetMean() << endl; 
-  hdx3treeq95->Write();
-
-  for(int i =0; i<hdx3treeq95->GetEntries(); i++)    {
-    hdx3_clchargeABC90evR95->SetBinContent(i+1,hdx3treeq95->GetBinContent(i+1));
-  }
-  cout << hdx3_clchargeABC90evR95->GetTitle() << " entries " << hdx3_clchargeABC90evR95->GetEntries() << "mean " << hdx3_clchargeABC90evR95->GetMean() << endl;
-  hdx3_clchargeABC90evR95->Write();
-
-  TH1I * hnrowBtreeq95 = new TH1I("hnrowBtreeq95", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeq95","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hnrowBtreeq95 = (TH1I*)gDirectory->Get("hnrowBtreeq95");
-  cout << hnrowBtreeq95->GetTitle() << " entries " << hnrowBtreeq95->GetEntries() << " mean " << hnrowBtreeq95->GetMean() << endl;
-  hnrowBtreeq95->Write();
-
-  for(int i =0; i<hnrowBtreeq95->GetEntries(); i++)    {
-    hnrowB_q95->SetBinContent(i+1,hnrowBtreeq95->GetBinContent(i+1));
-  }
-  cout << hnrowB_q95->GetTitle() << " entries " << hnrowB_q95->GetEntries() << "mean " << hnrowB_q95->GetMean() << endl;
-  hnrowB_q95->Write();
-
-  TH1I * hnrowBtreeq5 = new TH1I("hnrowBtreeq5", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeq5","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hnrowBtreeq5 = (TH1I*)gDirectory->Get("hnrowBtreeq5");
-  cout << hnrowBtreeq5->GetTitle() << " entries " << hnrowBtreeq5->GetEntries() << " mean " << hnrowBtreeq5->GetMean() << endl;
-  hnrowBtreeq5->Write();
-
-  for(int i =0; i<hnrowBtreeq5->GetEntries(); i++)    {
-    hnrowB_q5->SetBinContent(i+1,hnrowBtreeq5->GetBinContent(i+1));
-  }
-  cout << hnrowB_q5->GetTitle() << " entries " << hnrowB_q5->GetEntries() << "mean " << hnrowB_q5->GetMean() << endl;
-  hnrowB_q5->Write();
-
-
-  
-  TH1I * hclBtreeq95 = new TH1I( "hclBtreeq95", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
-  charge_res->Draw("clqBiiitree>>hclBtreeq95","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hclBtreeq95 = (TH1I*)gDirectory->Get("hclBtreeq95");
-  cout << hclBtreeq95->GetTitle() << " entries " << hclBtreeq95->GetEntries() << " mean " << hclBtreeq95->GetMean() << endl;
-  hclBtreeq95->Write();
-
-  for(int i =0; i<hclBtreeq95->GetEntries(); i++)    {
-    hclB_q95->SetBinContent(i+1,hclBtreeq95->GetBinContent(i+1));
-  }
-  cout << hclB_q95->GetTitle() << " entries " << hclB_q95->GetEntries() << "mean " << hclB_q95->GetMean() << endl;
-  hclB_q95->Write();
-
-  TH1I * hclBtreeq5 = new TH1I( "hclBtreeq5", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
-  charge_res->Draw("clqBiiitree>>hclBtreeq5","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hclBtreeq5 = (TH1I*)gDirectory->Get("hclBtreeq5");
-  cout << hclBtreeq5->GetTitle() << " entries " << hclBtreeq5->GetEntries() << " mean " << hclBtreeq5->GetMean() << endl;
-  hclBtreeq5->Write();
-
-  for(int i =0; i<hclBtreeq5->GetEntries(); i++)    {
-    hclB_q5->SetBinContent(i+1,hclBtreeq5->GetBinContent(i+1));
-  }
-  cout << hclB_q5->GetTitle() << " entries " << hclB_q5->GetEntries() << "mean " << hclB_q5->GetMean() << endl;
-  hclB_q5->Write();
-
-
-  cout << "ph 95 " << endl;
-
-  getPercentRange(hdx3treeph, &(dlow),&(dhigh), 0.95);
-
-  ss_low.Form("%f",dlow);
-  ss_high.Form("%f",dhigh);
-  TH1D * hdx3treeph95 = new TH1D("hdx3treeph95", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeph95","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hdx3treeph95 = (TH1D*)gDirectory->Get("hdx3treeph95");
-  cout << hdx3treeph95->GetTitle() << " entries " << hdx3treeph95->GetEntries() << " mean " << hdx3treeph95->GetMean() << endl; 
-  hdx3treeph95->Write();
-
-  for(int i =0; i<hdx3treeph95->GetEntries(); i++)    {
-    hdx3_clphABC90evR95->SetBinContent(i+1,hdx3treeph95->GetBinContent(i+1));
-  }
-  cout << hdx3_clphABC90evR95->GetTitle() << " entries " << hdx3_clphABC90evR95->GetEntries() << "mean " << hdx3_clphABC90evR95->GetMean() << endl;
-  
-  cout << "TO COMPARE resolution " <<  hdx3_clphABC90evR95->GetRMS() * 1000 << " ± " <<  hdx3_clphABC90evR95->GetRMSError() * 1000 << endl;
-  
-  hdx3_clphABC90evR95->Write();
-
-  TH1I * hnrowBtreeph95 = new TH1I("hnrowBtreeph95", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeph95","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hnrowBtreeph95 = (TH1I*)gDirectory->Get("hnrowBtreeph95");
-  cout << hnrowBtreeph95->GetTitle() << " entries " << hnrowBtreeph95->GetEntries() << " mean " << hnrowBtreeph95->GetMean() << endl;
-  hnrowBtreeph95->Write();
-
-  for(int i =0; i<hnrowBtreeph95->GetEntries(); i++)    {
-    hnrowB_ph95->SetBinContent(i+1,hnrowBtreeph95->GetBinContent(i+1));
-  }
-  cout << hnrowB_ph95->GetTitle() << " entries " << hnrowB_ph95->GetEntries() << "mean " << hnrowB_ph95->GetMean() << endl;
-  hnrowB_ph95->Write();
-
-  TH1I * hnrowBtreeph5 = new TH1I("hnrowBtreeph5", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeph5","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hnrowBtreeph5 = (TH1I*)gDirectory->Get("hnrowBtreeph5");
-  cout << hnrowBtreeph5->GetTitle() << " entries " << hnrowBtreeph5->GetEntries() << " mean " << hnrowBtreeph5->GetMean() << endl;
-  hnrowBtreeph5->Write();
-
-  for(int i =0; i<hnrowBtreeph5->GetEntries(); i++)    {
-    hnrowB_ph5->SetBinContent(i+1,hnrowBtreeph5->GetBinContent(i+1));
-  }
-  cout << hnrowB_ph5->GetTitle() << " entries " << hnrowB_ph5->GetEntries() << "mean " << hnrowB_ph5->GetMean() << endl;
-  hnrowB_ph5->Write();
-
-
-  
-  TH1I * hclBtreeph95 = new TH1I( "hclBtreeph95", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
-  charge_res->Draw("clphBiiitree>>hclBtreeph95","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hclBtreeph95 = (TH1I*)gDirectory->Get("hclBtreeph95");
-  cout << hclBtreeph95->GetTitle() << " entries " << hclBtreeph95->GetEntries() << " mean " << hclBtreeph95->GetMean() << endl;
-  hclBtreeph95->Write();
-
-  for(int i =0; i<hclBtreeph95->GetEntries(); i++)    {
-    hclB_ph95->SetBinContent(i+1,hclBtreeph95->GetBinContent(i+1));
-  }
-  cout << hclB_ph95->GetTitle() << " entries " << hclB_ph95->GetEntries() << "mean " << hclB_ph95->GetMean() << endl;
-  hclB_ph95->Write();
-
-  TH1I * hclBtreeph5 = new TH1I( "hclBtreeph5", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
-  charge_res->Draw("clphBiiitree>>hclBtreeph5","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hclBtreeph5 = (TH1I*)gDirectory->Get("hclBtreeph5");
-  cout << hclBtreeph5->GetTitle() << " entries " << hclBtreeph5->GetEntries() << " mean " << hclBtreeph5->GetMean() << endl;
-  hclBtreeph5->Write();
-
-  for(int i =0; i<hclBtreeph5->GetEntries(); i++)    {
-    hclB_ph5->SetBinContent(i+1,hclBtreeph5->GetBinContent(i+1));
-  }
-  cout << hclB_ph5->GetTitle() << " entries " << hclB_ph5->GetEntries() << "mean " << hclB_ph5->GetMean() << endl;
-  hclB_ph5->Write();
-
-
-  cout << "charge 99 " << endl;
-
-  getPercentRange(hdx3treeq, &(dlow),&(dhigh), 0.993);
-
-  ss_low.Form("%f",dlow);
-  ss_high.Form("%f",dhigh);
-  cout << " low and hig bin centers strings " << ss_low << " " << ss_high << endl;
-  TH1D * hdx3treeq99 = new TH1D("hdx3treeq99", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeq99","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hdx3treeq99 = (TH1D*)gDirectory->Get("hdx3treeq99");
-  cout << hdx3treeq99->GetTitle() << " entries " << hdx3treeq99->GetEntries() << " mean " << hdx3treeq99->GetMean() << endl; 
-  hdx3treeq99->Write();
-
-  for(int i =0; i<hdx3treeq99->GetEntries(); i++)    {
-    hdx3_clchargeABC90evR99->SetBinContent(i+1,hdx3treeq99->GetBinContent(i+1));
-  }
-  cout << hdx3_clchargeABC90evR99->GetTitle() << " entries " << hdx3_clchargeABC90evR99->GetEntries() << "mean " << hdx3_clchargeABC90evR99->GetMean() << endl;
-  hdx3_clchargeABC90evR99->Write();
-
-  TH1I * hnrowBtreeq99 = new TH1I("hnrowBtreeq99", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeq99","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hnrowBtreeq99 = (TH1I*)gDirectory->Get("hnrowBtreeq99");
-  cout << hnrowBtreeq99->GetTitle() << " entries " << hnrowBtreeq99->GetEntries() << " mean " << hnrowBtreeq99->GetMean() << endl;
-  hnrowBtreeq99->Write();
-
-  for(int i =0; i<hnrowBtreeq99->GetEntries(); i++)    {
-    hnrowB_q99->SetBinContent(i+1,hnrowBtreeq99->GetBinContent(i+1));
-  }
-  cout << hnrowB_q99->GetTitle() << " entries " << hnrowB_q99->GetEntries() << "mean " << hnrowB_q99->GetMean() << endl;
-  hnrowB_q99->Write();
-
-  TH1I * hnrowBtreeq1 = new TH1I("hnrowBtreeq1", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeq1","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hnrowBtreeq1 = (TH1I*)gDirectory->Get("hnrowBtreeq5");
-  cout << hnrowBtreeq5->GetTitle() << " entries " << hnrowBtreeq1->GetEntries() << " mean " << hnrowBtreeq1->GetMean() << endl;
-  hnrowBtreeq1->Write();
-
-  for(int i =0; i<hnrowBtreeq1->GetEntries(); i++)    {
-    hnrowB_q1->SetBinContent(i+1,hnrowBtreeq1->GetBinContent(i+1));
-  }
-  cout << hnrowB_q1->GetTitle() << " entries " << hnrowB_q1->GetEntries() << "mean " << hnrowB_q1->GetMean() << endl;
-  hnrowB_q1->Write();
-
-
-  
-  TH1I * hclBtreeq99 = new TH1I( "hclBtreeq99", "B cluster charge of 99% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
-  charge_res->Draw("clqBiiitree>>hclBtreeq99","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hclBtreeq99 = (TH1I*)gDirectory->Get("hclBtreeq99");
-  cout << hclBtreeq99->GetTitle() << " entries " << hclBtreeq99->GetEntries() << " mean " << hclBtreeq99->GetMean() << endl;
-  hclBtreeq99->Write();
-
-  for(int i =0; i<hclBtreeq99->GetEntries(); i++)    {
-    hclB_q99->SetBinContent(i+1,hclBtreeq99->GetBinContent(i+1));
-  }
-  cout << hclB_q99->GetTitle() << " entries " << hclB_q99->GetEntries() << "mean " << hclB_q99->GetMean() << endl;
-  hclB_q99->Write();
-
-  TH1I * hclBtreeq1 = new TH1I( "hclBtreeq1", "B cluster charge of 99% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
-  charge_res->Draw("clqBiiitree>>hclBtreeq1","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hclBtreeq1 = (TH1I*)gDirectory->Get("hclBtreeq1");
-  cout << hclBtreeq1->GetTitle() << " entries " << hclBtreeq1->GetEntries() << " mean " << hclBtreeq1->GetMean() << endl;
-  hclBtreeq1->Write();
-
-  for(int i =0; i<hclBtreeq1->GetEntries(); i++)    {
-    hclB_q1->SetBinContent(i+1,hclBtreeq1->GetBinContent(i+1));
-  }
-  cout << hclB_q1->GetTitle() << " entries " << hclB_q1->GetEntries() << "mean " << hclB_q1->GetMean() << endl;
-  hclB_q1->Write();
-
-
-  cout << "ph 99 " << endl;
-
-  getPercentRange(hdx3treeph, &(dlow),&(dhigh), 0.993);
-
-  ss_low.Form("%f",dlow);
-  ss_high.Form("%f",dhigh);
-  TH1D * hdx3treeph99 = new TH1D("hdx3treeph99", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hdx3treeph99 = (TH1D*)gDirectory->Get("hdx3treeph99");
-  cout << hdx3treeph99->GetTitle() << " entries " << hdx3treeph99->GetEntries() << " mean " << hdx3treeph99->GetMean() << endl; 
-  hdx3treeph99->Write();
-
-  for(int i =0; i<hdx3treeph99->GetEntries(); i++)    {
-    hdx3_clphABC90evR99->SetBinContent(i+1,hdx3treeph99->GetBinContent(i+1));
-  }
-  cout << hdx3_clphABC90evR99->GetTitle() << " entries " << hdx3_clphABC90evR99->GetEntries() << "mean " << hdx3_clphABC90evR99->GetMean() << endl;
-  cout << "TO COMPARE resolution " <<  hdx3_clphABC90evR99->GetRMS() * 1000 << " ± " <<  hdx3_clphABC90evR99->GetRMSError() * 1000 << endl;
-  hdx3_clphABC90evR99->Write();
-
-  TH1I * hnrowBtreeph99 = new TH1I("hnrowBtreeph99", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hnrowBtreeph99 = (TH1I*)gDirectory->Get("hnrowBtreeph99");
-  cout << hnrowBtreeph99->GetTitle() << " entries " << hnrowBtreeph99->GetEntries() << " mean " << hnrowBtreeph99->GetMean() << endl;
-  hnrowBtreeph99->Write();
-
-  for(int i =0; i<hnrowBtreeph99->GetEntries(); i++)    {
-    hnrowB_ph99->SetBinContent(i+1,hnrowBtreeph99->GetBinContent(i+1));
-  }
-  cout << hnrowB_ph99->GetTitle() << " entries " << hnrowB_ph99->GetEntries() << "mean " << hnrowB_ph99->GetMean() << endl;
-  hnrowB_ph99->Write();
-
-  TH1I * hnrowBtreeph1 = new TH1I("hnrowBtreeph1", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeph1","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hnrowBtreeph1 = (TH1I*)gDirectory->Get("hnrowBtreeph1");
-  cout << hnrowBtreeph1->GetTitle() << " entries " << hnrowBtreeph1->GetEntries() << " mean " << hnrowBtreeph1->GetMean() << endl;
-  hnrowBtreeph1->Write();
-
-  for(int i =0; i<hnrowBtreeph1->GetEntries(); i++)    {
-    hnrowB_ph1->SetBinContent(i+1,hnrowBtreeph1->GetBinContent(i+1));
-  }
-  cout << hnrowB_ph1->GetTitle() << " entries " << hnrowB_ph1->GetEntries() << "mean " << hnrowB_ph1->GetMean() << endl;
-  hnrowB_ph1->Write();
-
-
-  
-  TH1I * hclBtreeph99 = new TH1I( "hclBtreeph99", "B cluster charge of 99% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
-  charge_res->Draw("clphBiiitree>>hclBtreeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hclBtreeph99 = (TH1I*)gDirectory->Get("hclBtreeph99");
-  cout << hclBtreeph99->GetTitle() << " entries " << hclBtreeph99->GetEntries() << " mean " << hclBtreeph99->GetMean() << endl;
-  hclBtreeph99->Write();
-
-  for(int i =0; i<hclBtreeph99->GetEntries(); i++)    {
-    hclB_ph99->SetBinContent(i+1,hclBtreeph99->GetBinContent(i+1));
-  }
-  cout << hclB_ph99->GetTitle() << " entries " << hclB_ph99->GetEntries() << "mean " << hclB_ph99->GetMean() << endl;
-  hclB_ph99->Write();
-
-  TH1I * hclBtreeph1 = new TH1I( "hclBtreeph1", "B cluster charge of 99% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
-  charge_res->Draw("clphBiiitree>>hclBtreeph1","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hclBtreeph1 = (TH1I*)gDirectory->Get("hclBtreeph1");
-  cout << hclBtreeph1->GetTitle() << " entries " << hclBtreeph1->GetEntries() << " mean " << hclBtreeph1->GetMean() << endl;
-  hclBtreeph1->Write();
-
-  for(int i =0; i<hclBtreeph1->GetEntries(); i++)    {
-    hclB_ph1->SetBinContent(i+1,hclBtreeph1->GetBinContent(i+1));
-  }
-  cout << hclB_ph1->GetTitle() << " entries " << hclB_ph1->GetEntries() << "mean " << hclB_ph1->GetMean() << endl;
-  hclB_ph1->Write();
-
-
-
-
-
-
-
-
-
-
-
-  // preparation to find the 85 % of the Landau with the lowest charge in all three 3M planes
-  /*
-  double integral85[DreiMasterPlanes];
-  double integralPH85[DreiMasterPlanes];
-  
-  int high85[DreiMasterPlanes];
-  int highPH85[DreiMasterPlanes];
-
-  
-  for(int j =0; j < DreiMasterPlanes; j++)   {
-    if(PRINT)   cout << " plane " << j << endl;
-    integral[j] = hclq[j]->Integral(0,hclq[j]->GetNbinsX()+1);
-    if(PRINT)      cout << " integral " << integral[j] << " entries " << hclq[j]->GetEntries()<<  endl;
-    
-    integralPH[j] = hclph[j]->Integral(0,hclph[j]->GetNbinsX()+1);
-    if(PRINT)   cout << " integralPH " << integralPH[j] << endl;
-    
-    integral85[j] = 0.85*integral[j]; //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
-    if(DEBUG)   cout << " integral85 " << integral85[j] << endl;
-
-    integralPH85[j] = 0.85*integralPH[j];
-
-    high85[j] = 0;
-    highPH85[j] = 0;
-    
-    int i = 0;
-    while(integral[j]>integral85[j])    {
-      cout << " while "<< i << endl;
-      integral[j] = hclq[j]->Integral(1,hclq[j]->GetNbinsX()-i);
-      high85[j] = hclq[j]->GetBinCenter(hclq[j]->GetNbinsX()-i);
-      cout << " integral " << integral[j] << " high " << high85[j] << endl;
-      i++;
-    }
-    cout << " integral85 " << integral85[j] << endl;
-    i=0;
-    while(integralPH[j]>integralPH85[j])  {
-      integralPH[j] = hclph[j]->Integral(1,hclph[j]->GetNbinsX()-i);
-      highPH85[j] = hclph[j]->GetBinCenter(hclph[j]->GetNbinsX()-i);
-      i++;
-    } 
-  }
-
-
-  
-
-  
-  // plot dx3 with above conditions
-  //85 % Landau
-  qA.Form("%d",high85[0]);
-  qB.Form("%d",high85[1]);
-  qC.Form("%d",high85[2]);
-  
-  TH1D * hdx3treeq85 = new TH1D("hdx3treeq85", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeq85","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC,"goff");
-  hdx3treeq = (TH1D*)gDirectory->Get("hdx3treeq85");
-  cout << hdx3treeq85->GetTitle() << " entries " << hdx3treeq85->GetEntries() << " mean " << hdx3treeq85->GetMean() << " 20bin (85) " << hdx3treeq85->GetBinContent(20)<<endl;
-  hdx3treeq85->Write();
-  
-  for(int i =0; i<hdx3treeq85->GetEntries(); i++)    {
-      hdx3_clchargeABC85evR->SetBinContent(i+1,hdx3treeq85->GetBinContent(i+1));
-  }
-  cout << hdx3_clchargeABC85evR->GetTitle() << " entries " << hdx3_clchargeABC85evR->GetEntries() << "mean " << hdx3_clchargeABC85evR->GetMean() << endl;
-  hdx3_clchargeABC85evR->Write();
-
-
-  phA.Form("%d",highPH85[0]);
-  phB.Form("%d",highPH85[1]);
-  phC.Form("%d",highPH85[2]);
-  
-  
-  TH1I * hdx3treeph85 = new TH1I("hdx3treeph85", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeph85","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC,"goff");
-  hdx3treeph85 = (TH1I*)gDirectory->Get("hdx3treeph85");
-  cout << hdx3treeph85->GetTitle() << " entries " << hdx3treeph85->GetEntries() << endl;
-  hdx3treeph85->Write();
-  
-  for(int i =0; i<hdx3treeph85->GetEntries(); i++)  {
-    hdx3_clphABC85evR->SetBinContent(i+1,hdx3treeph85->GetBinContent(i+1));
-  }
-  cout << hdx3_clphABC85evR->GetTitle() << " entries " << hdx3_clphABC85evR->GetEntries() << endl;
-  hdx3_clphABC85evR->Write();
-
-
-
-  tolerance = (hdx3treeq85->GetBinContent(0)+hdx3treeq85->GetBinContent(hdx3treeq85->GetNbinsX()+1))/hdx3treeq85->GetEntries(); // since we are not working with continuous quantities but with binned hists, the difference between the integral and the 99% it may not be zero, so we ask it to be lower than 15% (before I was using 1.1% but since I changed to use the full range of hists, the overflow bin plays a too bigger role when stats is low and the 1.1% is not reached. 
-  
-  cout << " RMS method charge based with tolerance for 85" << tolerance << endl;
-  maximum = hdx3treeq85->GetMaximum();
-  maxbin = hdx3treeq85->GetMaximumBin();
-  cout <<  " maxbin " << maxbin << " at " << hdx3treeq85->GetBinCenter(maxbin)<<endl;
-  cout << "intital sigma = " << hdx3treeq85->GetRMS() * 1000 << " sigmaerr = " << hdx3treeq85->GetRMSError() * 1000 << endl;
-  Integral = hdx3treeq85->Integral(0,hdx3treeq85->GetNbinsX()+1);
-  cout << " integral " << Integral << " entries " << hdx3treeq85->GetEntries() << endl;
-  integral99 = 0.99*Integral;
-  cout << " integral99 " << integral99 << endl;
-
-  low = 0;
-  high = 0;
-  for(int i =0; i<hdx3treeq85->GetNbinsX()/2; i++)
-    {
-      low = maxbin-i;
-      high = maxbin+i;
-
-      Integral = hdx3treeq85->Integral(low,high);
-      cout << " integral " << Integral << " low " << low << " high " << high << endl;
-      cout << " while "<< i << " fabs(integral-integral99)/integral99 " << fabs(Integral-integral99)/integral95 << endl;
-
-      //      if(fabs(Integral-integral95)/integral95 < 0.011 || Integral>integral95)//integral>integral95)
-      if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
-	break;
-
-
-    }
-  cout << "final integral " << Integral << " low " << low <<" high " << high << endl;
-  hdx3treeq85->GetXaxis()->SetRange(low,high);
-
-  sigma = hdx3treeq85->GetRMS() * 1000;
-  sigmaerr = hdx3treeq85->GetRMSError() * 1000;
-  cout << " resolution " << sigma << " ± " << sigmaerr << endl;
-
-  cout << " low and hig bin centers strings " << hdx3treeq85->GetBinCenter(low) << " " << hdx3treeq85->GetBinCenter(high) << endl;
-  ss_low.Form("%f",hdx3treeq85->GetBinCenter(low));
-  ss_high.Form("%f",hdx3treeq->GetBinCenter(high));
-  cout << " low and hig bin centers strings " << ss_low << " " << ss_high << endl;
-  TH1D * hdx3treeq95_85 = new TH1D("hdx3treeq95_85", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeq95_85","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hdx3treeq95_85 = (TH1D*)gDirectory->Get("hdx3treeq95_85");
-  cout << hdx3treeq95_85->GetTitle() << " entries " << hdx3treeq95_85->GetEntries() << " mean " << hdx3treeq95_85->GetMean() << endl; 
-  hdx3treeq95_85->Write();
-
-  for(int i =0; i<hdx3treeq95_85->GetEntries(); i++)    {
-    hdx3_clchargeABC85evR95->SetBinContent(i+1,hdx3treeq95_85->GetBinContent(i+1));
-  }
-  cout << hdx3_clchargeABC85evR95->GetTitle() << " entries " << hdx3_clchargeABC85evR95->GetEntries() << "mean " << hdx3_clchargeABC85evR95->GetMean() << endl;
-  hdx3_clchargeABC85evR95->Write();
-
-  TH1I * hnrowBtreeq95_85 = new TH1I("hnrowBtreeq95_85", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeq95_85","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hnrowBtreeq95_85 = (TH1I*)gDirectory->Get("hnrowBtreeq95_85");
-  cout << hnrowBtreeq95_85->GetTitle() << " entries " << hnrowBtreeq95_85->GetEntries() << " mean " << hnrowBtreeq95_85->GetMean() << endl;
-  hnrowBtreeq95_85->Write();
-
-  for(int i =0; i<hnrowBtreeq95_85->GetEntries(); i++)    {
-    hnrowB_q95_85->SetBinContent(i+1,hnrowBtreeq95_85->GetBinContent(i+1));
-  }
-  cout << hnrowB_q95_85->GetTitle() << " entries " << hnrowB_q95_85->GetEntries() << "mean " << hnrowB_q95_85->GetMean() << endl;
-  hnrowB_q95_85->Write();
-
-  TH1I * hnrowBtreeq5_85 = new TH1I("hnrowBtreeq5_85", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeq5_85","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hnrowBtreeq5_85 = (TH1I*)gDirectory->Get("hnrowBtreeq5_85");
-  cout << hnrowBtreeq5_85->GetTitle() << " entries " << hnrowBtreeq5_85->GetEntries() << " mean " << hnrowBtreeq5_85->GetMean() << endl;
-  hnrowBtreeq5_85->Write();
-
-  for(int i =0; i<hnrowBtreeq5_85->GetEntries(); i++)    {
-    hnrowB_q5_85->SetBinContent(i+1,hnrowBtreeq5_85->GetBinContent(i+1));
-  }
-  cout << hnrowB_q5_85->GetTitle() << " entries " << hnrowB_q5_85->GetEntries() << "mean " << hnrowB_q5_85->GetMean() << endl;
-  hnrowB_q5_85->Write();
-
-
-  
-  TH1I * hclBtreeq95_85 = new TH1I( "hclBtreeq95_85", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
-  charge_res->Draw("clqBiiitree>>hclBtreeq95_85","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hclBtreeq95_85 = (TH1I*)gDirectory->Get("hclBtreeq95_85");
-  cout << hclBtreeq95_85->GetTitle() << " entries " << hclBtreeq95_85->GetEntries() << " mean " << hclBtreeq95_85->GetMean() << endl;
-  hclBtreeq95_85->Write();
-
-  for(int i =0; i<hclBtreeq95_85->GetEntries(); i++)    {
-    hclB_q95_85->SetBinContent(i+1,hclBtreeq95_85->GetBinContent(i+1));
-  }
-  cout << hclB_q95_85->GetTitle() << " entries " << hclB_q95_85->GetEntries() << "mean " << hclB_q95_85->GetMean() << endl;
-  hclB_q95_85->Write();
-
-  TH1I * hclBtreeq5_85 = new TH1I( "hclBtreeq5_85", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
-  charge_res->Draw("clqBiiitree>>hclBtreeq5_85","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hclBtreeq5_85 = (TH1I*)gDirectory->Get("hclBtreeq5_85");
-  cout << hclBtreeq5_85->GetTitle() << " entries " << hclBtreeq5_85->GetEntries() << " mean " << hclBtreeq5_85->GetMean() << endl;
-  hclBtreeq5_85->Write();
-
-  for(int i =0; i<hclBtreeq5_85->GetEntries(); i++)    {
-    hclB_q5_85->SetBinContent(i+1,hclBtreeq5_85->GetBinContent(i+1));
-  }
-  cout << hclB_q5_85->GetTitle() << " entries " << hclB_q5_85->GetEntries() << "mean " << hclB_q5_85->GetMean() << endl;
-  hclB_q5_85->Write();
-
-
-
-  
-
-  tolerance = (hdx3treeph85->GetBinContent(0)+hdx3treeph85->GetBinContent(hdx3treeph85->GetNbinsX()+1))/hdx3treeph85->GetEntries();
-  cout << " RMS method PH based with tolerance " << tolerance << endl;
-  maximum = hdx3treeph85->GetMaximum();
-  maxbin = hdx3treeph85->GetMaximumBin();
-  cout <<  " maxbin " << maxbin << " at " << hdx3treeph85->GetBinCenter(maxbin)<<endl;
-  cout << "intital sigma = " << hdx3treeph85->GetRMS() * 1000 << " sigmaerr = " << hdx3treeph85->GetRMSError() * 1000 << endl;
-  Integral = hdx3treeph85->Integral(0,hdx3treeph85->GetNbinsX()+1);
-  cout << " integral " << Integral << " entries " << hdx3treeph85->GetEntries() << endl;
-  integral95 = 0.95*Integral;
-  cout << " integral95 " << integral95 << endl;
-
-  low = 0;
-  high = 0;
-  for(int i =0; i<hdx3treeph85->GetNbinsX()/2; i++)
-    {
-      low = maxbin-i;
-      high = maxbin+i;
-
-      Integral = hdx3treeph85->Integral(low,high);
-      cout << " integral " << Integral << " low " << low << " high " << high << endl;
-      cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
-
-      if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
-	break;
-
-
-    }
-  cout << "final integral " << Integral << " low " << low <<" high " << high << endl;
-  hdx3treeph85->GetXaxis()->SetRange(low,high);
-
-  sigma = hdx3treeph85->GetRMS() * 1000;
-  sigmaerr = hdx3treeph85->GetRMSError() * 1000;
-  cout << " resolution " << sigma << " ± " << sigmaerr << endl;
-
-  ss_low.Form("%f",hdx3treeph85->GetBinCenter(low));
-  ss_high.Form("%f",hdx3treeph85->GetBinCenter(high));
-  TH1D * hdx3treeph95_85 = new TH1D("hdx3treeph95_85", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeph95_85","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hdx3treeph95_85 = (TH1D*)gDirectory->Get("hdx3treeph95_85");
-  cout << hdx3treeph95_85->GetTitle() << " entries " << hdx3treeph95_85->GetEntries() << " mean " << hdx3treeph95_85->GetMean() << endl; 
-  hdx3treeph95_85->Write();
-
-  for(int i =0; i<hdx3treeph95_85->GetEntries(); i++)    {
-    hdx3_clphABC85evR95->SetBinContent(i+1,hdx3treeph95_85->GetBinContent(i+1));
-  }
-  cout << hdx3_clphABC85evR95->GetTitle() << " entries " << hdx3_clphABC85evR95->GetEntries() << "mean " << hdx3_clphABC85evR95->GetMean() << endl;
-  sigma = hdx3_clphABC85evR95->GetRMS() * 1000;
-  sigmaerr = hdx3_clphABC85evR95->GetRMSError() * 1000;
-  cout << "TO COMPARE resolution " << sigma << " ± " << sigmaerr << endl;
-  
-  hdx3_clphABC85evR95->Write();
-
-  TH1I * hnrowBtreeph95_85 = new TH1I("hnrowBtreeph95_85", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeph95_85","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hnrowBtreeph95_85 = (TH1I*)gDirectory->Get("hnrowBtreeph95_85");
-  cout << hnrowBtreeph95_85->GetTitle() << " entries " << hnrowBtreeph95_85->GetEntries() << " mean " << hnrowBtreeph95_85->GetMean() << endl;
-  hnrowBtreeph95_85->Write();
-
-  for(int i =0; i<hnrowBtreeph95_85->GetEntries(); i++)    {
-    hnrowB_ph95_85->SetBinContent(i+1,hnrowBtreeph95_85->GetBinContent(i+1));
-  }
-  cout << hnrowB_ph95_85->GetTitle() << " entries " << hnrowB_ph95_85->GetEntries() << "mean " << hnrowB_ph95_85->GetMean() << endl;
-  hnrowB_ph95_85->Write();
-
-  TH1I * hnrowBtreeph5_85 = new TH1I("hnrowBtreeph5_85", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeph5_85","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hnrowBtreeph5_85 = (TH1I*)gDirectory->Get("hnrowBtreeph5_85");
-  cout << hnrowBtreeph5_85->GetTitle() << " entries " << hnrowBtreeph5_85->GetEntries() << " mean " << hnrowBtreeph5_85->GetMean() << endl;
-  hnrowBtreeph5_85->Write();
-
-  for(int i =0; i<hnrowBtreeph5_85->GetEntries(); i++)    {
-    hnrowB_ph5_85->SetBinContent(i+1,hnrowBtreeph5_85->GetBinContent(i+1));
-  }
-  cout << hnrowB_ph5_85->GetTitle() << " entries " << hnrowB_ph5_85->GetEntries() << "mean " << hnrowB_ph5_85->GetMean() << endl;
-  hnrowB_ph5_85->Write();
-
-
-  
-  TH1I * hclBtreeph95_85 = new TH1I( "hclBtreeph95_85", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
-  charge_res->Draw("clphBiiitree>>hclBtreeph95_85","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hclBtreeph95_85 = (TH1I*)gDirectory->Get("hclBtreeph95_85");
-  cout << hclBtreeph95_85->GetTitle() << " entries " << hclBtreeph95_85->GetEntries() << " mean " << hclBtreeph95_85->GetMean() << endl;
-  hclBtreeph95_85->Write();
-
-  for(int i =0; i<hclBtreeph95_85->GetEntries(); i++)    {
-    hclB_ph95_85->SetBinContent(i+1,hclBtreeph95_85->GetBinContent(i+1));
-  }
-  cout << hclB_ph95_85->GetTitle() << " entries " << hclB_ph95_85->GetEntries() << "mean " << hclB_ph95_85->GetMean() << endl;
-  hclB_ph95_85->Write();
-
-  TH1I * hclBtreeph5_85 = new TH1I( "hclBtreeph5_85", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
-  charge_res->Draw("clphBiiitree>>hclBtreeph5_85","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hclBtreeph5_85 = (TH1I*)gDirectory->Get("hclBtreeph5_85");
-  cout << hclBtreeph5_85->GetTitle() << " entries " << hclBtreeph5_85->GetEntries() << " mean " << hclBtreeph5_85->GetMean() << endl;
-  hclBtreeph5_85->Write();
-
-  for(int i =0; i<hclBtreeph5_85->GetEntries(); i++)    {
-    hclB_ph5_85->SetBinContent(i+1,hclBtreeph5_85->GetBinContent(i+1));
-  }
-  cout << hclB_ph5_85->GetTitle() << " entries " << hclB_ph5_85->GetEntries() << "mean " << hclB_ph5_85->GetMean() << endl;
-  hclB_ph5_85->Write();
-  */
-
-
-
-
-
-  
-
-  
-  //charge_res->Print();
 
   clock_gettime( CLOCK_REALTIME, &ts );
   time_t s3 = ts.tv_sec; // seconds since 1.1.1970
@@ -1713,7 +939,7 @@ int main( int argc, char* argv[] )
        << endl << "involuntary context switches " << usage.ru_nivcsw
        << endl;
   if(PRINT) cout << " going to write the hist file" << endl;
-  histoFile->Write("",TObject::kOverwrite);
+  histoFile->Write();
   if(PRINT) cout << " wrote the hist file" << endl;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1867,54 +1093,6 @@ int main( int argc, char* argv[] )
 
 //------------------------------------------------------------------------------
 
-void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent){
-
-  double tolerance = (h->GetBinContent(0)+h->GetBinContent(h->GetNbinsX()+1))/h->GetEntries(); // since we are not working with continuous quantities but with binned hists, the difference between the integral and the 95% it may not be zero, so we ask it to be lower than 15% (before I was using 1.1% but since I changed to use the full range of hists, the overflow bin plays a too bigger role when stats is low and the 1.1% is not reached. 
-  
-  cout << " RMS method charge based with tolerance " << tolerance << endl;
-  double maximum = h->GetMaximum();
-  int maxbin = h->GetMaximumBin();
-  cout <<  " maxbin " << maxbin << " at " << h->GetBinCenter(maxbin)<<endl;
-  cout << "intital sigma = " << h->GetRMS() * 1000 << " sigmaerr = " << h->GetRMSError() * 1000 << endl;
-  double Integral = h->Integral(0,h->GetNbinsX()+1);
-  cout << " integral " << Integral << " entries " << h->GetEntries() << endl;
-  double integral95 = percent*Integral;
-  cout << " integra "<< percent << " " << integral95 << endl;
-  int i = 0;
-
-  double low = 0;
-  double high = 0;
-  for(int i =0; i<h->GetNbinsX()/2; i++)
-    {
-     low = maxbin-i;
-      high = maxbin+i;
-
-      Integral = h->Integral(low,high);
-      cout << " integral " << Integral << "low " <<low << " high " << high << endl;
-      cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
-
-      //      if(fabs(Integral-integral95)/integral95 < 0.011 || Integral>integral95)//integral>integral95)
-      if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
-	break;
-
-
-    }
-  cout << "final integral " << Integral << "low " <<low <<" high " << high << endl;
-  h->GetXaxis()->SetRange(low,high);
-
-  double sigma = h->GetRMS() * 1000;
-  double sigmaerr = h->GetRMSError() * 1000;
-  cout << " resolution " << sigma << " ± " << sigmaerr << endl;
-
-  cout << "low and hig bin centers strings " << h->GetBinCenter(low) << " " << h->GetBinCenter(high) << endl;
-  *dlow  = h->GetBinCenter(low);
-  *dhigh = h->GetBinCenter(high);
-  
-
-}
-
-
-
 double alignx(TH1I * h, TString plane,TString run,int iteration)
 {
   TString iter;
@@ -1929,6 +1107,7 @@ double alignx(TH1I * h, TString plane,TString run,int iteration)
   c->SetFrameFillStyle(1000);
   c->SetFrameFillColor(0);
   gPad->SetTicks(1,1);
+
 
   h->GetXaxis()->SetLabelFont(42);
   h->GetXaxis()->SetLabelSize(0.025);
@@ -2883,11 +2062,11 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   mapOfHists.insert(std::make_pair("dx3_clphAC20hR",hdx3_clphAC20hR));
   mapOfHists.insert(std::make_pair("dx3_clchargeAC30hR",hdx3_clchargeAC30hR));
   mapOfHists.insert(std::make_pair("dx3_clphAC30hR",hdx3_clphAC30hR));
-  
+  */
   
   mapOfHists.insert(std::make_pair("dx3_clchargeABC90evR",hdx3_clchargeABC90evR));
   mapOfHists.insert(std::make_pair("dx3_clphABC90evR",hdx3_clphABC90evR));
-  
+  /*
   mapOfHists.insert(std::make_pair("dx3_clchargeABC80evR",hdx3_clchargeABC80evR));
   mapOfHists.insert(std::make_pair("dx3_clphABC80evR",hdx3_clphABC80evR));
   mapOfHists.insert(std::make_pair("dx3_clchargeABC70evR",hdx3_clchargeABC70evR));
@@ -3648,7 +2827,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   } else {
     if(PRINT) std::cout << "Not found "<< "dx3_clphB700adc" << endl;
   }
-  
+  */
   
   double integral[DreiMasterPlanes];
   double integralPH[DreiMasterPlanes];
@@ -3772,7 +2951,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clchargeAC90evR" << endl;
   }  
 
-  
+  */
   search =  mapOfHists.find("dx3_clchargeABC90evR");
   if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
@@ -3786,7 +2965,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
 
-  
+  /*
   search =  mapOfHists.find("dx3_clchargeAC80evR");
   if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
@@ -3847,7 +3026,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clphAC90evR" << endl;
   }
 
-  
+  */
   search =  mapOfHists.find("dx3_clphABC90evR");
   if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
@@ -3861,7 +3040,7 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   }
 
 
-  
+  /*
   search =  mapOfHists.find("dx3_clphAC80evR");
   if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
@@ -4144,65 +3323,6 @@ void bookHists()
     nby = 160;
   }
 
-
-  //hdx3b = new TH1I("hdx3", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  // hdx3tree = new TH1I("hdx3tree", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
- hdx3_clchargeABC90evR = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
- hdx3_clphABC90evR = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
- hdx3_clchargeABC90evR95 = new TH1I("dx3_clchargeABC90evR95 ", "triplet dx_clchargeABC90evR95 ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
- hdx3_clphABC90evR95 = new TH1I("dx3_clphABC90evR95 ", "triplet dx_clphABC90evR95 ; dx [mm];triplets", 500, -0.5, 0.5 );
- hdx3_clchargeABC90evR99 = new TH1I("dx3_clchargeABC90evR99 ", "triplet dx_clchargeABC90evR99 ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
- hdx3_clphABC90evR99 = new TH1I("dx3_clphABC90evR99 ", "triplet dx_clphABC90evR99 ; dx [mm];triplets", 500, -0.5, 0.5 );
-
-
- hnrowB_ph95 = new TH1I("hnrowB_ph95", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
- hnrowB_q95 = new TH1I("hnrowB_q95", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
- hclB_ph95 = new TH1I("hclB_ph95 ", "triplet dx_clphABC90evR RMS 95; dx [mm];triplets", 200, 0, 1000 );
- hclB_q95 = new TH1I("hclB_q95 ", "triplet dx_clchargeABC90evR RMS 95; dx [mm];triplets", 100, 0, 50 );;
- hnrowB_ph5 = new TH1I("hnrowB_ph5", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
- hnrowB_q5 = new TH1I("hnrowB_q5", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
- hclB_ph5 = new TH1I("hclB_ph5 ", "triplet dx_clphABC90evR RMS out 5; dx [mm];triplets", 200, 0, 1000 );
- hclB_q5 = new TH1I("hclB_q5 ", "triplet dx_clchargeABC90evR RMS out 5; dx [mm];triplets", 100, 0, 50 );;
- 
- hnrowB_ph99 = new TH1I("hnrowB_ph99", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
- hnrowB_q99 = new TH1I("hnrowB_q99", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
- hclB_ph99 = new TH1I("hclB_ph99 ", "triplet dx_clphABC90evR RMS 99; dx [mm];triplets", 200, 0, 1000 );
- hclB_q99 = new TH1I("hclB_q99 ", "triplet dx_clchargeABC90evR RMS 99; dx [mm];triplets", 100, 0, 50 );;
- hnrowB_ph1 = new TH1I("hnrowB_ph1", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
- hnrowB_q1 = new TH1I("hnrowB_q1", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
- hclB_ph1 = new TH1I("hclB_ph1 ", "triplet dx_clphABC90evR RMS out 5; dx [mm];triplets", 200, 0, 1000 );
- hclB_q1 = new TH1I("hclB_q1 ", "triplet dx_clchargeABC90evR RMS out 5; dx [mm];triplets", 100, 0, 50 );;
- 
- /*
- hdx3_clchargeABC85evR = new TH1I("dx3_clchargeABC85evR ", "triplet dx_clchargeABC85evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 85% events in Landau (only high tail)
- hdx3_clphABC85evR = new TH1I("dx3_clphABC85evR ", "triplet dx_clphABC85evR ; dx [mm];triplets", 500, -0.5, 0.5 );
- hdx3_clchargeABC85evR95 = new TH1I("dx3_clchargeABC85evR95 ", "triplet dx_clchargeABC85evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 85% events in Landau (only high tail)
- hdx3_clphABC85evR95 = new TH1I("dx3_clphABC85evR95 ", "triplet dx_clphABC85evR ; dx [mm];triplets", 500, -0.5, 0.5 );
-
- hnrowB_ph95_85 = new TH1I("hnrowB_ph95_85", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
- hnrowB_q95_85 = new TH1I("hnrowB_q95_85", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
- hclB_ph95_85 = new TH1I("hclB_ph95_85 ", "triplet dx_clphABC90evR RMS 95; dx [mm];triplets", 200, 0, 1000 );
- hclB_q95_85 = new TH1I("hclB_q95_85 ", "triplet dx_clchargeABC90evR RMS 95; dx [mm];triplets", 100, 0, 50 );;
- hnrowB_ph5_85 = new TH1I("hnrowB_ph5_85", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
- hnrowB_q5_85 = new TH1I("hnrowB_q5_85", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
- hclB_ph5_85 = new TH1I("hclB_ph5_85 ", "triplet dx_clphABC90evR RMS out 5; dx [mm];triplets", 200, 0, 1000 );
- hclB_q5_85 = new TH1I("hclB_q5_85 ", "triplet dx_clchargeABC90evR RMS out 5; dx [mm];triplets", 100, 0, 50 );;
- */
-
- 
- hdx3tree2 = new TH1I("hdx3tree2", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-
- charge_res = new TTree("charge_res","landau and residuals");
- charge_res->Branch("dx3tree",&dx3tree);
- charge_res->Branch("clqAiiitree",&clqAiii);
- charge_res->Branch("clqBiiitree",&clqBiii);
- charge_res->Branch("clqCiiitree",&clqCiii);
- charge_res->Branch("clphAiiitree",&clphAiii);
- charge_res->Branch("clphBiiitree",&clphBiii);
- charge_res->Branch("clphCiiitree",&clphCiii);
- charge_res->Branch("nrowBtree",&nrowBtree);
-
-  
   for( unsigned ipl = 0; ipl < DreiMasterPlanes; ++ipl ) {
 
     phvsprev[ipl] = TProfile( Form( "phvsprev%s", PN[ipl].c_str() ),
@@ -4344,11 +3464,6 @@ void bookHists()
   effvsqA = new TProfile( "effvsqA", "eff vs charge A;cluster charge A [ke];DUT efficiency",		    100, 0, 100, -0.1, 1.1 );
   effvstxy = new TProfile("effvstxy", "eff vs angle;dxy CA [mm];DUT efficiency",		     100, 0, 0.2, -0.1, 1.1 );
 
-  //  hdx3 = new TH1I("dx3", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-
-
-
-  
 }
 
 
