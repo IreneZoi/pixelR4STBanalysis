@@ -47,6 +47,8 @@ bool PRINT = false;
 bool DOALIGNMENT = false;
 bool DPHCUT = false;
 bool DEBUG = false;
+bool DO1CL = true;
+
 //------------------------------------------------------------------------------
 
 int main( int argc, char* argv[] )
@@ -300,7 +302,7 @@ int main( int argc, char* argv[] )
   if(PRINT) cout << "hists booking whit new method"<<endl;
   histoMap nocuts =   bookControlHists("nocuts",histoFile);
   if(PRINT) cout << " booked! "  <<endl;
-
+ 
 
   if(PRINT)
     {
@@ -318,9 +320,11 @@ int main( int argc, char* argv[] )
     }
 
   histoMap straightTracksY =   bookControlHists("straightTracksY",histoFile);
+  histoMap closest3M = bookControlHists("closest3M",histoFile);
   histoMap straightTracksY_isoAandC =   bookControlHists("straightTracksY_isoAandC",histoFile);
   histoMap straightTracksY_isoAandCandB =   bookControlHists("straightTracksY_isoAandCandB",histoFile);
   histoMap straightTracksY_isoAandCandB_straightTracksX =   bookControlHists("straightTracksY_isoAandCandB_straightTracksX",histoFile);
+
   histoMap straightTracksY_isoAandCandB_chargerAandC  =   bookControlHists("straightTracksY_isoAandCandB_chargerAandC",histoFile);
   histoMap straightTracksY_isoAandCandB_chargerAandCandB  =   bookControlHists("straightTracksY_isoAandCandB_chargerAandCandB",histoFile);
   histoMap straightTracksY_isoAandCandB_chargeAandC  =   bookControlHists("straightTracksY_isoAandCandB_chargeAandC",histoFile);
@@ -454,14 +458,22 @@ int main( int argc, char* argv[] )
       vector <cluster> vclB = *evB;
       vector <cluster> vclC = *evC;
 
+      vector<closest> AMatchC ( evlistA.size(), closest() );
+      vector<closest> CMatchA ( evlistC.size(), closest() );
+      vector<closest> ACMatchB ( evlistA.size(), closest() );
+      vector<closest> BMatchAC ( evlistB.size(), closest() );
       
       
       ++iev;
-      cout << " event " << iev << " cl A " << vclA.size() << " B " << vclB.size() << " C " << vclC.size() << endl;
+      if(DEBUG)      cout << " event " << iev << " cl A " << vclA.size() << " B " << vclB.size() << " C " << vclC.size() << endl;
      
-      if(vclA.size()!=1 || vclB.size()!=1 || vclC.size() !=1){
-	cout << " more than 1 clusters on at least one plane! " << endl;
-	continue;
+
+      if(DO1CL){
+	cout << "########################## 1 cluster per plane!!! ################# "<< endl;
+	if(vclA.size()!=1 || vclB.size()!=1 || vclC.size() !=1){
+	  cout << " more or less  than 1 clusters on at least one plane! " << endl;
+	  continue;
+	}
       }
      
       if( iev%10000 == 0 )
@@ -618,68 +630,11 @@ int main( int argc, char* argv[] )
       
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      //filling hists for resolution studies
-
-      /*
-      cout << " filling hists for resolution studies! " << endl;
-      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC )
-	{
-
-	  double xC = xcoordinate(2, cC, alignxC, ptchc, ptchr);
-	  double yC = ycoordinate(2, cC, alignyC, ptchc, ptchr);
-	  
-	  double xCr = xC*cfC - yC*sfC;
-	  double yCr = xC*sfC + yC*cfC;
-	
-	  for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )
-	    {
-
-              double xA = xcoordinate(0, cA, alignxA, ptchc, ptchr);
-	      double yA = ycoordinate(0, cA, alignyA, ptchc, ptchr);
-	      
-	      double xAr = xA*cfA - yA*sfA;
-	      double yAr = xA*sfA + yA*cfA;
-	      
-
-	      double dxCA = xCr - xAr;
-	      double dyCA = yCr - yAr;
-	      
-	      if( fabs( dxCA ) > straightTracks * beamDivergenceScaled + 0.02 ) continue; // includes beam divergence: +-5 sigma
-	      if( fabs( dyCA ) > straightTracks * beamDivergenceScaled + 0.1 ) continue; // [mm]
-	      double xavg = 0.5 * ( xAr + xCr );
-	      double yavg = 0.5 * ( yAr + yCr );
-
-	      
-	      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
-		{
-		  double xB = xcoordinate(1, cB, 0, ptchc, ptchr);
-		  double yB = ycoordinate(1, cB, 0, ptchc, ptchr);
-		  double dx3 = xB - xavg;
-		  double dy3 = yB - yavg;
-		  dx3 = dx3 - dx3corr*xavg; // from -dx3vsx.Fit("pol1")
-
-		  dx3vsx->Fill( xB, dx3 ); // turn
-		  dx3vsy->Fill( yB, dx3 );
-
-		  if(fabs( dx3 ) < 0.07 && fabs( dy3 ) < 0.15 && cA->iso && cB->iso && cC->iso)
-		    {
-		      hclqAiii->Fill(cA->q);
-		      hclqBiii->Fill(cB->q); 
-		      hclqCiii->Fill(cC->q); 
-		      hclphAiii->Fill(cA->sum);
-		      hclphBiii->Fill(cB->sum);
-		      hclphCiii->Fill(cC->sum);
-		    }
-		}
-	    }
-	}
-      cout << " done filling hists for resolution studies! "<< endl;
-      */
       // ---------------------------------------
       ///////        A-C cluster correlations: ///////////
       if(PRINT) cout << "entering AC correlation loop " << endl;
       nm = 0;
-
+      //      int iC =0;
       for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC )
 	{
 	
@@ -691,7 +646,7 @@ int main( int argc, char* argv[] )
 	
       
 	  double etaC = eta(cC);
-
+	  //          int iA=0;
 	  for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )
 	    {
 	
@@ -711,6 +666,22 @@ int main( int argc, char* argv[] )
 	      hdxCA->Fill( dxCA );
 	      hdyCA->Fill( dyCA );
 
+	      //finn closest: update if closer
+	      if( dxyCA < AMatchC.at(iA).distance ){
+		AMatchC.at(iA).index = iC;
+		AMatchC.at(iA).distance = dxyCA;
+		cout << "index A " << iA << " index C " << iC << " distance AC " << AMatchC.at(iA).distance << " dxyCA " << dxyCA << endl;
+	      }
+
+	      if( dxyCA < CMatchA.at(iC).distance ){
+		CMatchA.at(iC).index = iA;
+		CMatchA.at(iC).distance = dxyCA;
+		cout << "index A " << iA << " index C " << iC << " distance CA " << CMatchA.at(iC).distance << " dxyCA " << dxyCA << endl;
+	      }
+
+              cout << " index A " << iA << " index C " << iC << " distance dxyCA " << dxyCA << endl;
+
+	      
    
 	      // NB until I initialize cB, I am using cA instead!!!!
 	      fillControlHists(raw,"raw",0,0,cA,cA,cC,0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
@@ -748,7 +719,7 @@ int main( int argc, char* argv[] )
 	      int eff[999] = {0};
 
 	      
-
+	      //              int iB = 0; 
 	      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
 		{
 	    
@@ -788,58 +759,89 @@ int main( int argc, char* argv[] )
 
 
 		  double dxy = sqrt( dx3*dx3 + dy3*dy3 );
+
 		  fillControlHists(nocuts,"nocuts",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
-	
 		  if(PRINT) cout << "nocuts" << endl;
-		  
-		  
-		  if( fabs( dy3 ) < straightTracks * beamDivergenceScaled ) //+ 0.05 )
-		    { // cut on y, look at x, see madx3vsy
+
+		  //finn  closest:  update if closer
+		  if( dxy < ACMatchB.at(iA).distance ){
+		    ACMatchB.at(iA).index = iB;
+		    ACMatchB.at(iA).distance = dxy;
+		    cout << "index A " << iA << " index B " << iB << " distance AC-B " << ACMatchB.at(iA).distance << " dxy " << dxy << endl;
+		  }
+
+		  if( dxy < BMatchAC.at(iB).distance ){
+		    BMatchAC.at(iB).index = iA;
+		    BMatchAC.at(iB).distance = dxy;
+		    cout << "index A " << iA << " index B " << iB << " distance B-AC " << BMatchAC.at(iB).distance << " dxy " << dxy << endl;
+		  }
+		  cout << " index A " << iA << " index B " << iB <<  " distance dxy " << dxy << endl;
+
+
+	
+		    if( fabs( dy3 ) < straightTracks * beamDivergenceScaled ) //+ 0.05 )
+		      { // cut on y, look at x, see madx3vsy
 		    
-		      fillControlHists(straightTracksY,"straightTracksY",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+			fillControlHists(straightTracksY,"straightTracksY",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+			
+			if(AMatchC.at(iA).index == iC && CMatchA.at(iC).index == iA && ACMatchB.at(iA).index == iB && BMatchAC.at(iB).index == iA){
+			    //cout << "event "<< iev << " used distance AMatchC " << AMatchC.at(iA).distance << " CMatchA " << CMatchA.at(iC).distance << " ACMatchB " << ACMatchB.at(iA).distance << " BMatchAC " <<  BMatchAC.at(iB).distance << endl;
+			    fillControlHists(closest3M,"closest3M",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
-		      if( cA->iso && cC->iso )
-			{
-			  fillControlHists(straightTracksY_isoAandC,"straightTracksY_isoAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
-			  if( cB->iso )
-			    {
-			      fillControlHists(straightTracksY_isoAandCandB,"straightTracksY_isoAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
-			      if(PRINT) cout << "isoAandCandB done" << endl;
-			      
+			    
+			    if( cA->iso && cC->iso )
+			      {
+				fillControlHists(straightTracksY_isoAandC,"straightTracksY_isoAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+				if( cB->iso )
+				  {
+				    fillControlHists(straightTracksY_isoAandCandB,"straightTracksY_isoAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+				    if(PRINT) cout << "isoAandCandB done" << endl;
+				
 
-			      if( fabs( dxCA ) < straightTracks * beamDivergenceScaled )
-				{ // track angle
-				  fillControlHists(straightTracksY_isoAandCandB_straightTracksX,"straightTracksY_isoAandCandB_straightTracksX",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
-                  
-				  if(PRINT) cout << " filling hists for resolution studies! " << endl;		  
-				  hclqAiii->Fill(cA->q);
-				  hclqBiii->Fill(cB->q); 
-				  hclqCiii->Fill(cC->q); 
-				  hclphAiii->Fill(cA->sum);
-				  hclphBiii->Fill(cB->sum);
-				  hclphCiii->Fill(cC->sum);
-				  if(PRINT) cout << "done  filling hists for resolution studies! " << endl;		  
+				    if( fabs( dxCA ) < straightTracks * beamDivergenceScaled )
+				      { // track angle
+					fillControlHists(straightTracksY_isoAandCandB_straightTracksX,"straightTracksY_isoAandCandB_straightTracksX",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+					cout << "event "<< iev << " used distance dxyCA " << dxyCA << " dxy " << dxy   << endl; //" iA " << iA << " iB " << iB << " iC " << iC << endl;
+			    
 
-                                  dx3tree = dx3;
+				    
+					if(PRINT) cout << " filling hists for resolution studies! " << endl;		  
+					hclqAiii->Fill(cA->q);
+					hclqBiii->Fill(cB->q); 
+					hclqCiii->Fill(cC->q); 
+					hclphAiii->Fill(cA->sum);
+					hclphBiii->Fill(cB->sum);
+					hclphCiii->Fill(cC->sum);
+					if(PRINT) cout << "done  filling hists for resolution studies! " << endl;		  
+					
+					dx3tree = dx3;
 				  
-				  clqAiii = cA->q;
-				  clqBiii = cB->q;
-				  clqCiii = cC->q;
-				  clphAiii = cA->sum;
-				  clphBiii = cB->sum;
-				  clphCiii = cC->sum;
-				  nrowBtree = nrowB;
-                                  charge_res->Fill();
-				  if(PRINT) cout << "done  filling the tree " << endl;
-				  
-				}//fabs( dxCA ) < straightTracks * beamDivergenceScaled 
+					clqAiii = cA->q;
+					clqBiii = cB->q;
+					clqCiii = cC->q;
+					clphAiii = cA->sum;
+					clphBiii = cB->sum;
+					clphCiii = cC->sum;
+					nrowBtree = nrowB;
+					evt = iev;
+					dxyCAtree=dxyCA;
+					dxytree=dxy;
+					charge_res->Fill();
+					if(PRINT) cout << "done  filling the tree " << endl;
+				
+				  }//fabs( dxCA ) < straightTracks * beamDivergenceScaled 
+				
+			      }//iso B
+			  }//iso CA
+			}//closest
+			
+		      }//straight tracks 
 
-			    }//iso B
-			}//iso CA
-		    }//straight tracks Y
-
+		  iB++;
 		}//clB
+	      iA++;
 	    }//clA
+	  iC++;
 	}//clC
     }//first big loop on events
 
@@ -1084,6 +1086,32 @@ int main( int argc, char* argv[] )
   cout << hdx3_clphABC90evR->GetTitle() << " entries " << hdx3_clphABC90evR->GetEntries() << endl;
   hdx3_clphABC90evR->Write();
 
+  TH1I * hdxyCAtreeph = new TH1I("hdxyCAtreeph", "triplet dxyCA ; dx [mm];triplets", 100,0., 0.3 );
+  charge_res->Draw("dxyCAtree>>hdxyCAtreeph","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC,"goff");
+  hdxyCAtreeph = (TH1I*)gDirectory->Get("hdxyCAtreeph");
+  cout << hdxyCAtreeph->GetTitle() << " entries " << hdxyCAtreeph->GetEntries() << endl;
+  hdxyCAtreeph->Write();
+  
+  for(int i =0; i<hdxyCAtreeph->GetEntries(); i++)  {
+    hdxyCA_clphABC90evR->SetBinContent(i+1,hdxyCAtreeph->GetBinContent(i+1));
+  }
+  cout << hdxyCA_clphABC90evR->GetTitle() << " entries " << hdxyCA_clphABC90evR->GetEntries() << endl;
+  hdxyCA_clphABC90evR->Write();
+
+  TH1I * hdxytreeph = new TH1I("hdxytreeph", "triplet dxy ; dx [mm];triplets", 100, 0., 0.3 );
+  charge_res->Draw("dxytree>>hdxytreeph","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC,"goff");
+  hdxytreeph = (TH1I*)gDirectory->Get("hdxytreeph");
+  cout << hdxytreeph->GetTitle() << " entries " << hdxytreeph->GetEntries() << endl;
+  hdxytreeph->Write();
+  
+  for(int i =0; i<hdxytreeph->GetEntries(); i++)  {
+    hdxy_clphABC90evR->SetBinContent(i+1,hdxytreeph->GetBinContent(i+1));
+  }
+  cout << hdxy_clphABC90evR->GetTitle() << " entries " << hdxy_clphABC90evR->GetEntries() << endl;
+  hdxy_clphABC90evR->Write();
+
+
+  
   double dlow, dhigh;
   TString ss_low,ss_high;
 
@@ -1216,6 +1244,31 @@ int main( int argc, char* argv[] )
   cout << hclB_ph95->GetTitle() << " entries " << hclB_ph95->GetEntries() << "mean " << hclB_ph95->GetMean() << endl;
   hclB_ph95->Write();
 
+  TH1I * hdxyCAtreeph95 = new TH1I( "hdxyCAtreeph95", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0.,0.3 );
+  charge_res->Draw("dxyCAtree>>hdxyCAtreeph95","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
+  hdxyCAtreeph95 = (TH1I*)gDirectory->Get("hdxyCAtreeph95");
+  cout << hdxyCAtreeph95->GetTitle() << " entries " << hdxyCAtreeph95->GetEntries() << " mean " << hdxyCAtreeph95->GetMean() << endl;
+  hdxyCAtreeph95->Write();
+
+  for(int i =0; i<hdxyCAtreeph95->GetEntries(); i++)    {
+    hdxyCA_ph95->SetBinContent(i+1,hdxyCAtreeph95->GetBinContent(i+1));
+  }
+  cout << hdxyCA_ph95->GetTitle() << " entries " << hdxyCA_ph95->GetEntries() << "mean " << hdxyCA_ph95->GetMean() << endl;
+  hdxyCA_ph95->Write();
+  
+  TH1I * hdxytreeph95 = new TH1I( "hdxytreeph95", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 0.3 );
+  charge_res->Draw("dxytree>>hdxytreeph95","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
+  hdxytreeph95 = (TH1I*)gDirectory->Get("hdxytreeph95");
+  cout << hdxytreeph95->GetTitle() << " entries " << hdxytreeph95->GetEntries() << " mean " << hdxytreeph95->GetMean() << endl;
+  hdxytreeph95->Write();
+
+  for(int i =0; i<hdxytreeph95->GetEntries(); i++)    {
+    hdxy_ph95->SetBinContent(i+1,hdxytreeph95->GetBinContent(i+1));
+  }
+  cout << hdxy_ph95->GetTitle() << " entries " << hdxy_ph95->GetEntries() << "mean " << hdxy_ph95->GetMean() << endl;
+  hdxy_ph95->Write();
+
+
   TH1I * hclBtreeph5 = new TH1I( "hclBtreeph5", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
   charge_res->Draw("clphBiiitree>>hclBtreeph5","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
   hclBtreeph5 = (TH1I*)gDirectory->Get("hclBtreeph5");
@@ -1231,7 +1284,7 @@ int main( int argc, char* argv[] )
 
   cout << "charge 99 " << endl;
 
-  getPercentRange(hdx3treeq, &(dlow),&(dhigh), 0.993);
+  getPercentRange(hdx3treeq, &(dlow),&(dhigh), 0.9999);
 
   ss_low.Form("%f",dlow);
   ss_high.Form("%f",dhigh);
@@ -1301,7 +1354,7 @@ int main( int argc, char* argv[] )
 
   cout << "ph 99 " << endl;
 
-  getPercentRange(hdx3treeph, &(dlow),&(dhigh), 0.993);
+  getPercentRange(hdx3treeph, &(dlow),&(dhigh), 0.9999);
 
   ss_low.Form("%f",dlow);
   ss_high.Form("%f",dhigh);
@@ -1330,6 +1383,32 @@ int main( int argc, char* argv[] )
   cout << hnrowB_ph99->GetTitle() << " entries " << hnrowB_ph99->GetEntries() << "mean " << hnrowB_ph99->GetMean() << endl;
   hnrowB_ph99->Write();
 
+
+  TH1I * hdxyCAtreeph99 = new TH1I( "hdxyCAtreeph99", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 0.3 );
+  charge_res->Draw("dxyCAtree>>hdxyCAtreeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
+  hdxyCAtreeph99 = (TH1I*)gDirectory->Get("hdxyCAtreeph99");
+  cout << hdxyCAtreeph99->GetTitle() << " entries " << hdxyCAtreeph99->GetEntries() << " mean " << hdxyCAtreeph99->GetMean() << endl;
+  hdxyCAtreeph99->Write();
+
+  for(int i =0; i<hdxyCAtreeph99->GetEntries(); i++)    {
+    hdxyCA_ph99->SetBinContent(i+1,hdxyCAtreeph99->GetBinContent(i+1));
+  }
+  cout << hdxyCA_ph99->GetTitle() << " entries " << hdxyCA_ph99->GetEntries() << "mean " << hdxyCA_ph99->GetMean() << endl;
+  hdxyCA_ph99->Write();
+  
+  TH1I * hdxytreeph99 = new TH1I( "hdxytreeph99", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 0.3 );
+  charge_res->Draw("dxytree>>hdxytreeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
+  hdxytreeph99 = (TH1I*)gDirectory->Get("hdxytreeph99");
+  cout << hdxytreeph99->GetTitle() << " entries " << hdxytreeph99->GetEntries() << " mean " << hdxytreeph99->GetMean() << endl;
+  hdxytreeph99->Write();
+
+  for(int i =0; i<hdxytreeph99->GetEntries(); i++)    {
+    hdxy_ph99->SetBinContent(i+1,hdxytreeph99->GetBinContent(i+1));
+  }
+  cout << hdxy_ph99->GetTitle() << " entries " << hdxy_ph99->GetEntries() << "mean " << hdxy_ph99->GetMean() << endl;
+  hdxy_ph99->Write();
+
+  
   TH1I * hnrowBtreeph1 = new TH1I("hnrowBtreeph1", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
   charge_res->Draw("nrowBtree>>hnrowBtreeph1","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
   hnrowBtreeph1 = (TH1I*)gDirectory->Get("hnrowBtreeph1");
@@ -1870,7 +1949,7 @@ int main( int argc, char* argv[] )
 void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent){
 
   double tolerance = (h->GetBinContent(0)+h->GetBinContent(h->GetNbinsX()+1))/h->GetEntries(); // since we are not working with continuous quantities but with binned hists, the difference between the integral and the 95% it may not be zero, so we ask it to be lower than 15% (before I was using 1.1% but since I changed to use the full range of hists, the overflow bin plays a too bigger role when stats is low and the 1.1% is not reached. 
-  
+  cout << " bin 0 " << h->GetBinContent(0) << " overflow " << h->GetBinContent(h->GetNbinsX()+1) << " entries " << h->GetEntries() << endl;
   cout << " RMS method charge based with tolerance " << tolerance << endl;
   double maximum = h->GetMaximum();
   int maxbin = h->GetMaximumBin();
@@ -4149,16 +4228,23 @@ void bookHists()
   // hdx3tree = new TH1I("hdx3tree", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
  hdx3_clchargeABC90evR = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
  hdx3_clphABC90evR = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+ hdxyCA_clphABC90evR  = new TH1I("dxyCA_clphABC90evR","dxyCA_clphABC90evR ; dxyCA [mm]; triplets",100, 0.,0.3);
+ hdxy_clphABC90evR = new TH1I("dxy_clphABC90evR","dxy_clphABC90evR ; dxy [mm]; triplets",100, 0.,0.3);
+ 
  hdx3_clchargeABC90evR95 = new TH1I("dx3_clchargeABC90evR95 ", "triplet dx_clchargeABC90evR95 ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
  hdx3_clphABC90evR95 = new TH1I("dx3_clphABC90evR95 ", "triplet dx_clphABC90evR95 ; dx [mm];triplets", 500, -0.5, 0.5 );
  hdx3_clchargeABC90evR99 = new TH1I("dx3_clchargeABC90evR99 ", "triplet dx_clchargeABC90evR99 ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
  hdx3_clphABC90evR99 = new TH1I("dx3_clphABC90evR99 ", "triplet dx_clphABC90evR99 ; dx [mm];triplets", 500, -0.5, 0.5 );
-
+ 
+ 
+ 
 
  hnrowB_ph95 = new TH1I("hnrowB_ph95", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
  hnrowB_q95 = new TH1I("hnrowB_q95", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
  hclB_ph95 = new TH1I("hclB_ph95 ", "triplet dx_clphABC90evR RMS 95; dx [mm];triplets", 200, 0, 1000 );
  hclB_q95 = new TH1I("hclB_q95 ", "triplet dx_clchargeABC90evR RMS 95; dx [mm];triplets", 100, 0, 50 );;
+ hdxyCA_ph95  = new TH1I("dxyCA_ph95","dxyCA_ph95 ; dxyCA [mm]; triplets",100, 0.,0.3);
+ hdxy_ph95 = new TH1I("dxy_ph95","dxy_ph95 ; dxy [mm]; triplets",100, 0.,0.3);
  hnrowB_ph5 = new TH1I("hnrowB_ph5", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
  hnrowB_q5 = new TH1I("hnrowB_q5", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
  hclB_ph5 = new TH1I("hclB_ph5 ", "triplet dx_clphABC90evR RMS out 5; dx [mm];triplets", 200, 0, 1000 );
@@ -4168,6 +4254,8 @@ void bookHists()
  hnrowB_q99 = new TH1I("hnrowB_q99", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
  hclB_ph99 = new TH1I("hclB_ph99 ", "triplet dx_clphABC90evR RMS 99; dx [mm];triplets", 200, 0, 1000 );
  hclB_q99 = new TH1I("hclB_q99 ", "triplet dx_clchargeABC90evR RMS 99; dx [mm];triplets", 100, 0, 50 );;
+ hdxyCA_ph99  = new TH1I("dxyCA_ph99","dxyCA_ph99 ; dxyCA [mm]; triplets",100, 0.,0.3);
+ hdxy_ph99 = new TH1I("dxy_ph99","dxy_ph99 ; dxy [mm]; triplets",100, 0.,0.3);
  hnrowB_ph1 = new TH1I("hnrowB_ph1", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
  hnrowB_q1 = new TH1I("hnrowB_q1", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
  hclB_ph1 = new TH1I("hclB_ph1 ", "triplet dx_clphABC90evR RMS out 5; dx [mm];triplets", 200, 0, 1000 );
@@ -4201,7 +4289,9 @@ void bookHists()
  charge_res->Branch("clphBiiitree",&clphBiii);
  charge_res->Branch("clphCiiitree",&clphCiii);
  charge_res->Branch("nrowBtree",&nrowBtree);
-
+ charge_res->Branch("dxyCAtree",&dxyCAtree);
+ charge_res->Branch("dxytree",&dxytree);
+ charge_res->Branch("evt",&evt);
   
   for( unsigned ipl = 0; ipl < DreiMasterPlanes; ++ipl ) {
 

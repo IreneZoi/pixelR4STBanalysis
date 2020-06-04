@@ -33,6 +33,13 @@ struct cluster {
   bool iso;
 };
 
+
+struct closest {
+  int index = -1;
+  double distance = 1337.1337;
+};
+
+
 const int A{0};
 const int B{1};
 const int C{2};
@@ -53,7 +60,9 @@ list < evInfo > infoC;
 double nSigmaTolerance = 3;
 double beamDivergence = 0.001; //1 mrad
 double straightTracks = ACspacing*beamDivergence*nSigmaTolerance;
-
+int iA = 0;
+int iB = 0;
+int iC = 0;
 
 //functions definition
 vector<cluster> getClus( vector <pixel> pb, int fCluCut = 1 ); // 1 = no gap
@@ -81,7 +90,8 @@ TH1I * hdx3tree2; //= new TH1I("hdx3tree2", "triplet dx3 ; dx [mm];triplets", 50
 TTree * charge_res;
 
 Double_t dx3tree;
-
+Double_t dxyCAtree;
+Double_t dxytree;
 Double_t clqAiii;
 Double_t clqBiii;
 Double_t clqCiii;
@@ -89,9 +99,13 @@ Double_t clphAiii;
 Double_t clphBiii;
 Double_t clphCiii;
 Double_t nrowBtree;
+Int_t evt;
 
 TH1I * hdx3_clchargeABC90evR; // = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
 TH1I * hdx3_clphABC90evR;   // = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+
+TH1I * hdxyCA_clphABC90evR;   // = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+TH1I * hdxy_clphABC90evR;   // = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
 TH1I * hdx3_clchargeABC90evR95; // = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
 TH1I * hdx3_clphABC90evR95;   // = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
 TH1I * hdx3_clchargeABC90evR99; // = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
@@ -105,6 +119,8 @@ TH1I * hnrowB_ph5;
 TH1I * hnrowB_q5;
 TH1I * hclB_ph5;
 TH1I * hclB_q5;
+TH1I * hdxyCA_ph95;
+TH1I * hdxy_ph95;
 
 TH1I * hnrowB_ph99;
 TH1I * hnrowB_q99;
@@ -114,6 +130,9 @@ TH1I * hnrowB_ph1;
 TH1I * hnrowB_q1;
 TH1I * hclB_ph1;
 TH1I * hclB_q1;
+TH1I * hdxyCA_ph99;
+TH1I * hdxy_ph99;
+
 /*
 TH1I * hdx3_clchargeABC85evR; // = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
 TH1I * hdx3_clphABC85evR;   // = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
