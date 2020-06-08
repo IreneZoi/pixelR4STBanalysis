@@ -47,8 +47,8 @@ bool PRINT = false;
 bool DOALIGNMENT = false;
 bool DPHCUT = false;
 bool DEBUG = false;
-bool DO1CL = true;
-
+bool DO1CL = false;
+TString method = "mine";
 //------------------------------------------------------------------------------
 
 int main( int argc, char* argv[] )
@@ -460,8 +460,10 @@ int main( int argc, char* argv[] )
 
       vector<closest> AMatchC ( evlistA.size(), closest() );
       vector<closest> CMatchA ( evlistC.size(), closest() );
-      vector<closest> ACMatchB ( evlistA.size(), closest() );
-      vector<closest> BMatchAC ( evlistB.size(), closest() );
+      vector<closest> AMatchB ( evlistA.size(), closest() );
+      vector<closest> BMatchA ( evlistB.size(), closest() );
+      vector<closest> CMatchB ( evlistC.size(), closest() );
+      vector<closest> BMatchC ( evlistB.size(), closest() );
       
       
       ++iev;
@@ -475,7 +477,13 @@ int main( int argc, char* argv[] )
 	  continue;
 	}
       }
-     
+
+      nclustA = vclA.size();
+      nclustB = vclB.size();
+      nclustC = vclC.size();
+
+
+      
       if( iev%10000 == 0 )
 	cout << " " << iev << flush;
       
@@ -509,6 +517,160 @@ int main( int argc, char* argv[] )
 	  ddtvsdtAB->Fill( log(dtB/40e6) / log10, ddtAB );
 	}
       
+
+      ///////////////              Matching for closest
+      cout << " ########## Matching for closest  ########## "<< endl;
+      ///////        A-C cluster correlations: ///////////
+      if(PRINT) cout << "entering AC correlation loop " << endl;
+      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ){
+      	
+	  double xC = xcoordinate(2, cC, alignxC, ptchc, ptchr);
+	  double yC = ycoordinate(2, cC, alignyC, ptchc, ptchr);
+	  
+	  double xCr = xC*cfC - yC*sfC;
+	  double yCr = xC*sfC + yC*cfC;
+	
+      
+	  for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )   {
+	
+              double xA = xcoordinate(0, cA, alignxA, ptchc, ptchr);
+	      double yA = ycoordinate(0, cA, alignyA, ptchc, ptchr);
+	      
+	      double xAr = xA*cfA - yA*sfA;
+	      double yAr = xA*sfA + yA*cfA;
+	      
+	      double dxCA = xCr - xAr;
+	      double dyCA = yCr - yAr;
+	      
+	      double dxyCA = sqrt( dxCA*dxCA + dyCA*dyCA );
+
+
+	      //finn closest: update if closer
+	      if( dxyCA < AMatchC.at(icA).distance ){
+		AMatchC.at(icA).index = icC;
+		AMatchC.at(icA).distance = dxyCA;
+		//                AMatchC.at(iA).used = true;
+		cout << "index cA " << icA << " index cC " << icC << " distance AC " << AMatchC.at(icA).distance << " dxyCA " << dxyCA << endl;
+	      }
+
+	      if( dxyCA < CMatchA.at(icC).distance ){
+		CMatchA.at(icC).index = icA;
+		CMatchA.at(icC).distance = dxyCA;
+		cout << "index cA " << icA << " index cC " << icC << " distance CA " << CMatchA.at(icC).distance << " dxyCA " << dxyCA << endl;
+	      }
+
+
+
+	      
+   
+	      double xavg = 0.5 * ( xAr + xCr );
+	      double yavg = 0.5 * ( yAr + yCr );
+	      
+	      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )	{
+	    
+		  double xB = xcoordinate(1, cB, 0, ptchc, ptchr);
+		  double yB = ycoordinate(1, cB, 0, ptchc, ptchr);
+
+		  double dx3 = xB - xavg;
+		  double dy3 = yB - yavg;
+
+		  double dxy = (dx3*dx3+dy3*dy3);
+		  //finn  closest:  update if closer
+
+		  if(AMatchB.at(icA).used==false){
+		    AMatchB.at(icA).index = icB;
+		    AMatchB.at(icA).distance = dxy;
+		    AMatchB.at(icA).used ==true;
+		  }
+		  else if(AMatchB.at(icA).used==true){
+		    if(AMatchB.at(icA).distance> dxy){
+		      AMatchB.at(icA).index = icB;
+		      AMatchB.at(icA).distance = dxy;
+		    }
+		  }
+			  
+		  cout << "index cA " << icA << " index B " << icB << " distance A-B " << AMatchB.at(icA).distance << " dxy " << dxy << endl;
+		  
+
+		  if(BMatchA.at(icB).used==false){
+		    BMatchA.at(icB).index = icA;
+		    BMatchA.at(icB).distance = dxy;
+		    BMatchA.at(icB).used=true;
+		  }
+		  else if(BMatchA.at(icB).used==true){
+		    if(BMatchA.at(icB).distance> dxy){
+		      BMatchA.at(icB).index = icB;
+		      BMatchA.at(icB).distance = dxy;
+		    }
+		  }    
+		  cout << "index cA " << icA << " index B " << icB << " distance B-A " << BMatchA.at(icB).distance << " dxy " << dxy << endl;
+		  
+
+		  if(CMatchB.at(icC).used==false){		    
+		    CMatchB.at(icC).index = icB;
+		    CMatchB.at(icC).distance = dxy;
+		    CMatchB.at(icC).used =true;
+		  }
+		  else if(CMatchB.at(icC).used==true){
+		    if(CMatchB.at(icC).distance> dxy){
+		      CMatchB.at(icC).index = icB;
+		      CMatchB.at(icC).distance = dxy;
+		      }
+		  }
+		  cout << "index cC " << icC << " index B " << icB << " distance C-B " << CMatchB.at(icC).distance << " dxy " << dxy << endl;
+		  
+		  if(BMatchC.at(icB).used==false){
+		      
+		    BMatchC.at(icB).index = icC;
+		    BMatchC.at(icB).distance = dxy;
+		    BMatchC.at(icB).used=true;
+		  }
+		  else if(BMatchC.at(icB).used==true){
+		    if(BMatchC.at(icB).distance> dxy){
+		      BMatchC.at(icB).index = icB;
+		      BMatchC.at(icB).distance = dxy;
+		    }
+		  }
+		  
+		  cout << "index cC " << icC << " index B " << icB << " distance B-C " << BMatchC.at(icB).distance << " dxy " << dxy << endl;
+		  
+
+		  icB++;
+	      }//clB
+	      icA++;   
+	  }//clA
+	  icC++;
+      }//clC
+
+      cout << " #########     summary  " << iev << endl;
+
+      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ){
+	
+	for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ){
+
+	  for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ){
+
+	    
+
+	    cout << " index final IA " << IA << " AMatchC index " <<  AMatchC.at(IA).index << " distance dxyCA " << AMatchC.at(IA).distance << endl;
+	    cout << " index final IC " << IC << " CMatchA index " <<  CMatchA.at(IC).index << " distance dxyCA " << CMatchA.at(IC).distance << endl;
+
+	    cout << " index final IA " << IA << " AMatchB index " <<  AMatchB.at(IA).index << " distance dxy " << AMatchB.at(IA).distance << endl;
+	    cout << " index final IB " << IB << " BMatchA index " <<  BMatchA.at(IB).index << " distance dxy " << BMatchA.at(IB).distance << endl;
+
+	    cout << " index final IC " << IC << " CMatchB index " <<  CMatchB.at(IC).index << " distance dxy " << CMatchB.at(IC).distance << endl;
+	    cout << " index final IB " << IB << " BMatchC index " <<  BMatchC.at(IB).index << " distance dxy " << BMatchC.at(IB).distance << endl;
+	    IB++;
+	  }
+	  IA++;
+	}
+	IC++;
+      }
+
+      
+      cout << " ########## DONE Matching for closest  ########## "<< endl;
+
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       ////////////////                A-B cluster correlations:    //////////////////////////
@@ -531,7 +693,7 @@ int main( int argc, char* argv[] )
 	      hyAi->Fill( yAr );
 	      hclqAi->Fill( cA->q );
 	    }
-	
+	  
 	  for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
 	    {
 	      double xB = xcoordinate(1, cB, 0, ptchc, ptchr);
@@ -542,7 +704,25 @@ int main( int argc, char* argv[] )
 	      
 	      double dx = xAr - xB;
 	      double dy = yAr - yB;
-	      
+
+
+	      double dxy = sqrt( dx*dx + dy*dy );
+	      /*
+	      //finn  closest:  update if closer
+	      if( dxy < AMatchB.at(icA).distance ){
+		AMatchB.at(icA).index = icB;
+		AMatchB.at(icA).distance = dxy;
+		cout << "index cA " << icA << " index cB " << icB << " distance A-B " << AMatchB.at(icA).distance << " dxy " << dxy << endl;
+	      }
+
+	      if( dxy < BMatchA.at(icB).distance ){
+		BMatchA.at(icB).index = icA;
+		BMatchA.at(icB).distance = dxy;
+		cout << "index cA " << icA << " index cB " << icB << " distance B-A " << BMatchA.at(icB).distance << " dxy " << dxy << endl;
+	      }
+	      cout << " index A " << icA << " index cB " << icB <<  " distance dxy " << dxy << endl;
+
+	      */
 	      if( cA->q > qL  && cA->q < qR && cB->q > qLB && cB->q < qRB && cA->iso && cB->iso )
 		{
 		  
@@ -559,9 +739,9 @@ int main( int argc, char* argv[] )
 	    
 	      if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 && fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
 		++nm;
-	      
+	      //icB++;
 	    } // clusters
-	  
+	  //icA++;
 	} // cl
       
       nmvsevAB->Fill( iev, nm );
@@ -608,7 +788,25 @@ int main( int argc, char* argv[] )
 	      
 	      double dx = xCr - xB;
 	      double dy = yCr - yB;
-	  
+
+	      double dxy = sqrt( dx*dx + dy*dy );
+	      /*
+	      //finn  closest:  update if closer
+	      if( dxy < CMatchB.at(icC).distance ){
+		CMatchB.at(icC).index = icB2;
+		CMatchB.at(icC).distance = dxy;
+		cout << "index cC " << icC << " index cB2 " << icB2 << " distance C-B " << CMatchB.at(icC).distance << " dxy " << dxy << endl;
+	      }
+
+	      if( dxy < BMatchC.at(icB2).distance ){
+		BMatchC.at(icB2).index = icC;
+		BMatchC.at(icB2).distance = dxy;
+		cout << "index cC " << icC << " index cB2 " << icB2 << " distance B-C " << BMatchC.at(icB2).distance << " dxy " << dxy << endl;
+	      }
+	      cout << " index cC " << icC << " index cB2 " << icB2 <<  " distance dxy " << dxy << endl;
+	      */
+	      
+	      
 	  if( cC->q > qL  && cC->q < qR && cB->q > qLB && cB->q < qRB && cC->iso && cB->iso )
 	    {
 	    
@@ -621,10 +819,10 @@ int main( int argc, char* argv[] )
 	  
 	  if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 && fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
 	    ++nm;
-	  
-	    } // clusters B
-	  
-	} // cl C
+	  //	  icC++;
+	    } // clusters C
+	  //icB2++;
+	} // cl B
       
       nmvsevCB->Fill( iev, nm );
       
@@ -665,11 +863,12 @@ int main( int argc, char* argv[] )
 	      double dxyCA = sqrt( dxCA*dxCA + dyCA*dyCA );
 	      hdxCA->Fill( dxCA );
 	      hdyCA->Fill( dyCA );
-
+	      /*
 	      //finn closest: update if closer
 	      if( dxyCA < AMatchC.at(iA).distance ){
 		AMatchC.at(iA).index = iC;
 		AMatchC.at(iA).distance = dxyCA;
+		//                AMatchC.at(iA).used = true;
 		cout << "index A " << iA << " index C " << iC << " distance AC " << AMatchC.at(iA).distance << " dxyCA " << dxyCA << endl;
 	      }
 
@@ -681,7 +880,7 @@ int main( int argc, char* argv[] )
 
               cout << " index A " << iA << " index C " << iC << " distance dxyCA " << dxyCA << endl;
 
-	      
+	      */
    
 	      // NB until I initialize cB, I am using cA instead!!!!
 	      fillControlHists(raw,"raw",0,0,cA,cA,cC,0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
@@ -763,20 +962,34 @@ int main( int argc, char* argv[] )
 		  fillControlHists(nocuts,"nocuts",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 		  if(PRINT) cout << "nocuts" << endl;
 
+		  /*
 		  //finn  closest:  update if closer
-		  if( dxy < ACMatchB.at(iA).distance ){
-		    ACMatchB.at(iA).index = iB;
-		    ACMatchB.at(iA).distance = dxy;
-		    cout << "index A " << iA << " index B " << iB << " distance AC-B " << ACMatchB.at(iA).distance << " dxy " << dxy << endl;
+		  if( dxy < AMatchB.at(iA).distance ){
+		    AMatchB.at(iA).index = iB;
+		    AMatchB.at(iA).distance = dxy;
+		    cout << "index A " << iA << " index B " << iB << " distance A-B " << AMatchB.at(iA).distance << " dxy " << dxy << endl;
 		  }
 
-		  if( dxy < BMatchAC.at(iB).distance ){
-		    BMatchAC.at(iB).index = iA;
-		    BMatchAC.at(iB).distance = dxy;
-		    cout << "index A " << iA << " index B " << iB << " distance B-AC " << BMatchAC.at(iB).distance << " dxy " << dxy << endl;
+		  if( dxy < BMatchA.at(iB).distance ){
+		    BMatchA.at(iB).index = iA;
+		    BMatchA.at(iB).distance = dxy;
+		    cout << "index A " << iA << " index B " << iB << " distance B-A " << BMatchA.at(iB).distance << " dxy " << dxy << endl;
 		  }
 		  cout << " index A " << iA << " index B " << iB <<  " distance dxy " << dxy << endl;
 
+		  if( dxy < CMatchB.at(iC).distance ){
+		    CMatchB.at(iC).index = iB;
+		    CMatchB.at(iC).distance = dxy;
+		    cout << "index C " << iC << " index B " << iB << " distance C-B " << CMatchB.at(iC).distance << " dxy " << dxy << endl;
+		  }
+
+		  if( dxy < BMatchC.at(iB).distance ){
+		    BMatchC.at(iB).index = iC;
+		    BMatchC.at(iB).distance = dxy;
+		    cout << "index C " << iC << " index B " << iB << " distance B-C " << BMatchC.at(iB).distance << " dxy " << dxy << endl;
+		  }
+		  cout << " index C " << iC << " index B " << iB <<  " distance dxy " << dxy << endl;
+*/
 
 	
 		    if( fabs( dy3 ) < straightTracks * beamDivergenceScaled ) //+ 0.05 )
@@ -784,7 +997,7 @@ int main( int argc, char* argv[] )
 		    
 			fillControlHists(straightTracksY,"straightTracksY",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 			
-			if(AMatchC.at(iA).index == iC && CMatchA.at(iC).index == iA && ACMatchB.at(iA).index == iB && BMatchAC.at(iB).index == iA){
+			if(AMatchC.at(iA).index == iC && CMatchA.at(iC).index == iA && AMatchB.at(iA).index == iB && BMatchA.at(iB).index == iA  && CMatchB.at(iC).index == iB && BMatchC.at(iB).index == iC){
 			    //cout << "event "<< iev << " used distance AMatchC " << AMatchC.at(iA).distance << " CMatchA " << CMatchA.at(iC).distance << " ACMatchB " << ACMatchB.at(iA).distance << " BMatchAC " <<  BMatchAC.at(iB).distance << endl;
 			    fillControlHists(closest3M,"closest3M",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
@@ -1117,10 +1330,14 @@ int main( int argc, char* argv[] )
 
   cout << "charge 95 " << endl;
 
-  getPercentRange(hdx3treeq, &(dlow),&(dhigh), 0.95);
+  getPercentRange(hdx3treeq, &(dlow),&(dhigh), 0.95,method);
 
   ss_low.Form("%f",dlow);
   ss_high.Form("%f",dhigh);
+
+  TString ss_low_q95= ss_low;
+  TString ss_high_q95 = ss_high;
+  
   cout << " low and hig bin centers strings " << ss_low << " " << ss_high << endl;
   TH1D * hdx3treeq95 = new TH1D("hdx3treeq95", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   charge_res->Draw("dx3tree>>hdx3treeq95","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
@@ -1187,10 +1404,13 @@ int main( int argc, char* argv[] )
 
   cout << "ph 95 " << endl;
 
-  getPercentRange(hdx3treeph, &(dlow),&(dhigh), 0.95);
+  getPercentRange(hdx3treeph, &(dlow),&(dhigh), 0.95,method);
 
   ss_low.Form("%f",dlow);
   ss_high.Form("%f",dhigh);
+  TString ss_low_ph95= ss_low;
+  TString ss_high_ph95 = ss_high;
+  
   TH1D * hdx3treeph95 = new TH1D("hdx3treeph95", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   charge_res->Draw("dx3tree>>hdx3treeph95","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hdx3treeph95 = (TH1D*)gDirectory->Get("hdx3treeph95");
@@ -1284,10 +1504,13 @@ int main( int argc, char* argv[] )
 
   cout << "charge 99 " << endl;
 
-  getPercentRange(hdx3treeq, &(dlow),&(dhigh), 0.9999);
+  getPercentRange(hdx3treeq, &(dlow),&(dhigh), 0.9999,method);
 
   ss_low.Form("%f",dlow);
   ss_high.Form("%f",dhigh);
+  TString ss_low_q99= ss_low;
+  TString ss_high_q99 = ss_high;
+  
   cout << " low and hig bin centers strings " << ss_low << " " << ss_high << endl;
   TH1D * hdx3treeq99 = new TH1D("hdx3treeq99", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   charge_res->Draw("dx3tree>>hdx3treeq99","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
@@ -1354,10 +1577,13 @@ int main( int argc, char* argv[] )
 
   cout << "ph 99 " << endl;
 
-  getPercentRange(hdx3treeph, &(dlow),&(dhigh), 0.9999);
+  getPercentRange(hdx3treeph, &(dlow),&(dhigh), 0.9999,method);
 
   ss_low.Form("%f",dlow);
   ss_high.Form("%f",dhigh);
+  TString ss_low_ph99= ss_low;
+  TString ss_high_ph99 = ss_high;
+  
   TH1D * hdx3treeph99 = new TH1D("hdx3treeph99", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   charge_res->Draw("dx3tree>>hdx3treeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hdx3treeph99 = (TH1D*)gDirectory->Get("hdx3treeph99");
@@ -1454,311 +1680,24 @@ int main( int argc, char* argv[] )
 
 
 
-
-
-
-  // preparation to find the 85 % of the Landau with the lowest charge in all three 3M planes
-  /*
-  double integral85[DreiMasterPlanes];
-  double integralPH85[DreiMasterPlanes];
-  
-  int high85[DreiMasterPlanes];
-  int highPH85[DreiMasterPlanes];
-
-  
-  for(int j =0; j < DreiMasterPlanes; j++)   {
-    if(PRINT)   cout << " plane " << j << endl;
-    integral[j] = hclq[j]->Integral(0,hclq[j]->GetNbinsX()+1);
-    if(PRINT)      cout << " integral " << integral[j] << " entries " << hclq[j]->GetEntries()<<  endl;
-    
-    integralPH[j] = hclph[j]->Integral(0,hclph[j]->GetNbinsX()+1);
-    if(PRINT)   cout << " integralPH " << integralPH[j] << endl;
-    
-    integral85[j] = 0.85*integral[j]; //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
-    if(DEBUG)   cout << " integral85 " << integral85[j] << endl;
-
-    integralPH85[j] = 0.85*integralPH[j];
-
-    high85[j] = 0;
-    highPH85[j] = 0;
-    
-    int i = 0;
-    while(integral[j]>integral85[j])    {
-      cout << " while "<< i << endl;
-      integral[j] = hclq[j]->Integral(1,hclq[j]->GetNbinsX()-i);
-      high85[j] = hclq[j]->GetBinCenter(hclq[j]->GetNbinsX()-i);
-      cout << " integral " << integral[j] << " high " << high85[j] << endl;
-      i++;
-    }
-    cout << " integral85 " << integral85[j] << endl;
-    i=0;
-    while(integralPH[j]>integralPH85[j])  {
-      integralPH[j] = hclph[j]->Integral(1,hclph[j]->GetNbinsX()-i);
-      highPH85[j] = hclph[j]->GetBinCenter(hclph[j]->GetNbinsX()-i);
-      i++;
-    } 
-  }
-
-
-  
-
-  
-  // plot dx3 with above conditions
-  //85 % Landau
-  qA.Form("%d",high85[0]);
-  qB.Form("%d",high85[1]);
-  qC.Form("%d",high85[2]);
-  
-  TH1D * hdx3treeq85 = new TH1D("hdx3treeq85", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeq85","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC,"goff");
-  hdx3treeq = (TH1D*)gDirectory->Get("hdx3treeq85");
-  cout << hdx3treeq85->GetTitle() << " entries " << hdx3treeq85->GetEntries() << " mean " << hdx3treeq85->GetMean() << " 20bin (85) " << hdx3treeq85->GetBinContent(20)<<endl;
-  hdx3treeq85->Write();
-  
-  for(int i =0; i<hdx3treeq85->GetEntries(); i++)    {
-      hdx3_clchargeABC85evR->SetBinContent(i+1,hdx3treeq85->GetBinContent(i+1));
-  }
-  cout << hdx3_clchargeABC85evR->GetTitle() << " entries " << hdx3_clchargeABC85evR->GetEntries() << "mean " << hdx3_clchargeABC85evR->GetMean() << endl;
-  hdx3_clchargeABC85evR->Write();
-
-
-  phA.Form("%d",highPH85[0]);
-  phB.Form("%d",highPH85[1]);
-  phC.Form("%d",highPH85[2]);
-  
-  
-  TH1I * hdx3treeph85 = new TH1I("hdx3treeph85", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeph85","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC,"goff");
-  hdx3treeph85 = (TH1I*)gDirectory->Get("hdx3treeph85");
-  cout << hdx3treeph85->GetTitle() << " entries " << hdx3treeph85->GetEntries() << endl;
-  hdx3treeph85->Write();
-  
-  for(int i =0; i<hdx3treeph85->GetEntries(); i++)  {
-    hdx3_clphABC85evR->SetBinContent(i+1,hdx3treeph85->GetBinContent(i+1));
-  }
-  cout << hdx3_clphABC85evR->GetTitle() << " entries " << hdx3_clphABC85evR->GetEntries() << endl;
-  hdx3_clphABC85evR->Write();
-
-
-
-  tolerance = (hdx3treeq85->GetBinContent(0)+hdx3treeq85->GetBinContent(hdx3treeq85->GetNbinsX()+1))/hdx3treeq85->GetEntries(); // since we are not working with continuous quantities but with binned hists, the difference between the integral and the 99% it may not be zero, so we ask it to be lower than 15% (before I was using 1.1% but since I changed to use the full range of hists, the overflow bin plays a too bigger role when stats is low and the 1.1% is not reached. 
-  
-  cout << " RMS method charge based with tolerance for 85" << tolerance << endl;
-  maximum = hdx3treeq85->GetMaximum();
-  maxbin = hdx3treeq85->GetMaximumBin();
-  cout <<  " maxbin " << maxbin << " at " << hdx3treeq85->GetBinCenter(maxbin)<<endl;
-  cout << "intital sigma = " << hdx3treeq85->GetRMS() * 1000 << " sigmaerr = " << hdx3treeq85->GetRMSError() * 1000 << endl;
-  Integral = hdx3treeq85->Integral(0,hdx3treeq85->GetNbinsX()+1);
-  cout << " integral " << Integral << " entries " << hdx3treeq85->GetEntries() << endl;
-  integral99 = 0.99*Integral;
-  cout << " integral99 " << integral99 << endl;
-
-  low = 0;
-  high = 0;
-  for(int i =0; i<hdx3treeq85->GetNbinsX()/2; i++)
-    {
-      low = maxbin-i;
-      high = maxbin+i;
-
-      Integral = hdx3treeq85->Integral(low,high);
-      cout << " integral " << Integral << " low " << low << " high " << high << endl;
-      cout << " while "<< i << " fabs(integral-integral99)/integral99 " << fabs(Integral-integral99)/integral95 << endl;
-
-      //      if(fabs(Integral-integral95)/integral95 < 0.011 || Integral>integral95)//integral>integral95)
-      if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
-	break;
-
-
-    }
-  cout << "final integral " << Integral << " low " << low <<" high " << high << endl;
-  hdx3treeq85->GetXaxis()->SetRange(low,high);
-
-  sigma = hdx3treeq85->GetRMS() * 1000;
-  sigmaerr = hdx3treeq85->GetRMSError() * 1000;
-  cout << " resolution " << sigma << " ± " << sigmaerr << endl;
-
-  cout << " low and hig bin centers strings " << hdx3treeq85->GetBinCenter(low) << " " << hdx3treeq85->GetBinCenter(high) << endl;
-  ss_low.Form("%f",hdx3treeq85->GetBinCenter(low));
-  ss_high.Form("%f",hdx3treeq->GetBinCenter(high));
-  cout << " low and hig bin centers strings " << ss_low << " " << ss_high << endl;
-  TH1D * hdx3treeq95_85 = new TH1D("hdx3treeq95_85", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeq95_85","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hdx3treeq95_85 = (TH1D*)gDirectory->Get("hdx3treeq95_85");
-  cout << hdx3treeq95_85->GetTitle() << " entries " << hdx3treeq95_85->GetEntries() << " mean " << hdx3treeq95_85->GetMean() << endl; 
-  hdx3treeq95_85->Write();
-
-  for(int i =0; i<hdx3treeq95_85->GetEntries(); i++)    {
-    hdx3_clchargeABC85evR95->SetBinContent(i+1,hdx3treeq95_85->GetBinContent(i+1));
-  }
-  cout << hdx3_clchargeABC85evR95->GetTitle() << " entries " << hdx3_clchargeABC85evR95->GetEntries() << "mean " << hdx3_clchargeABC85evR95->GetMean() << endl;
-  hdx3_clchargeABC85evR95->Write();
-
-  TH1I * hnrowBtreeq95_85 = new TH1I("hnrowBtreeq95_85", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeq95_85","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hnrowBtreeq95_85 = (TH1I*)gDirectory->Get("hnrowBtreeq95_85");
-  cout << hnrowBtreeq95_85->GetTitle() << " entries " << hnrowBtreeq95_85->GetEntries() << " mean " << hnrowBtreeq95_85->GetMean() << endl;
-  hnrowBtreeq95_85->Write();
-
-  for(int i =0; i<hnrowBtreeq95_85->GetEntries(); i++)    {
-    hnrowB_q95_85->SetBinContent(i+1,hnrowBtreeq95_85->GetBinContent(i+1));
-  }
-  cout << hnrowB_q95_85->GetTitle() << " entries " << hnrowB_q95_85->GetEntries() << "mean " << hnrowB_q95_85->GetMean() << endl;
-  hnrowB_q95_85->Write();
-
-  TH1I * hnrowBtreeq5_85 = new TH1I("hnrowBtreeq5_85", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeq5_85","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hnrowBtreeq5_85 = (TH1I*)gDirectory->Get("hnrowBtreeq5_85");
-  cout << hnrowBtreeq5_85->GetTitle() << " entries " << hnrowBtreeq5_85->GetEntries() << " mean " << hnrowBtreeq5_85->GetMean() << endl;
-  hnrowBtreeq5_85->Write();
-
-  for(int i =0; i<hnrowBtreeq5_85->GetEntries(); i++)    {
-    hnrowB_q5_85->SetBinContent(i+1,hnrowBtreeq5_85->GetBinContent(i+1));
-  }
-  cout << hnrowB_q5_85->GetTitle() << " entries " << hnrowB_q5_85->GetEntries() << "mean " << hnrowB_q5_85->GetMean() << endl;
-  hnrowB_q5_85->Write();
-
-
-  
-  TH1I * hclBtreeq95_85 = new TH1I( "hclBtreeq95_85", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
-  charge_res->Draw("clqBiiitree>>hclBtreeq95_85","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hclBtreeq95_85 = (TH1I*)gDirectory->Get("hclBtreeq95_85");
-  cout << hclBtreeq95_85->GetTitle() << " entries " << hclBtreeq95_85->GetEntries() << " mean " << hclBtreeq95_85->GetMean() << endl;
-  hclBtreeq95_85->Write();
-
-  for(int i =0; i<hclBtreeq95_85->GetEntries(); i++)    {
-    hclB_q95_85->SetBinContent(i+1,hclBtreeq95_85->GetBinContent(i+1));
-  }
-  cout << hclB_q95_85->GetTitle() << " entries " << hclB_q95_85->GetEntries() << "mean " << hclB_q95_85->GetMean() << endl;
-  hclB_q95_85->Write();
-
-  TH1I * hclBtreeq5_85 = new TH1I( "hclBtreeq5_85", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
-  charge_res->Draw("clqBiiitree>>hclBtreeq5_85","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hclBtreeq5_85 = (TH1I*)gDirectory->Get("hclBtreeq5_85");
-  cout << hclBtreeq5_85->GetTitle() << " entries " << hclBtreeq5_85->GetEntries() << " mean " << hclBtreeq5_85->GetMean() << endl;
-  hclBtreeq5_85->Write();
-
-  for(int i =0; i<hclBtreeq5_85->GetEntries(); i++)    {
-    hclB_q5_85->SetBinContent(i+1,hclBtreeq5_85->GetBinContent(i+1));
-  }
-  cout << hclB_q5_85->GetTitle() << " entries " << hclB_q5_85->GetEntries() << "mean " << hclB_q5_85->GetMean() << endl;
-  hclB_q5_85->Write();
-
-
-
-  
-
-  tolerance = (hdx3treeph85->GetBinContent(0)+hdx3treeph85->GetBinContent(hdx3treeph85->GetNbinsX()+1))/hdx3treeph85->GetEntries();
-  cout << " RMS method PH based with tolerance " << tolerance << endl;
-  maximum = hdx3treeph85->GetMaximum();
-  maxbin = hdx3treeph85->GetMaximumBin();
-  cout <<  " maxbin " << maxbin << " at " << hdx3treeph85->GetBinCenter(maxbin)<<endl;
-  cout << "intital sigma = " << hdx3treeph85->GetRMS() * 1000 << " sigmaerr = " << hdx3treeph85->GetRMSError() * 1000 << endl;
-  Integral = hdx3treeph85->Integral(0,hdx3treeph85->GetNbinsX()+1);
-  cout << " integral " << Integral << " entries " << hdx3treeph85->GetEntries() << endl;
-  integral95 = 0.95*Integral;
-  cout << " integral95 " << integral95 << endl;
-
-  low = 0;
-  high = 0;
-  for(int i =0; i<hdx3treeph85->GetNbinsX()/2; i++)
-    {
-      low = maxbin-i;
-      high = maxbin+i;
-
-      Integral = hdx3treeph85->Integral(low,high);
-      cout << " integral " << Integral << " low " << low << " high " << high << endl;
-      cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
-
-      if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
-	break;
-
-
-    }
-  cout << "final integral " << Integral << " low " << low <<" high " << high << endl;
-  hdx3treeph85->GetXaxis()->SetRange(low,high);
-
-  sigma = hdx3treeph85->GetRMS() * 1000;
-  sigmaerr = hdx3treeph85->GetRMSError() * 1000;
-  cout << " resolution " << sigma << " ± " << sigmaerr << endl;
-
-  ss_low.Form("%f",hdx3treeph85->GetBinCenter(low));
-  ss_high.Form("%f",hdx3treeph85->GetBinCenter(high));
-  TH1D * hdx3treeph95_85 = new TH1D("hdx3treeph95_85", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  charge_res->Draw("dx3tree>>hdx3treeph95_85","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hdx3treeph95_85 = (TH1D*)gDirectory->Get("hdx3treeph95_85");
-  cout << hdx3treeph95_85->GetTitle() << " entries " << hdx3treeph95_85->GetEntries() << " mean " << hdx3treeph95_85->GetMean() << endl; 
-  hdx3treeph95_85->Write();
-
-  for(int i =0; i<hdx3treeph95_85->GetEntries(); i++)    {
-    hdx3_clphABC85evR95->SetBinContent(i+1,hdx3treeph95_85->GetBinContent(i+1));
-  }
-  cout << hdx3_clphABC85evR95->GetTitle() << " entries " << hdx3_clphABC85evR95->GetEntries() << "mean " << hdx3_clphABC85evR95->GetMean() << endl;
-  sigma = hdx3_clphABC85evR95->GetRMS() * 1000;
-  sigmaerr = hdx3_clphABC85evR95->GetRMSError() * 1000;
-  cout << "TO COMPARE resolution " << sigma << " ± " << sigmaerr << endl;
-  
-  hdx3_clphABC85evR95->Write();
-
-  TH1I * hnrowBtreeph95_85 = new TH1I("hnrowBtreeph95_85", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeph95_85","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hnrowBtreeph95_85 = (TH1I*)gDirectory->Get("hnrowBtreeph95_85");
-  cout << hnrowBtreeph95_85->GetTitle() << " entries " << hnrowBtreeph95_85->GetEntries() << " mean " << hnrowBtreeph95_85->GetMean() << endl;
-  hnrowBtreeph95_85->Write();
-
-  for(int i =0; i<hnrowBtreeph95_85->GetEntries(); i++)    {
-    hnrowB_ph95_85->SetBinContent(i+1,hnrowBtreeph95_85->GetBinContent(i+1));
-  }
-  cout << hnrowB_ph95_85->GetTitle() << " entries " << hnrowB_ph95_85->GetEntries() << "mean " << hnrowB_ph95_85->GetMean() << endl;
-  hnrowB_ph95_85->Write();
-
-  TH1I * hnrowBtreeph5_85 = new TH1I("hnrowBtreeph5_85", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
-  charge_res->Draw("nrowBtree>>hnrowBtreeph5_85","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hnrowBtreeph5_85 = (TH1I*)gDirectory->Get("hnrowBtreeph5_85");
-  cout << hnrowBtreeph5_85->GetTitle() << " entries " << hnrowBtreeph5_85->GetEntries() << " mean " << hnrowBtreeph5_85->GetMean() << endl;
-  hnrowBtreeph5_85->Write();
-
-  for(int i =0; i<hnrowBtreeph5_85->GetEntries(); i++)    {
-    hnrowB_ph5_85->SetBinContent(i+1,hnrowBtreeph5_85->GetBinContent(i+1));
-  }
-  cout << hnrowB_ph5_85->GetTitle() << " entries " << hnrowB_ph5_85->GetEntries() << "mean " << hnrowB_ph5_85->GetMean() << endl;
-  hnrowB_ph5_85->Write();
-
-
-  
-  TH1I * hclBtreeph95_85 = new TH1I( "hclBtreeph95_85", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
-  charge_res->Draw("clphBiiitree>>hclBtreeph95_85","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
-  hclBtreeph95_85 = (TH1I*)gDirectory->Get("hclBtreeph95_85");
-  cout << hclBtreeph95_85->GetTitle() << " entries " << hclBtreeph95_85->GetEntries() << " mean " << hclBtreeph95_85->GetMean() << endl;
-  hclBtreeph95_85->Write();
-
-  for(int i =0; i<hclBtreeph95_85->GetEntries(); i++)    {
-    hclB_ph95_85->SetBinContent(i+1,hclBtreeph95_85->GetBinContent(i+1));
-  }
-  cout << hclB_ph95_85->GetTitle() << " entries " << hclB_ph95_85->GetEntries() << "mean " << hclB_ph95_85->GetMean() << endl;
-  hclB_ph95_85->Write();
-
-  TH1I * hclBtreeph5_85 = new TH1I( "hclBtreeph5_85", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
-  charge_res->Draw("clphBiiitree>>hclBtreeph5_85","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
-  hclBtreeph5_85 = (TH1I*)gDirectory->Get("hclBtreeph5_85");
-  cout << hclBtreeph5_85->GetTitle() << " entries " << hclBtreeph5_85->GetEntries() << " mean " << hclBtreeph5_85->GetMean() << endl;
-  hclBtreeph5_85->Write();
-
-  for(int i =0; i<hclBtreeph5_85->GetEntries(); i++)    {
-    hclB_ph5_85->SetBinContent(i+1,hclBtreeph5_85->GetBinContent(i+1));
-  }
-  cout << hclB_ph5_85->GetTitle() << " entries " << hclB_ph5_85->GetEntries() << "mean " << hclB_ph5_85->GetMean() << endl;
-  hclB_ph5_85->Write();
-  */
-
-
-
-
-
   
 
   
   //charge_res->Print();
 
+  cout << " Cluster charge cut for 90 % events A: " << qA << " B: " << qB << " C: " << qC << endl;
+  cout << " 95 % residual is between " << ss_low_q95 << " and " << ss_high_q95 << endl; 
+  cout << " 99 % residual is between " << ss_low_q99 << " and " << ss_high_q99 << endl; 
+
+  cout << " Cluster ph cut for 90 % events A: " << phA << " B: " << phB << " C: " << phC << endl;
+  cout << " 95 % residual is between " << ss_low_ph95 << " and " << ss_high_ph95 << endl; 
+  cout << " 99 % residual is between " << ss_low_ph99 << " and " << ss_high_ph99 << endl; 
+
+
+
+
+
+  
   clock_gettime( CLOCK_REALTIME, &ts );
   time_t s3 = ts.tv_sec; // seconds since 1.1.1970
   long f3 = ts.tv_nsec; // nanoseconds
@@ -1946,41 +1885,78 @@ int main( int argc, char* argv[] )
 
 //------------------------------------------------------------------------------
 
-void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent){
+void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TString method="mine"){
+  cout << " initial entries " << h->GetEntries() << endl;
+  cout << " percent "<< percent << " -> " <<  percent*h->GetEntries() << endl;
+  int low = 0;
+  int high = 0;
 
-  double tolerance = (h->GetBinContent(0)+h->GetBinContent(h->GetNbinsX()+1))/h->GetEntries(); // since we are not working with continuous quantities but with binned hists, the difference between the integral and the 95% it may not be zero, so we ask it to be lower than 15% (before I was using 1.1% but since I changed to use the full range of hists, the overflow bin plays a too bigger role when stats is low and the 1.1% is not reached. 
-  cout << " bin 0 " << h->GetBinContent(0) << " overflow " << h->GetBinContent(h->GetNbinsX()+1) << " entries " << h->GetEntries() << endl;
-  cout << " RMS method charge based with tolerance " << tolerance << endl;
-  double maximum = h->GetMaximum();
-  int maxbin = h->GetMaximumBin();
-  cout <<  " maxbin " << maxbin << " at " << h->GetBinCenter(maxbin)<<endl;
-  cout << "intital sigma = " << h->GetRMS() * 1000 << " sigmaerr = " << h->GetRMSError() * 1000 << endl;
-  double Integral = h->Integral(0,h->GetNbinsX()+1);
-  cout << " integral " << Integral << " entries " << h->GetEntries() << endl;
-  double integral95 = percent*Integral;
-  cout << " integra "<< percent << " " << integral95 << endl;
-  int i = 0;
 
-  double low = 0;
-  double high = 0;
-  for(int i =0; i<h->GetNbinsX()/2; i++)
+  if(method =="mine"){
+    double tolerance = (h->GetBinContent(0)+h->GetBinContent(h->GetNbinsX()+1))/h->GetEntries(); // since we are not working with continuous quantities but with binned hists, the difference between the integral and the 95% it may not be zero, so we ask it to be lower than 15% (before I was using 1.1% but since I changed to use the full range of hists, the overflow bin plays a too bigger role when stats is low and the 1.1% is not reached. 
+    cout << " bin 0 " << h->GetBinContent(0) << " overflow " << h->GetBinContent(h->GetNbinsX()+1) << " entries " << h->GetEntries() << endl;
+    cout << " RMS method charge based with tolerance " << tolerance << " with over/under flow would be " << (h->GetBinContent(0)+h->GetBinContent(h->GetNbinsX()+1))/h->GetEntries() << endl;
+    double maximum = h->GetMaximum();
+    int maxbin = h->GetMaximumBin();
+    cout <<  " maxbin " << maxbin << " at " << h->GetBinCenter(maxbin)<<endl;
+    cout << "intital sigma = " << h->GetRMS() * 1000 << " sigmaerr = " << h->GetRMSError() * 1000 << endl;
+    double Integral = h->Integral(0,h->GetNbinsX()+1);
+    cout << " integral " << Integral << " entries " << h->GetEntries() << endl;
+    double integral95 = percent*Integral;
+    cout << " integra "<< percent << " " << integral95 << endl;
+    int i = 0;
+    
+    for(int i =0; i<h->GetNbinsX()/2; i++)
+      {
+	low = maxbin-i;
+	high = maxbin+i;
+      
+	Integral = h->Integral(low,high);
+	cout << " integral " << Integral << "low " <<low << " high " << high << endl;
+	cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
+	
+	//      if(fabs(Integral-integral95)/integral95 < 0.011 || Integral>integral95)//integral>integral95)
+	if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
+	  break;
+	cout << "final integral " << Integral << "low " <<low <<" high " << high << endl;
+
+  
+
+      }
+  }
+  if(method == "simon")
     {
-     low = maxbin-i;
-      high = maxbin+i;
+      double integral = h->GetEntries();
+      int maxbin = h->GetMaximumBin();
+      cout << "entries=" << integral << " maxbin=" << maxbin << endl;
 
-      Integral = h->Integral(low,high);
-      cout << " integral " << Integral << "low " <<low << " high " << high << endl;
-      cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
+      double subrange_integral = h->GetBinContent(maxbin);
+      int bin = 0;
+      while(subrange_integral < percent*integral) {
+	bin++;
+	// Add one bin to the left:
+	subrange_integral += h->GetBinContent(maxbin-bin);
+	// Add one bin to the right:
+	subrange_integral += h->GetBinContent(maxbin+bin);
+	cout << "subrange " << (maxbin-bin) << "-" << (maxbin+bin) << ": entries=" << subrange_integral << endl;
+      }
+      cout << "subrange " << (maxbin-bin) << "-" << (maxbin+bin) << " now has " << subrange_integral << " entries, this is " << (100.0*subrange_integral)/integral << "%" << endl;
 
-      //      if(fabs(Integral-integral95)/integral95 < 0.011 || Integral>integral95)//integral>integral95)
-      if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
-	break;
+      // Correct by overshoot bin:
+      subrange_integral -= h->GetBinContent(maxbin+bin);
+      subrange_integral -= h->GetBinContent(maxbin-bin);
+      bin--;
+
+      low = maxbin-bin;
+      high = maxbin+bin;
+      cout << "subrange " << (maxbin-bin) << "-" << (maxbin+bin) << " now has " << subrange_integral << " entries, this is " << (100.0*subrange_integral)/integral << "%" << endl;
 
 
     }
-  cout << "final integral " << Integral << "low " <<low <<" high " << high << endl;
-  h->GetXaxis()->SetRange(low,high);
 
+  h->GetXaxis()->SetRange(low,high); //to restrict range to bins binlow to binhigh
+
+  
   double sigma = h->GetRMS() * 1000;
   double sigmaerr = h->GetRMSError() * 1000;
   cout << " resolution " << sigma << " ± " << sigmaerr << endl;
@@ -2719,6 +2695,9 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   TH1I * hdx3 = new TH1I("dx3", "triplet dx; dx [mm];triplets", 500, -0.5, 0.5 );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
   TH1I * hdy3 = new TH1I("dy3", "triplet dy; dy [mm];triplets", 200, -1., 1. );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
 
+ 
+
+  
   TH1I * hclsizeA = new TH1I("clsizeA", "A cluster size "+selection+";cluster size [pixels];A clusters on tracks", 40, 0.5, 40.5 ); 
   TH1I * hclsizeB = new TH1I("clsizeB", "B cluster size "+selection+";cluster size [pixels];B clusters on tracks", 40, 0.5, 40.5 ); 
   TH1I * hclsizeC = new TH1I("clsizeC", "C cluster size "+selection+";cluster size [pixels];C clusters on tracks", 40, 0.5, 40.5 ); 
@@ -3014,8 +2993,35 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
   hclph[1]=hclphB;
   hclph[2]=hclphC;
 
+
   
-  auto search =  mapOfHists.find("xA");
+  double dyCA = yCr - yAr;
+  double dxyCA = sqrt( dxCA*dxCA + dyCA*dyCA );
+
+  auto  search =  mapOfHists.find("dxyCA");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(dxyCA);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dxyCA" << endl;
+  }
+
+  
+  double dxy = sqrt( dx3*dx3 + dy3*dy3 );
+
+  search =  mapOfHists.find("dxy");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(dxy);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dxy" << endl;
+  }
+
+
+  
+  search =  mapOfHists.find("xA");
   if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
     if(DEBUG) std::cout << "Found " << search->first  << '\n';
@@ -3526,6 +3532,10 @@ void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, doubl
     if(PRINT) std::cout << "Not found "<< "dx3_clsizeB7m" << endl;
   }
 
+
+
+
+  
 
   /*
   search =  mapOfHists.find("dx3_clchargeB2e");
@@ -4292,6 +4302,9 @@ void bookHists()
  charge_res->Branch("dxyCAtree",&dxyCAtree);
  charge_res->Branch("dxytree",&dxytree);
  charge_res->Branch("evt",&evt);
+ charge_res->Branch("nclustA",&nclustA);
+ charge_res->Branch("nclustB",&nclustB);
+ charge_res->Branch("nclustC",&nclustC);
   
   for( unsigned ipl = 0; ipl < DreiMasterPlanes; ++ipl ) {
 
@@ -4369,6 +4382,10 @@ void bookHists()
   hdyAB = new  TH1I( "dyAB", "By-Ay;y-y [mm];cluster pairs", 400, -2, 2 );
   dxvsxAB = new  TProfile( "dxvsxAB", "dx vs x A-B;x [mm];<dx> [mm]", 320, -4, 4, -f, f );
   dxvsyAB = new  TProfile( "dxvsyAB", "dx vs y A-B;y [mm];<dx> [mm]",  80, -4, 4, -f, f );
+
+  hdxyCA =  new  TH1I( "dxyCA","dxyCA; dxyCA [mm], events",100,-0.3,0.3);
+  hdxy =  new  TH1I( "dxy","dxy; dxy [mm], events",100,-0.3,0.3);
+
   
   hdxvsev = new    TH2I( "dxvsev", "Bx-Ax vs events;events;#Deltax [px];clusters",	  100, 0, 10000, 100, -f, f );
 
