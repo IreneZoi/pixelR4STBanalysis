@@ -522,19 +522,20 @@ int main( int argc, char* argv[] )
       cout << " ########## Matching for closest  ########## "<< endl;
       ///////        A-C cluster correlations: ///////////
       if(PRINT) cout << "entering AC correlation loop " << endl;
-      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ){
+      //      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ){
+      for( int cC=0; cC < vclC.size(); ++cC ){
       	
-	  double xC = xcoordinate(2, cC, alignxC, ptchc, ptchr);
-	  double yC = ycoordinate(2, cC, alignyC, ptchc, ptchr);
+	  double xC = xcoordinate2(2, vclC[cC], alignxC, ptchc, ptchr);
+	  double yC = ycoordinate2(2, vclC[cC], alignyC, ptchc, ptchr);
 	  
 	  double xCr = xC*cfC - yC*sfC;
 	  double yCr = xC*sfC + yC*cfC;
 	
       
-	  for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )   {
-	
-              double xA = xcoordinate(0, cA, alignxA, ptchc, ptchr);
-	      double yA = ycoordinate(0, cA, alignyA, ptchc, ptchr);
+	  //	  for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )   {
+	  for( int cA=0; cA < vclA.size(); ++cA ){
+              double xA = xcoordinate2(0, vclA[cA], alignxA, ptchc, ptchr);
+	      double yA = ycoordinate2(0, vclA[cA], alignyA, ptchc, ptchr);
 	      
 	      double xAr = xA*cfA - yA*sfA;
 	      double yAr = xA*sfA + yA*cfA;
@@ -546,17 +547,17 @@ int main( int argc, char* argv[] )
 
 
 	      //finn closest: update if closer
-	      if( dxyCA < AMatchC.at(icA).distance ){
-		AMatchC.at(icA).index = icC;
-		AMatchC.at(icA).distance = dxyCA;
+	      if( dxyCA < AMatchC.at(cA).distance ){
+		AMatchC.at(cA).index = cC;
+		AMatchC.at(cA).distance = dxyCA;
 		//                AMatchC.at(iA).used = true;
-		cout << "index cA " << icA << " index cC " << icC << " distance AC " << AMatchC.at(icA).distance << " dxyCA " << dxyCA << endl;
+		cout << "index cA " << cA << " index vlcC[cC] " << cC << " distance AC " << AMatchC.at(cA).distance << " dxyCA " << dxyCA << endl;
 	      }
 
-	      if( dxyCA < CMatchA.at(icC).distance ){
-		CMatchA.at(icC).index = icA;
-		CMatchA.at(icC).distance = dxyCA;
-		cout << "index cA " << icA << " index cC " << icC << " distance CA " << CMatchA.at(icC).distance << " dxyCA " << dxyCA << endl;
+	      if( dxyCA < CMatchA.at(cC).distance ){
+		CMatchA.at(cC).index = cA;
+		CMatchA.at(cC).distance = dxyCA;
+		cout << "index cA " << cA << " index vlcC[cC] " << cC << " distance CA " << CMatchA.at(cC).distance << " dxyCA " << dxyCA << endl;
 	      }
 
 
@@ -566,10 +567,10 @@ int main( int argc, char* argv[] )
 	      double xavg = 0.5 * ( xAr + xCr );
 	      double yavg = 0.5 * ( yAr + yCr );
 	      
-	      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )	{
-	    
-		  double xB = xcoordinate(1, cB, 0, ptchc, ptchr);
-		  double yB = ycoordinate(1, cB, 0, ptchc, ptchr);
+	      //     for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )	{
+	      for( int cB=0; cB < vclB.size(); ++cB ){
+		  double xB = xcoordinate2(1, vclB[cB], 0, ptchc, ptchr);
+		  double yB = ycoordinate2(1, vclB[cB], 0, ptchc, ptchr);
 
 		  double dx3 = xB - xavg;
 		  double dy3 = yB - yavg;
@@ -577,79 +578,82 @@ int main( int argc, char* argv[] )
 		  double dxy = (dx3*dx3+dy3*dy3);
 		  //finn  closest:  update if closer
 
-		  if(AMatchB.at(icA).used==false){
-		    AMatchB.at(icA).index = icB;
-		    AMatchB.at(icA).distance = dxy;
-		    AMatchB.at(icA).used ==true;
+		  if(AMatchB.at(cA).used==false){
+		    AMatchB.at(cA).index = cB;
+		    AMatchB.at(cA).distance = dxy;
+		    AMatchB.at(cA).used ==true;
 		  }
-		  else if(AMatchB.at(icA).used==true){
-		    if(AMatchB.at(icA).distance> dxy){
-		      AMatchB.at(icA).index = icB;
-		      AMatchB.at(icA).distance = dxy;
+		  else if(AMatchB.at(cA).used==true){
+		    if(AMatchB.at(cA).distance> dxy){
+		      AMatchB.at(cA).index = cB;
+		      AMatchB.at(cA).distance = dxy;
 		    }
 		  }
 			  
-		  cout << "index cA " << icA << " index B " << icB << " distance A-B " << AMatchB.at(icA).distance << " dxy " << dxy << endl;
+		  cout << "index cA " << cA << " index B " << cB << " distance A-B " << AMatchB.at(cA).distance << " dxy " << dxy << endl;
 		  
 
-		  if(BMatchA.at(icB).used==false){
-		    BMatchA.at(icB).index = icA;
-		    BMatchA.at(icB).distance = dxy;
-		    BMatchA.at(icB).used=true;
+		  if(BMatchA.at(cB).used==false){
+		    BMatchA.at(cB).index = cA;
+		    BMatchA.at(cB).distance = dxy;
+		    BMatchA.at(cB).used=true;
 		  }
-		  else if(BMatchA.at(icB).used==true){
-		    if(BMatchA.at(icB).distance> dxy){
-		      BMatchA.at(icB).index = icB;
-		      BMatchA.at(icB).distance = dxy;
+		  else if(BMatchA.at(cB).used==true){
+		    if(BMatchA.at(cB).distance> dxy){
+		      BMatchA.at(cB).index = cB;
+		      BMatchA.at(cB).distance = dxy;
 		    }
 		  }    
-		  cout << "index cA " << icA << " index B " << icB << " distance B-A " << BMatchA.at(icB).distance << " dxy " << dxy << endl;
+		  cout << "index cA " << cA << " index B " << cB << " distance B-A " << BMatchA.at(cB).distance << " dxy " << dxy << endl;
 		  
 
-		  if(CMatchB.at(icC).used==false){		    
-		    CMatchB.at(icC).index = icB;
-		    CMatchB.at(icC).distance = dxy;
-		    CMatchB.at(icC).used =true;
+		  if(CMatchB.at(cC).used==false){		    
+		    CMatchB.at(cC).index = cB;
+		    CMatchB.at(cC).distance = dxy;
+		    CMatchB.at(cC).used =true;
 		  }
-		  else if(CMatchB.at(icC).used==true){
-		    if(CMatchB.at(icC).distance> dxy){
-		      CMatchB.at(icC).index = icB;
-		      CMatchB.at(icC).distance = dxy;
+		  else if(CMatchB.at(cC).used==true){
+		    if(CMatchB.at(cC).distance> dxy){
+		      CMatchB.at(cC).index = cB;
+		      CMatchB.at(cC).distance = dxy;
 		      }
 		  }
-		  cout << "index cC " << icC << " index B " << icB << " distance C-B " << CMatchB.at(icC).distance << " dxy " << dxy << endl;
+		  cout << "index vlcC[cC] " << cC << " index B " << cB << " distance C-B " << CMatchB.at(cC).distance << " dxy " << dxy << endl;
 		  
-		  if(BMatchC.at(icB).used==false){
+		  if(BMatchC.at(cB).used==false){
 		      
-		    BMatchC.at(icB).index = icC;
-		    BMatchC.at(icB).distance = dxy;
-		    BMatchC.at(icB).used=true;
+		    BMatchC.at(cB).index = cC;
+		    BMatchC.at(cB).distance = dxy;
+		    BMatchC.at(cB).used=true;
 		  }
-		  else if(BMatchC.at(icB).used==true){
-		    if(BMatchC.at(icB).distance> dxy){
-		      BMatchC.at(icB).index = icB;
-		      BMatchC.at(icB).distance = dxy;
+		  else if(BMatchC.at(cB).used==true){
+		    if(BMatchC.at(cB).distance> dxy){
+		      BMatchC.at(cB).index = cB;
+		      BMatchC.at(cB).distance = dxy;
 		    }
 		  }
 		  
-		  cout << "index cC " << icC << " index B " << icB << " distance B-C " << BMatchC.at(icB).distance << " dxy " << dxy << endl;
+		  cout << "index vlcC[cC] " << cC << " index B " << cB << " distance B-C " << BMatchC.at(cB).distance << " dxy " << dxy << endl;
 		  
 
-		  icB++;
+		  //	  cB++;
 	      }//clB
-	      icA++;   
+	      //cA++;   
 	  }//clA
-	  icC++;
+	  //cC++;
       }//clC
 
       cout << " #########     summary  " << iev << endl;
 
-      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ){
+      //      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ){
 	
-	for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ){
+      //	for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ){
 
-	  for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ){
-
+      //	  for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ){
+      for( int IC=0; IC < vclC.size(); ++IC ){
+	for( int IA=0; IA < vclA.size(); ++IA ){
+	  for( int IB=0; IB < vclB.size(); ++IB ){
+	    
 	    
 
 	    cout << " index final IA " << IA << " AMatchC index " <<  AMatchC.at(IA).index << " distance dxyCA " << AMatchC.at(IA).distance << endl;
@@ -660,11 +664,11 @@ int main( int argc, char* argv[] )
 
 	    cout << " index final IC " << IC << " CMatchB index " <<  CMatchB.at(IC).index << " distance dxy " << CMatchB.at(IC).distance << endl;
 	    cout << " index final IB " << IB << " BMatchC index " <<  BMatchC.at(IB).index << " distance dxy " << BMatchC.at(IB).distance << endl;
-	    IB++;
+	    //IB++;
 	  }
-	  IA++;
+	  //IA++;
 	}
-	IC++;
+	//IC++;
       }
 
       
@@ -677,27 +681,29 @@ int main( int argc, char* argv[] )
       if(PRINT) cout << "entering AB correlation loop " << endl;
       int nm = 0;
 
-      for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )
-	{
-	  double xA = xcoordinate(0, cA, alignxA, ptchc, ptchr);
-	  double yA = ycoordinate(0, cA, alignyA, ptchc, ptchr);
+      //      for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )
+      for( int cA=0; cA < vclA.size(); ++cA ){
+	
+	  double xA = xcoordinate2(0, vclA[cA], alignxA, ptchc, ptchr);
+	  double yA = ycoordinate2(0, vclA[cA], alignyA, ptchc, ptchr);
 
 	  double xAr = xA*cfA - yA*sfA;
 	  double yAr = xA*sfA + yA*cfA;
 
 	  hxA->Fill( xAr );
 	  hyA->Fill( yAr );
-	  if( cA->iso )
+	  if( vclA[cA].iso )
 	    {
 	      hxAi->Fill( xAr );
 	      hyAi->Fill( yAr );
-	      hclqAi->Fill( cA->q );
+	      hclqAi->Fill( vclA[cA].q );
 	    }
 	  
-	  for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
-	    {
-	      double xB = xcoordinate(1, cB, 0, ptchc, ptchr);
-	      double yB = ycoordinate(1, cB, 0, ptchc, ptchr);
+	  for( int cB=0; cB < vclB.size(); ++cB ){
+	    
+	    //	  for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
+	      double xB = xcoordinate2(1, vclB[cB], 0, ptchc, ptchr);
+	      double yB = ycoordinate2(1, vclB[cB], 0, ptchc, ptchr);
 
 	      hxxAB->Fill( xAr, xB );
 	      hyyAB->Fill( yAr, yB );
@@ -709,7 +715,7 @@ int main( int argc, char* argv[] )
 	      double dxy = sqrt( dx*dx + dy*dy );
 	      /*
 	      //finn  closest:  update if closer
-	      if( dxy < AMatchB.at(icA).distance ){
+	      if( dxy < AMatchB.at(cA).distance ){
 		AMatchB.at(icA).index = icB;
 		AMatchB.at(icA).distance = dxy;
 		cout << "index cA " << icA << " index cB " << icB << " distance A-B " << AMatchB.at(icA).distance << " dxy " << dxy << endl;
@@ -723,7 +729,7 @@ int main( int argc, char* argv[] )
 	      cout << " index A " << icA << " index cB " << icB <<  " distance dxy " << dxy << endl;
 
 	      */
-	      if( cA->q > qL  && cA->q < qR && cB->q > qLB && cB->q < qRB && cA->iso && cB->iso )
+	      if( vclA[cA].q > qL  && vclA[cA].q < qR && vclB[cB].q > qLB && vclB[cB].q < qRB && vclA[cA].iso && vclB[cB].iso )
 		{
 		  
 		  hdxAB->Fill( dx );
@@ -750,37 +756,38 @@ int main( int argc, char* argv[] )
       // B-C cluster correlations:
       if(PRINT) cout << "entering BC correlation loop " << endl;
       nm = 0;
-      
-      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
-	{
+      for( int cB=0; cB < vclB.size(); ++cB ){
 	
-	  double xB = xcoordinate(1, cB, 0, ptchc, ptchr);
-	  double yB = ycoordinate(1, cB, 0, ptchc, ptchr);
+	//for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )	{
+	
+	  double xB = xcoordinate2(1, vclB[cB], 0, ptchc, ptchr);
+	  double yB = ycoordinate2(1, vclB[cB], 0, ptchc, ptchr);
 	  
 	  hxB->Fill( xB );
 	  hyB->Fill( yB );
-	  if( cB->iso )
+	  if( vclB[cB].iso )
 	    {
 	      hxBi->Fill( xB );
 	      hyBi->Fill( yB );
-	      hclqBi->Fill( cB->q );
+	      hclqBi->Fill( vclB[cB].q );
 	    }
 
-	  for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC )
-	    {
-	      double xC = xcoordinate(2, cC, alignxC, ptchc, ptchr);
-	      double yC = ycoordinate(2, cC, alignyC, ptchc, ptchr);
+	  //	  for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ) {
+	  for( int cC=0; cC < vclC.size(); ++cC ){
+	    
+	      double xC = xcoordinate2(2, vclC[cC], alignxC, ptchc, ptchr);
+	      double yC = ycoordinate2(2, vclC[cC], alignyC, ptchc, ptchr);
 
 	      double xCr = xC*cfC - yC*sfC;
 	      double yCr = xC*sfC + yC*cfC;
 	      
 	      hxC->Fill( xCr );
 	      hyC->Fill( yCr );
-	      if( cC->iso )
+	      if( vclC[cC].iso )
 		{
 		  hxCi->Fill( xCr );
 		  hyCi->Fill( yCr );
-		  hclqCi->Fill( cC->q );
+		  hclqCi->Fill( vclC[cC].q );
 		}
 
 	      hxxCB->Fill( xB, xCr );
@@ -807,7 +814,7 @@ int main( int argc, char* argv[] )
 	      */
 	      
 	      
-	  if( cC->q > qL  && cC->q < qR && cB->q > qLB && cB->q < qRB && cC->iso && cB->iso )
+	  if( vclC[cC].q > qL  && vclC[cC].q < qR && vclB[cB].q > qLB && vclB[cB].q < qRB && vclC[cC].iso && vclB[cB].iso )
 	    {
 	    
 	      hdxCB->Fill( dx );
@@ -833,23 +840,25 @@ int main( int argc, char* argv[] )
       if(PRINT) cout << "entering AC correlation loop " << endl;
       nm = 0;
       //      int iC =0;
-      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC )
-	{
+      for( int cC=0; cC < vclC.size(); ++cC ){
 	
-	  double xC = xcoordinate(2, cC, alignxC, ptchc, ptchr);
-	  double yC = ycoordinate(2, cC, alignyC, ptchc, ptchr);
+	//      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ){
+	
+	  double xC = xcoordinate2(2, vclC[cC], alignxC, ptchc, ptchr);
+	  double yC = ycoordinate2(2, vclC[cC], alignyC, ptchc, ptchr);
 	  
 	  double xCr = xC*cfC - yC*sfC;
 	  double yCr = xC*sfC + yC*cfC;
 	
       
-	  double etaC = eta(cC);
+	  double etaC = eta2(vclC[cC]);
 	  //          int iA=0;
-	  for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )
-	    {
+	  for( int cA=0; cA < vclA.size(); ++cA ){
+	    
+	    //for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ) {
 	
-              double xA = xcoordinate(0, cA, alignxA, ptchc, ptchr);
-	      double yA = ycoordinate(0, cA, alignyA, ptchc, ptchr);
+              double xA = xcoordinate2(0, vclA[cA], alignxA, ptchc, ptchr);
+	      double yA = ycoordinate2(0, vclA[cA], alignyA, ptchc, ptchr);
 	      
 	      double xAr = xA*cfA - yA*sfA;
 	      double yAr = xA*sfA + yA*cfA;
@@ -882,15 +891,15 @@ int main( int argc, char* argv[] )
 
 	      */
    
-	      // NB until I initialize cB, I am using cA instead!!!!
-	      fillControlHists(raw,"raw",0,0,cA,cA,cC,0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+	      // NB until I initialize cB, I am using vclA[cA} instead!!!!
+	      fillControlHists2(raw,"raw",0,0,vclA[cA],vclA[cA],vclC[cC],0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
 
 	      if(PRINT) cout << " tracks condition " << fabs( dxCA ) << " vs "  << straightTracks * beamDivergenceScaled + 0.02 << endl;
 
 	      if( fabs( dxCA ) > straightTracks * beamDivergenceScaled + 0.02 ) continue; // includes beam divergence: +-5 sigma
 
-	      fillControlHists(dxCAcut,"dxCAcut",0,0,cA,cA,cC,0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+	      fillControlHists2(dxCAcut,"dxCAcut",0,0,vclA[cA],vclA[cA],vclC[cC],0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
 
 	      if(PRINT) cout << " dyCA " << dyCA << endl;
@@ -913,30 +922,31 @@ int main( int argc, char* argv[] )
 	      if( fifty )
 		xmod = fmod( xavg + 8.025, 0.05 ); // [mm] 0..0.05
 	      
-	      double etaA = eta(cA);
+	      double etaA = eta2(vclA[cA]);
 
 	      int eff[999] = {0};
 
 	      
-	      //              int iB = 0; 
-	      for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )
-		{
+	      //              int iB = 0;
+	      for( int cB=0; cB < vclB.size(); ++cB ){
+		
+		//for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )	{
 	    
-		  double xB = xcoordinate(1, cB, 0, ptchc, ptchr);
-		  double yB = ycoordinate(1, cB, 0, ptchc, ptchr);
+		  double xB = xcoordinate2(1, vclB[cB], 0, ptchc, ptchr);
+		  double yB = ycoordinate2(1, vclB[cB], 0, ptchc, ptchr);
 
-		  double etaB = eta(cB);
+		  double etaB = eta2(vclB[cB]);
 	    
 		  int rowmin = 999;
 		  int rowmax = 0;
 		  int colmin = 999;
 		  int colmax = 0;
-		  for( int ipx = 0; ipx < cB->size; ++ipx )
+		  for( int ipx = 0; ipx < vclB[cB].size; ++ipx )
 		    {
-		      int row = cB->vpix[ipx].row;
+		      int row = vclB[cB].vpix[ipx].row;
 		      if( row < rowmin ) rowmin = row;
 		      if( row > rowmax ) rowmax = row;
-		      int col = cB->vpix[ipx].col;
+		      int col = vclB[cB].vpix[ipx].col;
 		      if( col < colmin ) colmin = col;
 		      if( col > colmax ) colmax = col;
 		    }
@@ -952,14 +962,14 @@ int main( int argc, char* argv[] )
 		  dx3vsy->Fill( yB, dx3 );
 		  
 		  
-		  fillControlHists(beforeCorrections,"beforeCorrections",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+		  fillControlHists2(beforeCorrections,"beforeCorrections",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
 		  dx3 = dx3 - dx3corr*xavg; // from -dx3vsx.Fit("pol1")
 
 
 		  double dxy = sqrt( dx3*dx3 + dy3*dy3 );
 
-		  fillControlHists(nocuts,"nocuts",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+		  fillControlHists2(nocuts,"nocuts",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 		  if(PRINT) cout << "nocuts" << endl;
 
 		  /*
@@ -995,46 +1005,46 @@ int main( int argc, char* argv[] )
 		    if( fabs( dy3 ) < straightTracks * beamDivergenceScaled ) //+ 0.05 )
 		      { // cut on y, look at x, see madx3vsy
 		    
-			fillControlHists(straightTracksY,"straightTracksY",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+			fillControlHists2(straightTracksY,"straightTracksY",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 			
-			if(AMatchC.at(iA).index == iC && CMatchA.at(iC).index == iA && AMatchB.at(iA).index == iB && BMatchA.at(iB).index == iA  && CMatchB.at(iC).index == iB && BMatchC.at(iB).index == iC){
-			    //cout << "event "<< iev << " used distance AMatchC " << AMatchC.at(iA).distance << " CMatchA " << CMatchA.at(iC).distance << " ACMatchB " << ACMatchB.at(iA).distance << " BMatchAC " <<  BMatchAC.at(iB).distance << endl;
-			    fillControlHists(closest3M,"closest3M",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+			if(AMatchC.at(cA).index ==cC && CMatchA.at(cC).index == cA && AMatchB.at(cA).index == cB && BMatchA.at(cB).index == cA  && CMatchB.at(cC).index == cB && BMatchC.at(cB).index ==cC){
+			    //cout << "event "<< iev << " used distance AMatchC " << AMatchC.at(cA).distance << " CMatchA " << CMatchA.at(iC).distance << " ACMatchB " << ACMatchB.at(cA).distance << " BMatchAC " <<  BMatchAC.at(cB).distance << endl;
+			    fillControlHists2(closest3M,"closest3M",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
 			    
-			    if( cA->iso && cC->iso )
+			    if( vclA[cA].iso && vclC[cC].iso )
 			      {
-				fillControlHists(straightTracksY_isoAandC,"straightTracksY_isoAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
-				if( cB->iso )
+				fillControlHists2(straightTracksY_isoAandC,"straightTracksY_isoAandC",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+				if( vclB[cB].iso )
 				  {
-				    fillControlHists(straightTracksY_isoAandCandB,"straightTracksY_isoAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+				    fillControlHists2(straightTracksY_isoAandCandB,"straightTracksY_isoAandCandB",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 				    if(PRINT) cout << "isoAandCandB done" << endl;
 				
 
 				    if( fabs( dxCA ) < straightTracks * beamDivergenceScaled )
 				      { // track angle
-					fillControlHists(straightTracksY_isoAandCandB_straightTracksX,"straightTracksY_isoAandCandB_straightTracksX",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
-					cout << "event "<< iev << " used distance dxyCA " << dxyCA << " dxy " << dxy   << endl; //" iA " << iA << " iB " << iB << " iC " << iC << endl;
+					fillControlHists2(straightTracksY_isoAandCandB_straightTracksX,"straightTracksY_isoAandCandB_straightTracksX",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+					cout << "event "<< iev << " used distance dxyCA " << dxyCA << " dxy " << dxy   << " cA " << cA << " cB " << cB << "cC " <<cC << endl;
 			    
 
 				    
 					if(PRINT) cout << " filling hists for resolution studies! " << endl;		  
-					hclqAiii->Fill(cA->q);
-					hclqBiii->Fill(cB->q); 
-					hclqCiii->Fill(cC->q); 
-					hclphAiii->Fill(cA->sum);
-					hclphBiii->Fill(cB->sum);
-					hclphCiii->Fill(cC->sum);
+					hclqAiii->Fill(vclA[cA].q);
+					hclqBiii->Fill(vclB[cB].q); 
+					hclqCiii->Fill(vclC[cC].q); 
+					hclphAiii->Fill(vclA[cA].sum);
+					hclphBiii->Fill(vclB[cB].sum);
+					hclphCiii->Fill(vclC[cC].sum);
 					if(PRINT) cout << "done  filling hists for resolution studies! " << endl;		  
 					
 					dx3tree = dx3;
 				  
-					clqAiii = cA->q;
-					clqBiii = cB->q;
-					clqCiii = cC->q;
-					clphAiii = cA->sum;
-					clphBiii = cB->sum;
-					clphCiii = cC->sum;
+					clqAiii = vclA[cA].q;
+					clqBiii = vclB[cB].q;
+					clqCiii = vclC[cC].q;
+					clphAiii = vclA[cA].sum;
+					clphBiii = vclB[cB].sum;
+					clphCiii = vclC[cC].sum;
 					nrowBtree = nrowB;
 					evt = iev;
 					dxyCAtree=dxyCA;
@@ -1050,11 +1060,11 @@ int main( int argc, char* argv[] )
 			
 		      }//straight tracks 
 
-		  iB++;
+		    //		  iB++;
 		}//clB
-	      iA++;
+	      cA++;
 	    }//clA
-	  iC++;
+	  //iC++;
 	}//clC
     }//first big loop on events
 
@@ -1079,37 +1089,37 @@ int main( int argc, char* argv[] )
 	      if( fabs( dy3 ) < straightTracks * beamDivergenceScaled + 0.05 )
 		    { 
 		      
-		      if( cA->iso && cC->iso )
+		      if( vclA[cA].iso && vclC[cC].iso )
 			{
-			  if( cB->iso )
+			  if( vclB[cB].iso )
 			    {
-			      if( (cA->q <= qR) && (cC->q <= qR))
+			      if( (vclA[cA].q <= qR) && (vclC[cC].q <= qR))
 				{
-				  if(PRINT) cout << "cA->q " << cA->q << " >= qR " << qR << " && cC->q " << cC->q << "  >= qR " << endl;
+				  if(PRINT) cout << "vclA[cA].q " << vclA[cA].q << " >= qR " << qR << " && vclC[cC].q " << vclC[cC].q << "  >= qR " << endl;
 
 				  if(PRINT) cout << "straightTracksY_isoAandCandB_chargerAandC going to be done" << endl;
 			      
-				  fillControlHists(straightTracksY_isoAandCandB_chargerAandC,"straightTracksY_isoAandCandB_chargerAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+				  fillControlHists(straightTracksY_isoAandCandB_chargerAandC,"straightTracksY_isoAandCandB_chargerAandC",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 				  if(PRINT) cout << "straightTracksY_isoAandCandB_chargerAandC going done" << endl;
 			      
-				  if( ( cB->q <= qRB) && ( cA->q <= qR) && ( cC->q <= qR))
+				  if( ( vclB[cB].q <= qRB) && ( vclA[cA].q <= qR) && ( vclC[cC].q <= qR))
 				    {
 				      
-				      fillControlHists(straightTracksY_isoAandCandB_chargerAandCandB,"straightTracksY_isoAandCandB_chargerAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
-				    }// ( cB->q >= qRB) && ( cA->q >= qR) && ( cC->q >= qR)
+				      fillControlHists(straightTracksY_isoAandCandB_chargerAandCandB,"straightTracksY_isoAandCandB_chargerAandCandB",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+				    }// ( vclB[cB].q >= qRB) && ( vclA[cA].q >= qR) && ( vclC[cC].q >= qR)
 
-				  if( ( cA->q >= qL || cA->q <= qR) && ( cC->q >= qL || cC->q <= qR))
+				  if( ( vclA[cA].q >= qL || vclA[cA].q <= qR) && ( vclC[cC].q >= qL || vclC[cC].q <= qR))
 				    {
-				      fillControlHists(straightTracksY_isoAandCandB_chargeAandC,"straightTracksY_isoAandCandB_chargeAandC",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+				      fillControlHists(straightTracksY_isoAandCandB_chargeAandC,"straightTracksY_isoAandCandB_chargeAandC",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
-				      if( (cB->q >= qLB || cB->q <= qRB) && ( cA->q >= qL || cA->q <= qR) && ( cC->q >= qL || cC->q <= qR))
+				      if( (vclB[cB].q >= qLB || vclB[cB].q <= qRB) && ( vclA[cA].q >= qL || vclA[cA].q <= qR) && ( vclC[cC].q >= qL || vclC[cC].q <= qR))
 					{					  
-					  fillControlHists(straightTracksY_isoAandCandB_chargeAandCandB,"straightTracksY_isoAandCandB_chargeAandCandB",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
-					}//(cB->q <= qLB || cB->q >= qRB) && ( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR)
+					  fillControlHists(straightTracksY_isoAandCandB_chargeAandCandB,"straightTracksY_isoAandCandB_chargeAandCandB",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+					}//(vclB[cB].q <= qLB || vclB[cB].q >= qRB) && ( vclA[cA].q <= qL || vclA[cA].q >= qR) && ( vclC[cC].q <= qL || vclC[cC].q >= qR)
 
-				    }//( cA->q <= qL || cA->q >= qR) && ( cC->q <= qL || cC->q >= qR)
+				    }//( vclA[cA].q <= qL || vclA[cA].q >= qR) && ( vclC[cC].q <= qL || vclC[cC].q >= qR)
 			
-				}//(cA->q >= qR) && (cC->q >= qR)
+				}//(vclA[cA].q >= qR) && (vclC[cC].q >= qR)
 
 			    }//iso B
 			}//iso A and C
@@ -1121,12 +1131,12 @@ int main( int argc, char* argv[] )
 		  
 		  if(PRINT) cout << " filling hists on track " << endl;
 
-		  if( fabs( dx3 ) < 0.07 && fabs( dy3 ) < 0.15 && cA->iso && cB->iso && cC->iso) // hit on track
+		  if( fabs( dx3 ) < 0.07 && fabs( dy3 ) < 0.15 && vclA[cA].iso && vclB[cB].iso && vclC[cC].iso) // hit on track
 		    {
 
 		      if(PRINT) cout << "  it is on track " << endl;
 		      
-		      fillControlHists(hitsOnTrack,"hitsOnTrack",dx3,dy3,cA,cB,cC,nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+		      fillControlHists(hitsOnTrack,"hitsOnTrack",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 				    
 
 		    } // linked, iso (hit on track)
@@ -1146,8 +1156,8 @@ int main( int argc, char* argv[] )
 	      if( evinfoB->filled == ADD ) continue; // padded event in B
 	      if( evinfoB->skip ) continue; // fat event in B
 	      
-	      if( cA->iso == 0 ) continue;
-	      if( cC->iso == 0 ) continue;
+	      if( vclA[cA].iso == 0 ) continue;
+	      if( vclC[cC].iso == 0 ) continue;
 	      
 	      effvsxy->Fill( xavg, yavg, eff[50] );
 	      
@@ -1167,7 +1177,7 @@ int main( int argc, char* argv[] )
 		effvsev->Fill( iev, eff[50] );
 		effvsiev->Fill( iev%200, eff[50] );
 		//effvsmpxA->Fill( pbA.size(), eff[50] );
-		effvsqA->Fill( cA->q, eff[50] );
+		effvsqA->Fill( vclA[cA].q, eff[50] );
 		effvstxy->Fill( dxyCA, eff[50] ); // flat
 		
 	      } // fiducial x, y
@@ -1198,7 +1208,7 @@ int main( int argc, char* argv[] )
   for(int i =0; i<hdx3tree->GetEntries(); i++)    {    
       hdx3tree2->SetBinContent(i+1,hdx3tree->GetBinContent(i+1));
     }
-  cout << hdx3tree2->GetTitle() << " entries " << hdx3tree2->GetEntries() << endl;
+  if(DEBUG) cout << hdx3tree2->GetTitle() << " entries " << hdx3tree2->GetEntries() << endl;
   hdx3tree2->Write();
 
 
@@ -1223,40 +1233,45 @@ int main( int argc, char* argv[] )
   hclph[1]=hclphBiii;
   hclph[2]=hclphCiii;
 
-  
+  cout << " Evaluating cut for 90 % of charge distribution " << endl;
   for(int j =0; j < DreiMasterPlanes; j++)   {
-    if(PRINT)   cout << " plane " << j << endl;
+    cout << " plane " << j << endl;
     integral[j] = hclq[j]->Integral(0,hclq[j]->GetNbinsX()+1);
-    if(PRINT)      cout << " integral " << integral[j] << " entries " << hclq[j]->GetEntries()<<  endl;
+    cout << " integralQ " << integral[j] << " entries " << hclq[j]->GetEntries()<<  endl;
     
     integralPH[j] = hclph[j]->Integral(0,hclph[j]->GetNbinsX()+1);
-    if(PRINT)   cout << " integralPH " << integralPH[j] << endl;
+    cout << " integralPH " << integralPH[j] << endl;
     
     integral90[j] = 0.9*integral[j]; //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
-    if(DEBUG)   cout << " integral90 " << integral90[j] << endl;
+    cout << " integralQ 90% " << integral90[j] << endl;
 
     integralPH90[j] = 0.9*integralPH[j];
+    cout << " integralPH 90% " << integralPH90[j] << endl;
 
     high90[j] = 0;
     highPH90[j] = 0;
     
     int i = 0;
     while(integral[j]>integral90[j])    {
-      cout << " while "<< i << endl;
+      if(DEBUG) cout << " while "<< i << endl;
       integral[j] = hclq[j]->Integral(1,hclq[j]->GetNbinsX()-i);
       high90[j] = hclq[j]->GetBinCenter(hclq[j]->GetNbinsX()-i);
-      cout << " integral " << integral[j] << " high " << high90[j] << endl;
+      if(DEBUG) cout << " integral " << integral[j] << " high " << high90[j] << endl;
       i++;
     }
-    cout << " integral90 " << integral90[j] << endl;
+    cout << "final  integral Q 90 " << integral[j] << " = " << 100*integral[j]/ hclq[j]->Integral(0,hclq[j]->GetNbinsX()+1) << endl;
     i=0;
     while(integralPH[j]>integralPH90[j])  {
       integralPH[j] = hclph[j]->Integral(1,hclph[j]->GetNbinsX()-i);
       highPH90[j] = hclph[j]->GetBinCenter(hclph[j]->GetNbinsX()-i);
       i++;
-    } 
+    }
+    cout << "final  integral PH 90 " << integralPH[j] << " = " << 100*integralPH[j]/hclph[j]->Integral(0,hclph[j]->GetNbinsX()+1) << endl; 
   }
 
+  
+
+  
   // plot dx3 with above conditions
   //90 % Landau
   TString qA;
@@ -1269,13 +1284,13 @@ int main( int argc, char* argv[] )
   TH1D * hdx3treeq = new TH1D("hdx3treeq", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   charge_res->Draw("dx3tree>>hdx3treeq","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC,"goff");
   hdx3treeq = (TH1D*)gDirectory->Get("hdx3treeq");
-  cout << hdx3treeq->GetTitle() << " entries " << hdx3treeq->GetEntries() << " mean " << hdx3treeq->GetMean() << " 20bin " << hdx3treeq->GetBinContent(20)<<endl;
+  if(DEBUG)  cout << hdx3treeq->GetTitle() << " entries " << hdx3treeq->GetEntries() << " mean " << hdx3treeq->GetMean() << " 20bin " << hdx3treeq->GetBinContent(20)<<endl;
   hdx3treeq->Write();
   
   for(int i =0; i<hdx3treeq->GetEntries(); i++)    {
       hdx3_clchargeABC90evR->SetBinContent(i+1,hdx3treeq->GetBinContent(i+1));
   }
-  cout << hdx3_clchargeABC90evR->GetTitle() << " entries " << hdx3_clchargeABC90evR->GetEntries() << "mean " << hdx3_clchargeABC90evR->GetMean() << endl;
+  if(DEBUG)  cout << hdx3_clchargeABC90evR->GetTitle() << " entries " << hdx3_clchargeABC90evR->GetEntries() << "mean " << hdx3_clchargeABC90evR->GetMean() << endl;
   hdx3_clchargeABC90evR->Write();
 
 
@@ -1290,37 +1305,37 @@ int main( int argc, char* argv[] )
   TH1I * hdx3treeph = new TH1I("hdx3treeph", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   charge_res->Draw("dx3tree>>hdx3treeph","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC,"goff");
   hdx3treeph = (TH1I*)gDirectory->Get("hdx3treeph");
-  cout << hdx3treeph->GetTitle() << " entries " << hdx3treeph->GetEntries() << endl;
+  if(DEBUG) cout << hdx3treeph->GetTitle() << " entries " << hdx3treeph->GetEntries() << endl;
   hdx3treeph->Write();
   
   for(int i =0; i<hdx3treeph->GetEntries(); i++)  {
     hdx3_clphABC90evR->SetBinContent(i+1,hdx3treeph->GetBinContent(i+1));
   }
-  cout << hdx3_clphABC90evR->GetTitle() << " entries " << hdx3_clphABC90evR->GetEntries() << endl;
+  if(DEBUG) cout << hdx3_clphABC90evR->GetTitle() << " entries " << hdx3_clphABC90evR->GetEntries() << endl;
   hdx3_clphABC90evR->Write();
 
   TH1I * hdxyCAtreeph = new TH1I("hdxyCAtreeph", "triplet dxyCA ; dx [mm];triplets", 100,0., 0.3 );
   charge_res->Draw("dxyCAtree>>hdxyCAtreeph","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC,"goff");
   hdxyCAtreeph = (TH1I*)gDirectory->Get("hdxyCAtreeph");
-  cout << hdxyCAtreeph->GetTitle() << " entries " << hdxyCAtreeph->GetEntries() << endl;
+  if(DEBUG) cout << hdxyCAtreeph->GetTitle() << " entries " << hdxyCAtreeph->GetEntries() << endl;
   hdxyCAtreeph->Write();
   
   for(int i =0; i<hdxyCAtreeph->GetEntries(); i++)  {
     hdxyCA_clphABC90evR->SetBinContent(i+1,hdxyCAtreeph->GetBinContent(i+1));
   }
-  cout << hdxyCA_clphABC90evR->GetTitle() << " entries " << hdxyCA_clphABC90evR->GetEntries() << endl;
+  if(DEBUG)  cout << hdxyCA_clphABC90evR->GetTitle() << " entries " << hdxyCA_clphABC90evR->GetEntries() << endl;
   hdxyCA_clphABC90evR->Write();
 
   TH1I * hdxytreeph = new TH1I("hdxytreeph", "triplet dxy ; dx [mm];triplets", 100, 0., 0.3 );
   charge_res->Draw("dxytree>>hdxytreeph","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC,"goff");
   hdxytreeph = (TH1I*)gDirectory->Get("hdxytreeph");
-  cout << hdxytreeph->GetTitle() << " entries " << hdxytreeph->GetEntries() << endl;
+  if(DEBUG)  cout << hdxytreeph->GetTitle() << " entries " << hdxytreeph->GetEntries() << endl;
   hdxytreeph->Write();
   
   for(int i =0; i<hdxytreeph->GetEntries(); i++)  {
     hdxy_clphABC90evR->SetBinContent(i+1,hdxytreeph->GetBinContent(i+1));
   }
-  cout << hdxy_clphABC90evR->GetTitle() << " entries " << hdxy_clphABC90evR->GetEntries() << endl;
+  if(DEBUG)  cout << hdxy_clphABC90evR->GetTitle() << " entries " << hdxy_clphABC90evR->GetEntries() << endl;
   hdxy_clphABC90evR->Write();
 
 
@@ -1342,37 +1357,37 @@ int main( int argc, char* argv[] )
   TH1D * hdx3treeq95 = new TH1D("hdx3treeq95", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   charge_res->Draw("dx3tree>>hdx3treeq95","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hdx3treeq95 = (TH1D*)gDirectory->Get("hdx3treeq95");
-  cout << hdx3treeq95->GetTitle() << " entries " << hdx3treeq95->GetEntries() << " mean " << hdx3treeq95->GetMean() << endl; 
+  if(DEBUG) cout << hdx3treeq95->GetTitle() << " entries " << hdx3treeq95->GetEntries() << " mean " << hdx3treeq95->GetMean() << endl; 
   hdx3treeq95->Write();
 
   for(int i =0; i<hdx3treeq95->GetEntries(); i++)    {
     hdx3_clchargeABC90evR95->SetBinContent(i+1,hdx3treeq95->GetBinContent(i+1));
   }
-  cout << hdx3_clchargeABC90evR95->GetTitle() << " entries " << hdx3_clchargeABC90evR95->GetEntries() << "mean " << hdx3_clchargeABC90evR95->GetMean() << endl;
+  if(DEBUG)  cout << hdx3_clchargeABC90evR95->GetTitle() << " entries " << hdx3_clchargeABC90evR95->GetEntries() << "mean " << hdx3_clchargeABC90evR95->GetMean() << endl;
   hdx3_clchargeABC90evR95->Write();
 
   TH1I * hnrowBtreeq95 = new TH1I("hnrowBtreeq95", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
   charge_res->Draw("nrowBtree>>hnrowBtreeq95","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hnrowBtreeq95 = (TH1I*)gDirectory->Get("hnrowBtreeq95");
-  cout << hnrowBtreeq95->GetTitle() << " entries " << hnrowBtreeq95->GetEntries() << " mean " << hnrowBtreeq95->GetMean() << endl;
+  if(DEBUG)  cout << hnrowBtreeq95->GetTitle() << " entries " << hnrowBtreeq95->GetEntries() << " mean " << hnrowBtreeq95->GetMean() << endl;
   hnrowBtreeq95->Write();
 
   for(int i =0; i<hnrowBtreeq95->GetEntries(); i++)    {
     hnrowB_q95->SetBinContent(i+1,hnrowBtreeq95->GetBinContent(i+1));
   }
-  cout << hnrowB_q95->GetTitle() << " entries " << hnrowB_q95->GetEntries() << "mean " << hnrowB_q95->GetMean() << endl;
+  if(DEBUG)  cout << hnrowB_q95->GetTitle() << " entries " << hnrowB_q95->GetEntries() << "mean " << hnrowB_q95->GetMean() << endl;
   hnrowB_q95->Write();
 
   TH1I * hnrowBtreeq5 = new TH1I("hnrowBtreeq5", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
   charge_res->Draw("nrowBtree>>hnrowBtreeq5","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
   hnrowBtreeq5 = (TH1I*)gDirectory->Get("hnrowBtreeq5");
-  cout << hnrowBtreeq5->GetTitle() << " entries " << hnrowBtreeq5->GetEntries() << " mean " << hnrowBtreeq5->GetMean() << endl;
+  if(DEBUG)  cout << hnrowBtreeq5->GetTitle() << " entries " << hnrowBtreeq5->GetEntries() << " mean " << hnrowBtreeq5->GetMean() << endl;
   hnrowBtreeq5->Write();
 
   for(int i =0; i<hnrowBtreeq5->GetEntries(); i++)    {
     hnrowB_q5->SetBinContent(i+1,hnrowBtreeq5->GetBinContent(i+1));
   }
-  cout << hnrowB_q5->GetTitle() << " entries " << hnrowB_q5->GetEntries() << "mean " << hnrowB_q5->GetMean() << endl;
+  if(DEBUG)  cout << hnrowB_q5->GetTitle() << " entries " << hnrowB_q5->GetEntries() << "mean " << hnrowB_q5->GetMean() << endl;
   hnrowB_q5->Write();
 
 
@@ -1380,25 +1395,25 @@ int main( int argc, char* argv[] )
   TH1I * hclBtreeq95 = new TH1I( "hclBtreeq95", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
   charge_res->Draw("clqBiiitree>>hclBtreeq95","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hclBtreeq95 = (TH1I*)gDirectory->Get("hclBtreeq95");
-  cout << hclBtreeq95->GetTitle() << " entries " << hclBtreeq95->GetEntries() << " mean " << hclBtreeq95->GetMean() << endl;
+  if(DEBUG)  cout << hclBtreeq95->GetTitle() << " entries " << hclBtreeq95->GetEntries() << " mean " << hclBtreeq95->GetMean() << endl;
   hclBtreeq95->Write();
 
   for(int i =0; i<hclBtreeq95->GetEntries(); i++)    {
     hclB_q95->SetBinContent(i+1,hclBtreeq95->GetBinContent(i+1));
   }
-  cout << hclB_q95->GetTitle() << " entries " << hclB_q95->GetEntries() << "mean " << hclB_q95->GetMean() << endl;
+  if(DEBUG)  cout << hclB_q95->GetTitle() << " entries " << hclB_q95->GetEntries() << "mean " << hclB_q95->GetMean() << endl;
   hclB_q95->Write();
 
   TH1I * hclBtreeq5 = new TH1I( "hclBtreeq5", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
   charge_res->Draw("clqBiiitree>>hclBtreeq5","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
   hclBtreeq5 = (TH1I*)gDirectory->Get("hclBtreeq5");
-  cout << hclBtreeq5->GetTitle() << " entries " << hclBtreeq5->GetEntries() << " mean " << hclBtreeq5->GetMean() << endl;
+  if(DEBUG)  cout << hclBtreeq5->GetTitle() << " entries " << hclBtreeq5->GetEntries() << " mean " << hclBtreeq5->GetMean() << endl;
   hclBtreeq5->Write();
 
   for(int i =0; i<hclBtreeq5->GetEntries(); i++)    {
     hclB_q5->SetBinContent(i+1,hclBtreeq5->GetBinContent(i+1));
   }
-  cout << hclB_q5->GetTitle() << " entries " << hclB_q5->GetEntries() << "mean " << hclB_q5->GetMean() << endl;
+  if(DEBUG)  cout << hclB_q5->GetTitle() << " entries " << hclB_q5->GetEntries() << "mean " << hclB_q5->GetMean() << endl;
   hclB_q5->Write();
 
 
@@ -1414,13 +1429,13 @@ int main( int argc, char* argv[] )
   TH1D * hdx3treeph95 = new TH1D("hdx3treeph95", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   charge_res->Draw("dx3tree>>hdx3treeph95","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hdx3treeph95 = (TH1D*)gDirectory->Get("hdx3treeph95");
-  cout << hdx3treeph95->GetTitle() << " entries " << hdx3treeph95->GetEntries() << " mean " << hdx3treeph95->GetMean() << endl; 
+  if(DEBUG)  cout << hdx3treeph95->GetTitle() << " entries " << hdx3treeph95->GetEntries() << " mean " << hdx3treeph95->GetMean() << endl; 
   hdx3treeph95->Write();
 
   for(int i =0; i<hdx3treeph95->GetEntries(); i++)    {
     hdx3_clphABC90evR95->SetBinContent(i+1,hdx3treeph95->GetBinContent(i+1));
   }
-  cout << hdx3_clphABC90evR95->GetTitle() << " entries " << hdx3_clphABC90evR95->GetEntries() << "mean " << hdx3_clphABC90evR95->GetMean() << endl;
+  if(DEBUG)  cout << hdx3_clphABC90evR95->GetTitle() << " entries " << hdx3_clphABC90evR95->GetEntries() << "mean " << hdx3_clphABC90evR95->GetMean() << endl;
   
   cout << "TO COMPARE resolution " <<  hdx3_clphABC90evR95->GetRMS() * 1000 << " ± " <<  hdx3_clphABC90evR95->GetRMSError() * 1000 << endl;
   
@@ -1429,25 +1444,25 @@ int main( int argc, char* argv[] )
   TH1I * hnrowBtreeph95 = new TH1I("hnrowBtreeph95", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
   charge_res->Draw("nrowBtree>>hnrowBtreeph95","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hnrowBtreeph95 = (TH1I*)gDirectory->Get("hnrowBtreeph95");
-  cout << hnrowBtreeph95->GetTitle() << " entries " << hnrowBtreeph95->GetEntries() << " mean " << hnrowBtreeph95->GetMean() << endl;
+  if(DEBUG)  cout << hnrowBtreeph95->GetTitle() << " entries " << hnrowBtreeph95->GetEntries() << " mean " << hnrowBtreeph95->GetMean() << endl;
   hnrowBtreeph95->Write();
 
   for(int i =0; i<hnrowBtreeph95->GetEntries(); i++)    {
     hnrowB_ph95->SetBinContent(i+1,hnrowBtreeph95->GetBinContent(i+1));
   }
-  cout << hnrowB_ph95->GetTitle() << " entries " << hnrowB_ph95->GetEntries() << "mean " << hnrowB_ph95->GetMean() << endl;
+  if(DEBUG)  cout << hnrowB_ph95->GetTitle() << " entries " << hnrowB_ph95->GetEntries() << "mean " << hnrowB_ph95->GetMean() << endl;
   hnrowB_ph95->Write();
 
   TH1I * hnrowBtreeph5 = new TH1I("hnrowBtreeph5", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
   charge_res->Draw("nrowBtree>>hnrowBtreeph5","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
   hnrowBtreeph5 = (TH1I*)gDirectory->Get("hnrowBtreeph5");
-  cout << hnrowBtreeph5->GetTitle() << " entries " << hnrowBtreeph5->GetEntries() << " mean " << hnrowBtreeph5->GetMean() << endl;
+  if(DEBUG)  cout << hnrowBtreeph5->GetTitle() << " entries " << hnrowBtreeph5->GetEntries() << " mean " << hnrowBtreeph5->GetMean() << endl;
   hnrowBtreeph5->Write();
 
   for(int i =0; i<hnrowBtreeph5->GetEntries(); i++)    {
     hnrowB_ph5->SetBinContent(i+1,hnrowBtreeph5->GetBinContent(i+1));
   }
-  cout << hnrowB_ph5->GetTitle() << " entries " << hnrowB_ph5->GetEntries() << "mean " << hnrowB_ph5->GetMean() << endl;
+  if(DEBUG)  cout << hnrowB_ph5->GetTitle() << " entries " << hnrowB_ph5->GetEntries() << "mean " << hnrowB_ph5->GetMean() << endl;
   hnrowB_ph5->Write();
 
 
@@ -1455,50 +1470,50 @@ int main( int argc, char* argv[] )
   TH1I * hclBtreeph95 = new TH1I( "hclBtreeph95", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
   charge_res->Draw("clphBiiitree>>hclBtreeph95","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hclBtreeph95 = (TH1I*)gDirectory->Get("hclBtreeph95");
-  cout << hclBtreeph95->GetTitle() << " entries " << hclBtreeph95->GetEntries() << " mean " << hclBtreeph95->GetMean() << endl;
+  if(DEBUG)  cout << hclBtreeph95->GetTitle() << " entries " << hclBtreeph95->GetEntries() << " mean " << hclBtreeph95->GetMean() << endl;
   hclBtreeph95->Write();
 
   for(int i =0; i<hclBtreeph95->GetEntries(); i++)    {
     hclB_ph95->SetBinContent(i+1,hclBtreeph95->GetBinContent(i+1));
   }
-  cout << hclB_ph95->GetTitle() << " entries " << hclB_ph95->GetEntries() << "mean " << hclB_ph95->GetMean() << endl;
+  if(DEBUG)  cout << hclB_ph95->GetTitle() << " entries " << hclB_ph95->GetEntries() << "mean " << hclB_ph95->GetMean() << endl;
   hclB_ph95->Write();
 
   TH1I * hdxyCAtreeph95 = new TH1I( "hdxyCAtreeph95", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0.,0.3 );
   charge_res->Draw("dxyCAtree>>hdxyCAtreeph95","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hdxyCAtreeph95 = (TH1I*)gDirectory->Get("hdxyCAtreeph95");
-  cout << hdxyCAtreeph95->GetTitle() << " entries " << hdxyCAtreeph95->GetEntries() << " mean " << hdxyCAtreeph95->GetMean() << endl;
+  if(DEBUG)  cout << hdxyCAtreeph95->GetTitle() << " entries " << hdxyCAtreeph95->GetEntries() << " mean " << hdxyCAtreeph95->GetMean() << endl;
   hdxyCAtreeph95->Write();
 
   for(int i =0; i<hdxyCAtreeph95->GetEntries(); i++)    {
     hdxyCA_ph95->SetBinContent(i+1,hdxyCAtreeph95->GetBinContent(i+1));
   }
-  cout << hdxyCA_ph95->GetTitle() << " entries " << hdxyCA_ph95->GetEntries() << "mean " << hdxyCA_ph95->GetMean() << endl;
+  if(DEBUG)  cout << hdxyCA_ph95->GetTitle() << " entries " << hdxyCA_ph95->GetEntries() << "mean " << hdxyCA_ph95->GetMean() << endl;
   hdxyCA_ph95->Write();
   
   TH1I * hdxytreeph95 = new TH1I( "hdxytreeph95", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 0.3 );
   charge_res->Draw("dxytree>>hdxytreeph95","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hdxytreeph95 = (TH1I*)gDirectory->Get("hdxytreeph95");
-  cout << hdxytreeph95->GetTitle() << " entries " << hdxytreeph95->GetEntries() << " mean " << hdxytreeph95->GetMean() << endl;
+  if(DEBUG)  cout << hdxytreeph95->GetTitle() << " entries " << hdxytreeph95->GetEntries() << " mean " << hdxytreeph95->GetMean() << endl;
   hdxytreeph95->Write();
 
   for(int i =0; i<hdxytreeph95->GetEntries(); i++)    {
     hdxy_ph95->SetBinContent(i+1,hdxytreeph95->GetBinContent(i+1));
   }
-  cout << hdxy_ph95->GetTitle() << " entries " << hdxy_ph95->GetEntries() << "mean " << hdxy_ph95->GetMean() << endl;
+  if(DEBUG)  cout << hdxy_ph95->GetTitle() << " entries " << hdxy_ph95->GetEntries() << "mean " << hdxy_ph95->GetMean() << endl;
   hdxy_ph95->Write();
 
 
   TH1I * hclBtreeph5 = new TH1I( "hclBtreeph5", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
   charge_res->Draw("clphBiiitree>>hclBtreeph5","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
   hclBtreeph5 = (TH1I*)gDirectory->Get("hclBtreeph5");
-  cout << hclBtreeph5->GetTitle() << " entries " << hclBtreeph5->GetEntries() << " mean " << hclBtreeph5->GetMean() << endl;
+  if(DEBUG)  cout << hclBtreeph5->GetTitle() << " entries " << hclBtreeph5->GetEntries() << " mean " << hclBtreeph5->GetMean() << endl;
   hclBtreeph5->Write();
 
   for(int i =0; i<hclBtreeph5->GetEntries(); i++)    {
     hclB_ph5->SetBinContent(i+1,hclBtreeph5->GetBinContent(i+1));
   }
-  cout << hclB_ph5->GetTitle() << " entries " << hclB_ph5->GetEntries() << "mean " << hclB_ph5->GetMean() << endl;
+  if(DEBUG)  cout << hclB_ph5->GetTitle() << " entries " << hclB_ph5->GetEntries() << "mean " << hclB_ph5->GetMean() << endl;
   hclB_ph5->Write();
 
 
@@ -1515,37 +1530,37 @@ int main( int argc, char* argv[] )
   TH1D * hdx3treeq99 = new TH1D("hdx3treeq99", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   charge_res->Draw("dx3tree>>hdx3treeq99","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hdx3treeq99 = (TH1D*)gDirectory->Get("hdx3treeq99");
-  cout << hdx3treeq99->GetTitle() << " entries " << hdx3treeq99->GetEntries() << " mean " << hdx3treeq99->GetMean() << endl; 
+  if(DEBUG)  cout << hdx3treeq99->GetTitle() << " entries " << hdx3treeq99->GetEntries() << " mean " << hdx3treeq99->GetMean() << endl; 
   hdx3treeq99->Write();
 
   for(int i =0; i<hdx3treeq99->GetEntries(); i++)    {
     hdx3_clchargeABC90evR99->SetBinContent(i+1,hdx3treeq99->GetBinContent(i+1));
   }
-  cout << hdx3_clchargeABC90evR99->GetTitle() << " entries " << hdx3_clchargeABC90evR99->GetEntries() << "mean " << hdx3_clchargeABC90evR99->GetMean() << endl;
+  if(DEBUG)  cout << hdx3_clchargeABC90evR99->GetTitle() << " entries " << hdx3_clchargeABC90evR99->GetEntries() << "mean " << hdx3_clchargeABC90evR99->GetMean() << endl;
   hdx3_clchargeABC90evR99->Write();
 
   TH1I * hnrowBtreeq99 = new TH1I("hnrowBtreeq99", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
   charge_res->Draw("nrowBtree>>hnrowBtreeq99","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hnrowBtreeq99 = (TH1I*)gDirectory->Get("hnrowBtreeq99");
-  cout << hnrowBtreeq99->GetTitle() << " entries " << hnrowBtreeq99->GetEntries() << " mean " << hnrowBtreeq99->GetMean() << endl;
+  if(DEBUG)  cout << hnrowBtreeq99->GetTitle() << " entries " << hnrowBtreeq99->GetEntries() << " mean " << hnrowBtreeq99->GetMean() << endl;
   hnrowBtreeq99->Write();
 
   for(int i =0; i<hnrowBtreeq99->GetEntries(); i++)    {
     hnrowB_q99->SetBinContent(i+1,hnrowBtreeq99->GetBinContent(i+1));
   }
-  cout << hnrowB_q99->GetTitle() << " entries " << hnrowB_q99->GetEntries() << "mean " << hnrowB_q99->GetMean() << endl;
+  if(DEBUG)  cout << hnrowB_q99->GetTitle() << " entries " << hnrowB_q99->GetEntries() << "mean " << hnrowB_q99->GetMean() << endl;
   hnrowB_q99->Write();
 
   TH1I * hnrowBtreeq1 = new TH1I("hnrowBtreeq1", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
   charge_res->Draw("nrowBtree>>hnrowBtreeq1","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
   hnrowBtreeq1 = (TH1I*)gDirectory->Get("hnrowBtreeq5");
-  cout << hnrowBtreeq5->GetTitle() << " entries " << hnrowBtreeq1->GetEntries() << " mean " << hnrowBtreeq1->GetMean() << endl;
+  if(DEBUG)  cout << hnrowBtreeq5->GetTitle() << " entries " << hnrowBtreeq1->GetEntries() << " mean " << hnrowBtreeq1->GetMean() << endl;
   hnrowBtreeq1->Write();
 
   for(int i =0; i<hnrowBtreeq1->GetEntries(); i++)    {
     hnrowB_q1->SetBinContent(i+1,hnrowBtreeq1->GetBinContent(i+1));
   }
-  cout << hnrowB_q1->GetTitle() << " entries " << hnrowB_q1->GetEntries() << "mean " << hnrowB_q1->GetMean() << endl;
+  if(DEBUG)  cout << hnrowB_q1->GetTitle() << " entries " << hnrowB_q1->GetEntries() << "mean " << hnrowB_q1->GetMean() << endl;
   hnrowB_q1->Write();
 
 
@@ -1553,25 +1568,25 @@ int main( int argc, char* argv[] )
   TH1I * hclBtreeq99 = new TH1I( "hclBtreeq99", "B cluster charge of 99% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
   charge_res->Draw("clqBiiitree>>hclBtreeq99","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hclBtreeq99 = (TH1I*)gDirectory->Get("hclBtreeq99");
-  cout << hclBtreeq99->GetTitle() << " entries " << hclBtreeq99->GetEntries() << " mean " << hclBtreeq99->GetMean() << endl;
+  if(DEBUG)  cout << hclBtreeq99->GetTitle() << " entries " << hclBtreeq99->GetEntries() << " mean " << hclBtreeq99->GetMean() << endl;
   hclBtreeq99->Write();
 
   for(int i =0; i<hclBtreeq99->GetEntries(); i++)    {
     hclB_q99->SetBinContent(i+1,hclBtreeq99->GetBinContent(i+1));
   }
-  cout << hclB_q99->GetTitle() << " entries " << hclB_q99->GetEntries() << "mean " << hclB_q99->GetMean() << endl;
+  if(DEBUG)  cout << hclB_q99->GetTitle() << " entries " << hclB_q99->GetEntries() << "mean " << hclB_q99->GetMean() << endl;
   hclB_q99->Write();
 
   TH1I * hclBtreeq1 = new TH1I( "hclBtreeq1", "B cluster charge of 99% ;cluster charge [ke]; B clusters",            100, 0, 50 );  
   charge_res->Draw("clqBiiitree>>hclBtreeq1","clqAiiitree<"+qA+"&&clqBiiitree<"+qB+"&&clqCiiitree<"+qC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
   hclBtreeq1 = (TH1I*)gDirectory->Get("hclBtreeq1");
-  cout << hclBtreeq1->GetTitle() << " entries " << hclBtreeq1->GetEntries() << " mean " << hclBtreeq1->GetMean() << endl;
+  if(DEBUG)  cout << hclBtreeq1->GetTitle() << " entries " << hclBtreeq1->GetEntries() << " mean " << hclBtreeq1->GetMean() << endl;
   hclBtreeq1->Write();
 
   for(int i =0; i<hclBtreeq1->GetEntries(); i++)    {
     hclB_q1->SetBinContent(i+1,hclBtreeq1->GetBinContent(i+1));
   }
-  cout << hclB_q1->GetTitle() << " entries " << hclB_q1->GetEntries() << "mean " << hclB_q1->GetMean() << endl;
+  if(DEBUG)  cout << hclB_q1->GetTitle() << " entries " << hclB_q1->GetEntries() << "mean " << hclB_q1->GetMean() << endl;
   hclB_q1->Write();
 
 
@@ -1587,64 +1602,64 @@ int main( int argc, char* argv[] )
   TH1D * hdx3treeph99 = new TH1D("hdx3treeph99", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   charge_res->Draw("dx3tree>>hdx3treeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hdx3treeph99 = (TH1D*)gDirectory->Get("hdx3treeph99");
-  cout << hdx3treeph99->GetTitle() << " entries " << hdx3treeph99->GetEntries() << " mean " << hdx3treeph99->GetMean() << endl; 
+  if(DEBUG)  cout << hdx3treeph99->GetTitle() << " entries " << hdx3treeph99->GetEntries() << " mean " << hdx3treeph99->GetMean() << endl; 
   hdx3treeph99->Write();
 
   for(int i =0; i<hdx3treeph99->GetEntries(); i++)    {
     hdx3_clphABC90evR99->SetBinContent(i+1,hdx3treeph99->GetBinContent(i+1));
   }
-  cout << hdx3_clphABC90evR99->GetTitle() << " entries " << hdx3_clphABC90evR99->GetEntries() << "mean " << hdx3_clphABC90evR99->GetMean() << endl;
+  if(DEBUG)  cout << hdx3_clphABC90evR99->GetTitle() << " entries " << hdx3_clphABC90evR99->GetEntries() << "mean " << hdx3_clphABC90evR99->GetMean() << endl;
   cout << "TO COMPARE resolution " <<  hdx3_clphABC90evR99->GetRMS() * 1000 << " ± " <<  hdx3_clphABC90evR99->GetRMSError() * 1000 << endl;
   hdx3_clphABC90evR99->Write();
 
   TH1I * hnrowBtreeph99 = new TH1I("hnrowBtreeph99", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
   charge_res->Draw("nrowBtree>>hnrowBtreeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hnrowBtreeph99 = (TH1I*)gDirectory->Get("hnrowBtreeph99");
-  cout << hnrowBtreeph99->GetTitle() << " entries " << hnrowBtreeph99->GetEntries() << " mean " << hnrowBtreeph99->GetMean() << endl;
+  if(DEBUG)  cout << hnrowBtreeph99->GetTitle() << " entries " << hnrowBtreeph99->GetEntries() << " mean " << hnrowBtreeph99->GetMean() << endl;
   hnrowBtreeph99->Write();
 
   for(int i =0; i<hnrowBtreeph99->GetEntries(); i++)    {
     hnrowB_ph99->SetBinContent(i+1,hnrowBtreeph99->GetBinContent(i+1));
   }
-  cout << hnrowB_ph99->GetTitle() << " entries " << hnrowB_ph99->GetEntries() << "mean " << hnrowB_ph99->GetMean() << endl;
+  if(DEBUG)  cout << hnrowB_ph99->GetTitle() << " entries " << hnrowB_ph99->GetEntries() << "mean " << hnrowB_ph99->GetMean() << endl;
   hnrowB_ph99->Write();
 
 
   TH1I * hdxyCAtreeph99 = new TH1I( "hdxyCAtreeph99", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 0.3 );
   charge_res->Draw("dxyCAtree>>hdxyCAtreeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hdxyCAtreeph99 = (TH1I*)gDirectory->Get("hdxyCAtreeph99");
-  cout << hdxyCAtreeph99->GetTitle() << " entries " << hdxyCAtreeph99->GetEntries() << " mean " << hdxyCAtreeph99->GetMean() << endl;
+  if(DEBUG)  cout << hdxyCAtreeph99->GetTitle() << " entries " << hdxyCAtreeph99->GetEntries() << " mean " << hdxyCAtreeph99->GetMean() << endl;
   hdxyCAtreeph99->Write();
 
   for(int i =0; i<hdxyCAtreeph99->GetEntries(); i++)    {
     hdxyCA_ph99->SetBinContent(i+1,hdxyCAtreeph99->GetBinContent(i+1));
   }
-  cout << hdxyCA_ph99->GetTitle() << " entries " << hdxyCA_ph99->GetEntries() << "mean " << hdxyCA_ph99->GetMean() << endl;
+  if(DEBUG)  cout << hdxyCA_ph99->GetTitle() << " entries " << hdxyCA_ph99->GetEntries() << "mean " << hdxyCA_ph99->GetMean() << endl;
   hdxyCA_ph99->Write();
   
   TH1I * hdxytreeph99 = new TH1I( "hdxytreeph99", "B cluster charge of 95% ;cluster charge [ke]; B clusters",            100, 0, 0.3 );
   charge_res->Draw("dxytree>>hdxytreeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hdxytreeph99 = (TH1I*)gDirectory->Get("hdxytreeph99");
-  cout << hdxytreeph99->GetTitle() << " entries " << hdxytreeph99->GetEntries() << " mean " << hdxytreeph99->GetMean() << endl;
+  if(DEBUG)  cout << hdxytreeph99->GetTitle() << " entries " << hdxytreeph99->GetEntries() << " mean " << hdxytreeph99->GetMean() << endl;
   hdxytreeph99->Write();
 
   for(int i =0; i<hdxytreeph99->GetEntries(); i++)    {
     hdxy_ph99->SetBinContent(i+1,hdxytreeph99->GetBinContent(i+1));
   }
-  cout << hdxy_ph99->GetTitle() << " entries " << hdxy_ph99->GetEntries() << "mean " << hdxy_ph99->GetMean() << endl;
+  if(DEBUG)  cout << hdxy_ph99->GetTitle() << " entries " << hdxy_ph99->GetEntries() << "mean " << hdxy_ph99->GetMean() << endl;
   hdxy_ph99->Write();
 
   
   TH1I * hnrowBtreeph1 = new TH1I("hnrowBtreeph1", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
   charge_res->Draw("nrowBtree>>hnrowBtreeph1","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
   hnrowBtreeph1 = (TH1I*)gDirectory->Get("hnrowBtreeph1");
-  cout << hnrowBtreeph1->GetTitle() << " entries " << hnrowBtreeph1->GetEntries() << " mean " << hnrowBtreeph1->GetMean() << endl;
+  if(DEBUG)  cout << hnrowBtreeph1->GetTitle() << " entries " << hnrowBtreeph1->GetEntries() << " mean " << hnrowBtreeph1->GetMean() << endl;
   hnrowBtreeph1->Write();
 
   for(int i =0; i<hnrowBtreeph1->GetEntries(); i++)    {
     hnrowB_ph1->SetBinContent(i+1,hnrowBtreeph1->GetBinContent(i+1));
   }
-  cout << hnrowB_ph1->GetTitle() << " entries " << hnrowB_ph1->GetEntries() << "mean " << hnrowB_ph1->GetMean() << endl;
+  if(DEBUG)  cout << hnrowB_ph1->GetTitle() << " entries " << hnrowB_ph1->GetEntries() << "mean " << hnrowB_ph1->GetMean() << endl;
   hnrowB_ph1->Write();
 
 
@@ -1652,25 +1667,25 @@ int main( int argc, char* argv[] )
   TH1I * hclBtreeph99 = new TH1I( "hclBtreeph99", "B cluster charge of 99% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
   charge_res->Draw("clphBiiitree>>hclBtreeph99","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&dx3tree<"+ss_high+"&&dx3tree>"+ss_low,"goff");
   hclBtreeph99 = (TH1I*)gDirectory->Get("hclBtreeph99");
-  cout << hclBtreeph99->GetTitle() << " entries " << hclBtreeph99->GetEntries() << " mean " << hclBtreeph99->GetMean() << endl;
+  if(DEBUG)  cout << hclBtreeph99->GetTitle() << " entries " << hclBtreeph99->GetEntries() << " mean " << hclBtreeph99->GetMean() << endl;
   hclBtreeph99->Write();
 
   for(int i =0; i<hclBtreeph99->GetEntries(); i++)    {
     hclB_ph99->SetBinContent(i+1,hclBtreeph99->GetBinContent(i+1));
   }
-  cout << hclB_ph99->GetTitle() << " entries " << hclB_ph99->GetEntries() << "mean " << hclB_ph99->GetMean() << endl;
+  if(DEBUG)  cout << hclB_ph99->GetTitle() << " entries " << hclB_ph99->GetEntries() << "mean " << hclB_ph99->GetMean() << endl;
   hclB_ph99->Write();
 
   TH1I * hclBtreeph1 = new TH1I( "hclBtreeph1", "B cluster charge of 99% ;cluster charge [ke]; B clusters",            200, 0, 1000 );  
   charge_res->Draw("clphBiiitree>>hclBtreeph1","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC+"&&(dx3tree>"+ss_high+"||dx3tree<"+ss_low+")","goff");
   hclBtreeph1 = (TH1I*)gDirectory->Get("hclBtreeph1");
-  cout << hclBtreeph1->GetTitle() << " entries " << hclBtreeph1->GetEntries() << " mean " << hclBtreeph1->GetMean() << endl;
+  if(DEBUG)  cout << hclBtreeph1->GetTitle() << " entries " << hclBtreeph1->GetEntries() << " mean " << hclBtreeph1->GetMean() << endl;
   hclBtreeph1->Write();
 
   for(int i =0; i<hclBtreeph1->GetEntries(); i++)    {
     hclB_ph1->SetBinContent(i+1,hclBtreeph1->GetBinContent(i+1));
   }
-  cout << hclB_ph1->GetTitle() << " entries " << hclB_ph1->GetEntries() << "mean " << hclB_ph1->GetMean() << endl;
+  if(DEBUG)  cout << hclB_ph1->GetTitle() << " entries " << hclB_ph1->GetEntries() << "mean " << hclB_ph1->GetMean() << endl;
   hclB_ph1->Write();
 
 
@@ -1876,7 +1891,7 @@ int main( int argc, char* argv[] )
   cout << endl;
 
   return 0;
-}
+    }
 
 
 /////// end of main code
@@ -1896,14 +1911,18 @@ void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TStr
     double tolerance = (h->GetBinContent(0)+h->GetBinContent(h->GetNbinsX()+1))/h->GetEntries(); // since we are not working with continuous quantities but with binned hists, the difference between the integral and the 95% it may not be zero, so we ask it to be lower than 15% (before I was using 1.1% but since I changed to use the full range of hists, the overflow bin plays a too bigger role when stats is low and the 1.1% is not reached. 
     cout << " bin 0 " << h->GetBinContent(0) << " overflow " << h->GetBinContent(h->GetNbinsX()+1) << " entries " << h->GetEntries() << endl;
     cout << " RMS method charge based with tolerance " << tolerance << " with over/under flow would be " << (h->GetBinContent(0)+h->GetBinContent(h->GetNbinsX()+1))/h->GetEntries() << endl;
+    if(tolerance == 0){
+      tolerance = 0.0001;
+      cout << " tolerance set to "<< tolerance << endl;
+    }
     double maximum = h->GetMaximum();
     int maxbin = h->GetMaximumBin();
-    cout <<  " maxbin " << maxbin << " at " << h->GetBinCenter(maxbin)<<endl;
+    if(PRINT) cout <<  " maxbin " << maxbin << " at " << h->GetBinCenter(maxbin)<<endl;
     cout << "intital sigma = " << h->GetRMS() * 1000 << " sigmaerr = " << h->GetRMSError() * 1000 << endl;
     double Integral = h->Integral(0,h->GetNbinsX()+1);
     cout << " integral " << Integral << " entries " << h->GetEntries() << endl;
     double integral95 = percent*Integral;
-    cout << " integra "<< percent << " " << integral95 << endl;
+    cout << " integral "<< percent << " " << integral95 << endl;
     int i = 0;
     
     for(int i =0; i<h->GetNbinsX()/2; i++)
@@ -1912,17 +1931,17 @@ void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TStr
 	high = maxbin+i;
       
 	Integral = h->Integral(low,high);
-	cout << " integral " << Integral << "low " <<low << " high " << high << endl;
-	cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
+	if(DEBUG) cout << " integral " << Integral << "low " <<low << " high " << high << endl;
+	if(DEBUG) cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
 	
 	//      if(fabs(Integral-integral95)/integral95 < 0.011 || Integral>integral95)//integral>integral95)
 	if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
 	  break;
-	cout << "final integral " << Integral << "low " <<low <<" high " << high << endl;
 
-  
 
+	
       }
+    cout << "final integral " << Integral << " = " << 100*Integral/h->Integral(0,h->GetNbinsX()+1) << " %" << endl;
   }
   if(method == "simon")
     {
@@ -1961,12 +1980,13 @@ void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TStr
   double sigmaerr = h->GetRMSError() * 1000;
   cout << " resolution " << sigma << " ± " << sigmaerr << endl;
 
+  h->GetXaxis()->SetRange(1,h->GetNbinsX());
   cout << "low and hig bin centers strings " << h->GetBinCenter(low) << " " << h->GetBinCenter(high) << endl;
   *dlow  = h->GetBinCenter(low);
   *dhigh = h->GetBinCenter(high);
   
 
-}
+}//getPerc
 
 
 
@@ -2640,6 +2660,17 @@ double eta(vector<cluster>::iterator c)
     }
   return eta;
 }
+double eta2(cluster c)
+{
+  double eta = -2;
+  if( c.size == 2 )
+    {
+      double q0 = c.vpix[0].q;
+      double q1 = c.vpix[1].q;
+      eta = (q1-q0)/(q1+q0);
+    }
+  return eta;
+}
 
 	  
 // ******** xcoordinate and ycoordinate functions:
@@ -2655,6 +2686,17 @@ double xcoordinate(int plane, vector<cluster>::iterator c, double align, double 
   
   return variable;
 }
+double xcoordinate2(int plane, cluster c, double align, double pitchc, double pitchr)
+{
+  double variable;
+  variable = c.row*pitchr - halfSensorX - align; //[mm]
+  // if( run == 431 && plane == 1 )
+  //   variable = c->row*ptchr - halfSensorX; // rot90
+  if( fifty )
+    variable = c.col*pitchc - halfSensorY - align; // straight
+  
+  return variable;
+}
       
 double ycoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr)
 {
@@ -2665,6 +2707,18 @@ double ycoordinate(int plane, vector<cluster>::iterator c, double align, double 
   //   variable =  c->col*ptchc - halfSensorY; // PCB
   if( fifty )
     variable = c->row*pitchr - halfSensorX - align; // PCB
+
+  return variable;
+}
+double ycoordinate2(int plane, cluster c, double align, double pitchc, double pitchr)
+{
+  double variable;
+  
+  variable =  c.col*pitchc - halfSensorY - align; //[mm]
+  // if( run == 431 && plane == 1  )
+  //   variable =  c->col*ptchc - halfSensorY; // PCB
+  if( fifty )
+    variable = c.row*pitchr - halfSensorX - align; // PCB
 
   return variable;
 }
@@ -2965,6 +3019,579 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   return mapOfHists;
 }
 
+
+
+
+
+
+void  fillControlHists2(histoMap mapOfHists, TString selection, double dx3, double dy3, cluster clusterA, cluster clusterB, cluster clusterC, int nrowB, int ncolB,double xmod, unsigned iev,double xB, double yB,double xAr, double yAr, double xCr, double yCr,double dxCA,double etaA, double etaB, double etaC,TFile * histofile, TString fileName, TH1I *hclphA,TH1I *hclphB,TH1I *hclphC, TH1I *hclqA, TH1I *hclqB, TH1I *hclqC)
+{
+
+  if(PRINT) std::cout << "********** filling hists of "<< selection << endl;
+  
+  TDirectory *cdtof = (TDirectory *)histofile->Get(selection);
+  if(PRINT)  cout << "looking for directory " << fileName << ":"<< selection << endl;
+
+  cdtof->cd(fileName+":"+selection);
+
+  if(PRINT)  cout << " directory " << fileName << ":"<< selection << " found "<< endl;
+  if(PRINT)cout << " cl B " << clusterB.size << endl;
+  if(PRINT) cout << "filling in map" << endl;
+
+  if(PRINT)cout << " hclph B " << hclphB->GetEntries() << endl;
+  if(PRINT)cout << " hclq B " << hclqB->GetEntries() << endl;
+
+  TH1I * hclq[DreiMasterPlanes];
+  hclq[0]=hclqA;
+  hclq[1]=hclqB;
+  hclq[2]=hclqC;
+
+  TH1I * hclph[DreiMasterPlanes];
+  hclph[0]=hclphA;
+  hclph[1]=hclphB;
+  hclph[2]=hclphC;
+
+
+  
+  double dyCA = yCr - yAr;
+  double dxyCA = sqrt( dxCA*dxCA + dyCA*dyCA );
+
+  auto  search =  mapOfHists.find("dxyCA");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(dxyCA);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dxyCA" << endl;
+  }
+
+  
+  double dxy = sqrt( dx3*dx3 + dy3*dy3 );
+
+  search =  mapOfHists.find("dxy");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(dxy);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dxy" << endl;
+  }
+
+
+  
+  search =  mapOfHists.find("xA");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(xAr);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "xA" << endl;
+  }
+
+  search =  mapOfHists.find("yA");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(yAr);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "yAr" << endl;
+  }
+
+  search =  mapOfHists.find("xB");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(xB);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "xB" << endl;
+  }
+
+  search =  mapOfHists.find("yB");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(yB);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "yB" << endl;
+  }
+
+  search =  mapOfHists.find("xC");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(xCr);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "xC" << endl;
+  }
+
+  search =  mapOfHists.find("yC");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(yCr);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "yCr" << endl;
+  }
+
+
+  
+  search =  mapOfHists.find("dx3");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3" << endl;
+  }
+
+
+  search =  mapOfHists.find("dy3");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(dy3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dy3" << endl;
+  }
+
+  search =  mapOfHists.find("clsizeA");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterA.size);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clsizeA" << endl;
+  }
+
+  search =  mapOfHists.find("clsizeB");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterB.size);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clsizeB" << endl;
+  }
+
+    search =  mapOfHists.find("clsizeC");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterC.size);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clsizeC" << endl;
+  }
+
+
+  search =  mapOfHists.find("nrowB");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(nrowB);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "nrowB" << endl;
+  }
+
+  search =  mapOfHists.find("ncolB");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(ncolB);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "ncolB" << endl;
+  }
+
+  search =  mapOfHists.find("clmapA");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterA.col, clusterA.row);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clmapA" << endl;
+  }
+
+  search =  mapOfHists.find("clmapB");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterB.col, clusterB.row);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clmapB" << endl;
+  }
+
+  search =  mapOfHists.find("clmapC");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterC.col, clusterC.row);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clmapC" << endl;
+  }
+
+
+  search =  mapOfHists.find("clchargeA");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterA.q);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clchargeA" << endl;
+  }
+
+    search =  mapOfHists.find("clchargeB");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterB.q);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clchargeB" << endl;
+  }
+
+    search =  mapOfHists.find("clchargeC");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterC.q);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clchargeC" << endl;
+  }
+
+  search =  mapOfHists.find("clphA");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterA.sum);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clphA" << endl;
+  }
+
+    search =  mapOfHists.find("clphB");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterB.sum);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clphB" << endl;
+  }
+
+  search =  mapOfHists.find("clphC");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterC.sum);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clphC" << endl;
+  }
+
+  search =  mapOfHists.find("pxphA");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    for( int ipx = 0; ipx < clusterA.size; ++ipx )     search->second->Fill( clusterA.vpix[ipx].ph );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxphA" << endl;
+  }
+
+  search =  mapOfHists.find("pxchargeA");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    for( int ipx = 0; ipx < clusterA.size; ++ipx )     search->second->Fill( clusterA.vpix[ipx].q );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxchargeA" << endl;
+  }
+
+  search =  mapOfHists.find("pxphB");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    for( int ipx = 0; ipx < clusterB.size; ++ipx )     search->second->Fill( clusterB.vpix[ipx].ph );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxphB" << endl;
+  }
+
+  search =  mapOfHists.find("pxchargeB");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    for( int ipx = 0; ipx < clusterB.size; ++ipx )     search->second->Fill( clusterB.vpix[ipx].q );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxchargeB" << endl;
+  }
+
+  search =  mapOfHists.find("pxphC");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    for( int ipx = 0; ipx < clusterC.size; ++ipx )     search->second->Fill( clusterC.vpix[ipx].ph );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxphC" << endl;
+  }
+
+  search =  mapOfHists.find("pxchargeC");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    for( int ipx = 0; ipx < clusterC.size; ++ipx )     search->second->Fill( clusterC.vpix[ipx].q );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxchargeC" << endl;
+  }
+
+
+  search =  mapOfHists.find("etaA");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterA.size ==2)
+      search->second->Fill(etaA);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "etaA" << endl;
+  }
+
+  search =  mapOfHists.find("etaB");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterB.size ==2)
+      search->second->Fill(etaB);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "etaB" << endl;
+  }
+
+  search =  mapOfHists.find("etaC");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterC.size ==2)
+      search->second->Fill(etaC);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "etaA" << endl;
+  }
+		    
+  search =  mapOfHists.find("pxchargeB1st");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterB.size ==2)
+      search->second->Fill( clusterB.vpix[0].q );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxchargeB1st" << endl;
+  }
+
+  search =  mapOfHists.find("pxchargeB2nd");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterB.size ==2)
+      search->second->Fill( clusterB.vpix[1].q );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "pxchargeB2nd" << endl;
+  }
+
+
+
+
+  search =  mapOfHists.find("nrowvsxmB3");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+
+  if( fifty )
+    search->second->Fill( xmod*1E3, ncolB );
+  else
+    search->second->Fill( xmod*1E3, nrowB );
+
+  } else {
+    if(PRINT) std::cout << "Not found "<< "nrowvsxmB3" << endl;
+  }
+
+  search =  mapOfHists.find("clqvsxmB3");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( xmod*1E3, clusterB.q );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "clqvsxmB3" << endl;
+  }
+
+  search =  mapOfHists.find("dx3vsev");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( iev, dx3 );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3vsev" << endl;
+  }
+
+  search =  mapOfHists.find("dx3vsx");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( xB, dx3 ); // turn 
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3vsx" << endl;
+  }
+
+  search =  mapOfHists.find("dx3vsy");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( yB, dx3 ); // rot
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3vsy" << endl;
+  }
+
+  search =  mapOfHists.find("dx3vsxm");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( xmod*1E3, dx3 ); // rot
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3vsxm" << endl;
+  }
+  search =  mapOfHists.find("madx3vsdx");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( dxCA*1E3, fabs(dx3) ); // dxCA
+  } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vsdx" << endl;
+  }
+
+  search =  mapOfHists.find("madx3vsx");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( xB, fabs(dx3) );
+  } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vsx" << endl;
+  }
+
+  search =  mapOfHists.find("madx3vsy");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill( yB, fabs(dx3) );
+      } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vsy" << endl;
+  }
+
+  search =  mapOfHists.find("madx3vsxm");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(xmod*1E3, fabs(dx3) );
+      } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vsxm" << endl;
+  }
+
+  search =  mapOfHists.find("madx3vsq");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterB.q, fabs(dx3) );
+      } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vsq" << endl;
+  }
+
+  search =  mapOfHists.find("madx3vsn");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(clusterB.size, fabs(dx3) );
+      } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vsn" << endl;
+  }
+
+  search =  mapOfHists.find("etavsxmB3");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end() ) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterB.size == 2)
+      search->second->Fill( xmod*1E3, etaB ); // sine 
+  } else {
+    if(PRINT) std::cout << "Not found "<< "etavsxmB3" << endl;
+  }
+  
+  search =  mapOfHists.find("madx3vseta");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end() ) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterB.size == 2)
+      search->second->Fill( etaB, fabs(dx3) ); // flat 
+  } else {
+    if(PRINT) std::cout << "Not found "<< "madx3vseta" << endl;
+  }
+  
+
+  search =  mapOfHists.find("dx3_clsizeB1");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterB.size ==1)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB1" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clsizeB2");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterB.size ==2)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB2" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clsizeB3");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterB.size ==3)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB3" << endl;
+  }
+
+  search =  mapOfHists.find("dx3_clsizeB4");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterB.size ==4)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB4" << endl;
+  }
+  search =  mapOfHists.find("dx3_clsizeB5");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterB.size ==5)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB5" << endl;
+  }
+  search =  mapOfHists.find("dx3_clsizeB6");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterB.size ==6)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB6" << endl;
+  }
+  search =  mapOfHists.find("dx3_clsizeB7m");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    if(clusterB.size >6)
+      search->second->Fill(dx3);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dx3_clsizeB7m" << endl;
+  }
+
+
+}
 
 void  fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC, int nrowB, int ncolB,double xmod, unsigned iev,double xB, double yB,double xAr, double yAr, double xCr, double yCr,double dxCA,double etaA, double etaB, double etaC,TFile * histofile, TString fileName, TH1I *hclphA,TH1I *hclphB,TH1I *hclphC, TH1I *hclqA, TH1I *hclqB, TH1I *hclqC)
 {

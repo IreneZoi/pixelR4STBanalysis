@@ -37,6 +37,7 @@ struct cluster {
 struct closest {
   int index = -1;
   double distance = 1337.1337;
+  bool used = false;
 };
 
 
@@ -60,9 +61,6 @@ list < evInfo > infoC;
 double nSigmaTolerance = 3;
 double beamDivergence = 0.001; //1 mrad
 double straightTracks = ACspacing*beamDivergence*nSigmaTolerance;
-int iA = 0;
-int iB = 0;
-int iC = 0;
 
 //functions definition
 vector<cluster> getClus( vector <pixel> pb, int fCluCut = 1 ); // 1 = no gap
@@ -73,14 +71,18 @@ void bookHists();
 typedef std::map<TString, TH1*> histoMap;
 histoMap bookControlHists(TString selection, TFile * histofile);
 void fillControlHists(histoMap mapOfHists, TString selection, double dx3, double dy3, vector<cluster>::iterator clusterA, vector<cluster>::iterator clusterB, vector<cluster>::iterator clusterC, int ncolB,int nrowB,double xmod,unsigned iev,double xB, double yB,double xAr, double yAr, double xCr, double yCr, double dxCA,double etaA, double etaB, double etaC, TFile * histofile, TString fileName, TH1I *hclphA,TH1I *hclphB,TH1I *hclphC, TH1I *hclqA, TH1I *hclqB, TH1I *hclqC);
+void fillControlHists2(histoMap mapOfHists, TString selection, double dx3, double dy3, cluster clusterA, cluster clusterB, cluster clusterC, int ncolB,int nrowB,double xmod,unsigned iev,double xB, double yB,double xAr, double yAr, double xCr, double yCr, double dxCA,double etaA, double etaB, double etaC, TFile * histofile, TString fileName, TH1I *hclphA,TH1I *hclphB,TH1I *hclphC, TH1I *hclqA, TH1I *hclqB, TH1I *hclqC);
 
 double xcoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pitchr); 
+double xcoordinate2(int plane, cluster c, double align, double pitchc, double pitchr); 
 double ycoordinate(int plane, vector<cluster>::iterator c, double align, double pitchc, double pichr); 
+double ycoordinate2(int plane, cluster c, double align, double pitchc, double pitchr); 
 double eta(vector<cluster>::iterator c); 
+double eta2(cluster c); 
 double alignx(TH1I * h, TString plane,TString run,int iteration);
 double aligny(TH1I * h, TString plane,TString run,int iteration);
 double alignangle(TProfile * h, TString plane,TString run,int iteration);
-void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent);
+void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TString method);
 
 
 //TH1I * hdx3b; // = new TH1I("dx3", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 ); 
@@ -100,6 +102,11 @@ Double_t clphBiii;
 Double_t clphCiii;
 Double_t nrowBtree;
 Int_t evt;
+Int_t nclustA;
+Int_t nclustB;
+Int_t nclustC;
+
+
 
 TH1I * hdx3_clchargeABC90evR; // = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
 TH1I * hdx3_clphABC90evR;   // = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
@@ -110,6 +117,7 @@ TH1I * hdx3_clchargeABC90evR95; // = new TH1I("dx3_clchargeABC90evR ", "triplet 
 TH1I * hdx3_clphABC90evR95;   // = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
 TH1I * hdx3_clchargeABC90evR99; // = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
 TH1I * hdx3_clphABC90evR99;   // = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+
 
 TH1I * hnrowB_ph95;
 TH1I * hnrowB_q95;
@@ -183,6 +191,10 @@ TH2I * hyyAB;// = new TH2I;// ( "yyAB", "B vs A;col A;col B;clusters",  80, -4, 
 
 double f = 0.5;
 //double f = 0.1; // aligned
+
+TH1I * hdxyCA;
+
+TH1I * hdxy;
 
 TH1I * hdxAB;// ( "dxAB", "Bx-Ax;x-x [mm];cluster pairs", 800, -2, 2 );
 TH1I * hdyAB;// ( "dyAB", "By-Ay;y-y [mm];cluster pairs", 400, -2, 2 );
