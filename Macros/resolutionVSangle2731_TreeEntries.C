@@ -146,7 +146,7 @@ void resolutionVSangle2731_TreeEntries(TString function = "RMSself")
 	  if(print)               cout << " found map " << endl;
 	  if(print)                   cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
 
-	  FitTH1(it2->second, &(Resolution[i]), &(ResolutionError[i]), ss_Angle[i], detectorA, detectorB, detectorC, function, &(Percentage[i]),6);
+	  FitTH1(it2->second, &(Resolution[i]), &(ResolutionError[i]), ss_Angle[i], detectorA, detectorB, detectorC, function, &(Percentage[i]));
 	  if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << " Percentage: " << Percentage[i] << endl;
 
 	  myfile << " " << Angle[i] << " " << Resolution[i] << " " << ResolutionError[i] << "\n";

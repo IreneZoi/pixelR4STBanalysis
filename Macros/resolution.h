@@ -117,7 +117,7 @@ void ExtractRes(Double_t *  sigma, Double_t *  sigmaerr, bool isIRR = false, Dou
 
 }
 
-void FitTH1(TH1* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TString detectorA, TString detectorB, TString detectorC, TString func, Double_t * percentage, Double_t nsigma = 4)
+void FitTH1(TH1* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TString detectorA, TString detectorB, TString detectorC, TString func, Double_t * percentage, Double_t nsigma = 6)
 {
   cout << " evaluating resolution with method " << func << endl;
   gROOT->SetStyle("Plain");
