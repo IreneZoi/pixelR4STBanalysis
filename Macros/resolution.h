@@ -305,7 +305,7 @@ void FitTH1(TH1* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TStr
 
     TH1* hSubR = (TH1*)h1->Clone();
     Double_t N = nsigma;
-    Double_t NFull = h1->GetEntries();
+    Double_t NFull = h1->Integral(0,h1->GetNbinsX()+1);
     Double_t NSubR = NFull;
     Double_t prev_rms = 0;
     Double_t this_rms = 0;
@@ -320,15 +320,17 @@ void FitTH1(TH1* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TStr
       this_rms = hSubR->GetRMS();
       x1 = hSubR->GetMean() - this_rms * N;
       x2 = hSubR->GetMean() + this_rms * N;
-      NSubR = hSubR->GetEntries();
+
 
       hSubR->GetXaxis()->SetRangeUser(x1,x2);
-
+      NSubR = hSubR->Integral();
+      *percentage = NSubR / NFull;
           cout << "Iterations   " << cnt << endl
 	             << "  RMS        " << this_rms << endl
-	             << "  Percentage " << NSubR / NFull << endl
+               << "NSubR " << NSubR << " NFull " << NFull << endl 
+	       << "  Percentage " << *percentage << endl
 	       << "  New Range  " << x1 << " to " << x2 << endl << endl;
-	  *percentage = NSubR / NFull;
+
 
     } while( this_rms != prev_rms );
 
