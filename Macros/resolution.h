@@ -1,9 +1,95 @@
 //void FitTH1(TH1F* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TString detectorA, TString detectorB, TString detectorC, TString func );
-#include<bits/stdc++.h> 
+#include<bits/stdc++.h>
+#include "TRandom3.h"
+
 Double_t tp0Fit( Double_t *x, Double_t *par );
-
-
 double G = 1E0;
+
+
+double poissonsmearing(TH1* h, TString name, TString detectorA, TString detectorB, TString detectorC, int nexp = 10000){
+  TRandom3 *myrnd = new TRandom3();
+  TH1F *sigmas = new TH1F("sigmas","",200,0.,10.);
+
+  //getting original sigma for reference
+  double sigma = h->GetRMS() * 1000;
+  double sigmaerr = h->GetRMSError() * 1000;
+  cout << "original resolution " << sigma << " ± " << sigmaerr << endl;
+
+  // Repeat this pseudo experiment 1k times:
+  for(size_t i = 0; i < nexp; i++) {
+
+    // new histogram, clone of the original:
+    TH1F * smeared = (TH1F*)h->Clone("smeared");
+
+    // loop over the bins:
+    for(Int_t bin = 1; bin <= h->GetNbinsX(); bin++) {
+      // Get random number from Poisson distribution with mean of original bin content:
+      Double_t newcontent = myrnd->Poisson(h->GetBinContent(bin));
+      //cout << " " << i << " bin " << bin << " orig " << original->GetBinContent(bin) << " rnd " << content << endl;
+      smeared->SetBinContent(bin,newcontent);
+    }
+    Double_t res = smeared->GetRMS() * 1000;
+
+    if(i%1000 == 0) cout << "i" << i << " sigma = " << res << endl;
+    sigmas->Fill(res,1);
+
+    delete smeared;
+  }
+
+    // plot width distribution
+    gROOT->SetStyle("Plain");
+    gStyle->SetPadGridX(0);
+    gStyle->SetPadGridY(0);
+    gStyle->SetPalette(1);
+    gStyle->SetOptStat(0);
+    //  gPad->SetTickx();
+    //gPad->SetTicky();
+
+    TCanvas * cs = new TCanvas("cs","cs",700,700);
+
+    cs->cd();
+    cs->SetFrameFillStyle(1000);
+    cs->SetFrameFillColor(0);
+    cs->SetLeftMargin(0.15);
+    cs->SetRightMargin(0.15);
+    cs->SetBottomMargin(0.2);
+    gPad->SetTicks(1,1);
+
+
+    sigmas->SetTitle("");
+    sigmas->GetXaxis()->SetLabelFont(42);
+    sigmas->GetXaxis()->SetLabelSize(0.04);
+    sigmas->GetXaxis()->SetTitleSize(0.05);
+    sigmas->GetXaxis()->SetTitleOffset(0.8);
+    sigmas->GetXaxis()->SetTitleFont(42);
+
+    sigmas->GetYaxis()->SetLabelFont(42);
+    sigmas->GetYaxis()->SetLabelSize(0.04);
+    sigmas->GetYaxis()->SetTitleSize(0.05);
+    sigmas->GetYaxis()->SetTitleOffset(1.);
+    sigmas->GetYaxis()->SetTitleFont(42);
+
+    sigmas->GetYaxis()->SetTitle("Entries");
+    sigmas->GetXaxis()->SetTitle("width [mm]");
+
+    //TF1 * MyGaus = new TF1("MyGaus","gaus", -0.06,0.06);
+    sigmas->SetMarkerStyle(20);
+    sigmas->Draw("PZ");
+    
+    cs->Update();
+    gStyle->SetOptFit(1111);
+    TString outputDir="/home/zoiirene/Output/Plots/";
+
+    //  TString outputDir = outputDir+"";
+    TString outputFile = outputDir+"width_Fit_"+name+"_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".eps";
+    cs->SaveAs(outputFile);
+
+    cout << "statistical uncertainty: " << sigmas->GetRMS() << endl;
+    return sigmas->GetRMS();
+    
+  }
+
+
 Double_t conversion = TMath::Sqrt(2./3.);
 
 void ExtractRes(Double_t *  sigma, Double_t *  sigmaerr, bool isIRR = false, Double_t sigma_fresh = 0., Double_t sigmaerr_fresh = 0.)
@@ -21,7 +107,7 @@ void ExtractRes(Double_t *  sigma, Double_t *  sigmaerr, bool isIRR = false, Dou
       Double_t sigma_orig = *sigma;
       Double_t sigmaerr_orig = *sigmaerr;
       
-      *sigma = TMath::Sqrt((2*sigma_orig*sigma_orig-sigma_fresh*sigma_fresh)/2);
+      *sigma = TMath::Sqrt((2*sigma_orig*sigma_orig-sigma_fresh*sigma_fresh)/2.);
       *sigmaerr = TMath::Sqrt( 1./(*sigma)*sigma_orig*sigma_orig*sigmaerr_orig*sigmaerr_orig  + 0.25/(*sigma)*sigma_fresh*sigma_fresh*sigmaerr_fresh*sigmaerr_fresh );
       
     }
@@ -31,7 +117,7 @@ void ExtractRes(Double_t *  sigma, Double_t *  sigmaerr, bool isIRR = false, Dou
 
 }
 
-void FitTH1(TH1F* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TString detectorA, TString detectorB, TString detectorC, TString func)
+void FitTH1(TH1* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TString detectorA, TString detectorB, TString detectorC, TString func, Double_t * percentage, Double_t nsigma = 4)
 {
   cout << " evaluating resolution with method " << func << endl;
   gROOT->SetStyle("Plain");
@@ -160,7 +246,141 @@ void FitTH1(TH1F* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TSt
 	    *sigmaerr = tp0Fcn->GetParError(1)*1000.;
 
     }
-  if(func == "RMS")
+  if(func == "FWHM")
+    {
+      cout <<func <<  " method" << endl;
+      double maximum = h1->GetMaximum();
+      double halfmaximum = h1->GetMaximum()/2.;
+      int maxbin = h1->GetMaximumBin();
+      cout <<  " maxbin " << maxbin << " at " << h1->GetBinCenter(h1->GetMaximumBin())<<endl;
+      cout << "intital sigma = " << h1->GetRMS() * 1000 << " sigmaerr = " << h1->GetRMSError() * 1000 << endl;
+      
+
+      int bin1 = h1->FindFirstBinAbove(halfmaximum);
+      int bin2 = h1->FindLastBinAbove(halfmaximum);
+      cout << " max " << maximum << " max/2 " << halfmaximum << " bin1 " << h1->GetBinContent(bin1) << " bin2 " << h1->GetBinContent(bin2) << endl;
+      double fwhm = h1->GetBinCenter(bin2) - h1->GetBinCenter(bin1);
+      cout << "fwhm " << fwhm << " low " << bin1 << " high " << bin2 << endl;
+
+
+      *sigma = fwhm * 1000;
+      *sigmaerr = poissonsmearing( h1, name,  detectorA, detectorB, detectorC);
+      cout << " resolution " << *sigma << " ± " << *sigmaerr << endl;
+      TString mean;
+      std::ostringstream sstream_mean;
+      sstream_mean << setprecision(2) << h1->GetMean();// * 1000;
+      mean = sstream_mean.str();
+      TString meanerr;
+      std::ostringstream sstream_meanerr;
+      sstream_meanerr << setprecision(1) << h1->GetMeanError();// * 1000;
+      meanerr = sstream_meanerr.str();
+      
+      TString rms;
+      std::ostringstream sstream_rms;
+      sstream_rms << setprecision(3) << h1->GetRMS() * 1000;
+      rms = sstream_rms.str();
+      
+      TString rmserr;
+      std::ostringstream sstream_rmserr;
+      sstream_rmserr << setprecision(1) << h1->GetRMSError() * 1000;
+      rmserr = sstream_rmserr.str();
+      //      TGaxis::SetMaxDigits(2)      ;
+      gStyle->SetOptStat(0);
+      TLatex Tl2;
+      Tl2.SetTextAlign(12);
+      Tl2.SetTextSize(0.04);
+      Tl2.DrawLatexNDC(0.23,0.7," #mu = "+mean+" mm");
+      Tl2.DrawLatexNDC(0.23,0.62," #sigma = "+rms+" #pm "+rmserr+" #mum");
+      //Tl2.DrawLatexNDC(0.6,0.54,"|#Delta #eta |< 1.3");
+      //Tl2.DrawLatexNDC(0.6,0.51,"m_{jj} > 1050 GeV");
+      //Tl2.DrawLatexNDC(0.6,0.48,"65 GeV < M_{SD} < 105 GeV");
+      
+
+    }
+  if(func=="RMSself"){
+    cout << func << endl;
+    ///////////////////////////////
+    // Self consistent RMS in N RMS
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+    TH1* hSubR = (TH1*)h1->Clone();
+    Double_t N = nsigma;
+    Double_t NFull = h1->GetEntries();
+    Double_t NSubR = NFull;
+    Double_t prev_rms = 0;
+    Double_t this_rms = 0;
+    Double_t x1 = 0;
+    Double_t x2 = 0;
+    Int_t cnt = 0;
+
+    do{
+
+      cnt++;
+      prev_rms = this_rms;
+      this_rms = hSubR->GetRMS();
+      x1 = hSubR->GetMean() - this_rms * N;
+      x2 = hSubR->GetMean() + this_rms * N;
+      NSubR = hSubR->GetEntries();
+
+      hSubR->GetXaxis()->SetRangeUser(x1,x2);
+
+          cout << "Iterations   " << cnt << endl
+	             << "  RMS        " << this_rms << endl
+	             << "  Percentage " << NSubR / NFull << endl
+	       << "  New Range  " << x1 << " to " << x2 << endl << endl;
+	  *percentage = NSubR / NFull;
+
+    } while( this_rms != prev_rms );
+
+
+
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    // Self consistent RMS in n RMS
+    ///////////////////////////////
+    h1->GetXaxis()->SetRangeUser(x1,x2);
+    cout << "Getting RMS " << endl;
+    *sigma = h1->GetRMS() * 1000;
+    *sigmaerr = h1->GetRMSError() * 1000;
+    cout << " resolution " << *sigma << " ± " << *sigmaerr << endl;
+    *sigmaerr = poissonsmearing( h1, name,  detectorA, detectorB, detectorC);
+    cout << " resolution updated " << *sigma << " ± " << *sigmaerr << " with precision " << *percentage<<  endl;
+
+    TString mean;
+    std::ostringstream sstream_mean;
+    sstream_mean << setprecision(2) << h1->GetMean();// * 1000;
+    mean = sstream_mean.str();
+    TString meanerr;
+    std::ostringstream sstream_meanerr;
+    sstream_meanerr << setprecision(1) << h1->GetMeanError();// * 1000;
+    meanerr = sstream_meanerr.str();
+
+    TString rms;
+    std::ostringstream sstream_rms;
+    sstream_rms << setprecision(3) << h1->GetRMS() * 1000;
+    rms = sstream_rms.str();
+
+    TString rmserr;
+    std::ostringstream sstream_rmserr;
+    sstream_rmserr << setprecision(1) << *sigmaerr;
+    cout << sstream_rmserr.str() << endl;
+    rmserr = sstream_rmserr.str();
+    cout << rmserr << endl;
+    //      TGaxis::SetMaxDigits(2)      ;
+    gStyle->SetOptStat(0);
+    TLatex Tl2;
+    Tl2.SetTextAlign(12);
+    Tl2.SetTextSize(0.04);
+    Tl2.DrawLatexNDC(0.23,0.7," #mu = "+mean+" mm");
+    Tl2.DrawLatexNDC(0.23,0.62," #sigma = "+rms+" #pm "+rmserr+" #mum");
+    //Tl2.DrawLatexNDC(0.6,0.54,"|#Delta #eta |< 1.3");
+    //Tl2.DrawLatexNDC(0.6,0.51,"m_{jj} > 1050 GeV");
+    //Tl2.DrawLatexNDC(0.6,0.48,"65 GeV < M_{SD} < 105 GeV");
+    cout << "legend done " << endl;
+    
+
+    
+  }
+  if(func == "RMS") 
     {
       cout << " RMS method" << endl;
       double integral = h1->GetMaximum();
@@ -229,15 +449,64 @@ void FitTH1(TH1F* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TSt
       
 
     }
+  if(func == "RMS95" || func == "RMS99")
+    {
+      cout << "Getting RMS " << endl;
+      *sigma = h1->GetRMS() * 1000;
+      *sigmaerr = h1->GetRMSError() * 1000;
+      cout << " resolution " << *sigma << " ± " << *sigmaerr << endl;
+      *sigmaerr = poissonsmearing( h1, name,  detectorA, detectorB, detectorC);
+      cout << " resolution updated " << *sigma << " ± " << *sigmaerr << endl;
+      
+      TString mean;
+      std::ostringstream sstream_mean;
+      sstream_mean << setprecision(2) << h1->GetMean();// * 1000;
+      mean = sstream_mean.str();
+      TString meanerr;
+      std::ostringstream sstream_meanerr;
+      sstream_meanerr << setprecision(1) << h1->GetMeanError();// * 1000;
+      meanerr = sstream_meanerr.str();
+      
+      TString rms;
+      std::ostringstream sstream_rms;
+      sstream_rms << setprecision(3) << h1->GetRMS() * 1000;
+      rms = sstream_rms.str();
+      
+      TString rmserr;
+      std::ostringstream sstream_rmserr;
+      sstream_rmserr << setprecision(1) << *sigmaerr;
+      cout << sstream_rmserr.str() << endl;
+      rmserr = sstream_rmserr.str();
+      cout << rmserr << endl;
+      //      TGaxis::SetMaxDigits(2)      ;
+      gStyle->SetOptStat(0);
+      TLatex Tl2;
+      Tl2.SetTextAlign(12);
+      Tl2.SetTextSize(0.04);
+      Tl2.DrawLatexNDC(0.23,0.7," #mu = "+mean+" mm");
+      Tl2.DrawLatexNDC(0.23,0.62," #sigma = "+rms+" #pm "+rmserr+" #mum");
+      //Tl2.DrawLatexNDC(0.6,0.54,"|#Delta #eta |< 1.3");
+      //Tl2.DrawLatexNDC(0.6,0.51,"m_{jj} > 1050 GeV");
+      //Tl2.DrawLatexNDC(0.6,0.48,"65 GeV < M_{SD} < 105 GeV");
+      cout << "legend done " << endl;
+
+    }
   //  h1->GetXaxis()->SetLimits(-0.02,0.02);
   c->Update();
+  cout << " canvas updated " << endl;
   gStyle->SetOptFit(1111);
   TString outputDir="/home/zoiirene/Output/Plots/";
 
   //  TString outputDir = outputDir+"";
   TString outputFile = outputDir+"residual_"+func+"Fit_"+name+"_A_"+detectorA+"_B_"+detectorB+"_C_"+detectorC+".eps";
   c->SaveAs(outputFile);
+  cout << " saved output file " << endl;
+  
 }//
+
+
+
+
 
 
 
