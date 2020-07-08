@@ -152,6 +152,7 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   h_landau_orig[1].Rebin(2);
   h_landau_orig[1].GetYaxis()->SetRangeUser(0.0001,1.);
   h_landau_orig[1].SetLineColor(kGreen+1);
+  h_landau_orig[1].SetMarkerColor(kGreen+1);
   h_landau_orig[1].SetLineStyle(2);
   h_landau_orig[1].SetLineWidth(2);
   h_landau_orig[1].GetXaxis()->SetRange(0.,h_landau_orig[1].GetNbinsX()+1);
@@ -164,6 +165,7 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   h_landau_orig[2].GetXaxis()->SetRange(0.,h_landau_orig[2].GetNbinsX()+1);
   //h_landau_orig[2].GetYaxis()->SetRangeUser(0.,0.08);
   h_landau_orig[2].SetLineColor(kMagenta);
+  h_landau_orig[2].SetMarkerColor(kMagenta);
   h_landau_orig[2].Rebin(2);
   h_landau_orig[2].SetLineWidth(2);
   h_landau_orig[2].SetLineStyle(3);
