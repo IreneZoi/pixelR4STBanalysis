@@ -37,7 +37,7 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   TString irr[irradiations];
   irr[0] = "Non-irradiated, 120 V"; // "no irr, 5.6 GeV";
   irr[1] = "#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton, 800 V";
-  irr[2] = "#phi_{eq} = 4 #times 10^{15} cm^{-2}, neutron, 800 V";
+  irr[2] = "#phi_{eq} = 3.6 #times 10^{15} cm^{-2}, neutron, 800 V";
 
 
   std::map<std::pair<TString, TString>, TH1F *>::iterator it;
@@ -74,7 +74,7 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   i_dphcut[0] = 15; 
   d_dphcut[0] = 15;
   ss_dphcut[0] = "15";
-  TString inputfileNirr4="closest_A1213";
+  TString inputfileNirr4="closest_A12C13";
   GetHists(&landau_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res,true,inputfileNirr4);
     
   TH1F  h_landau[irradiations];
@@ -127,26 +127,31 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   gStyle->SetPalette(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(15);
   cout << "starting making hists pretty" << endl;
   h_landau_orig[0].SetTitle(" ");
   h_landau_orig[0].GetYaxis()->SetTitle("Normalized number of events");
-  h_landau_orig[0].GetXaxis()->SetTitle("cluster charge [ADC]");
+  h_landau_orig[0].GetXaxis()->SetTitle("Cluster charge [ADC]");
   //  h_landau_orig[0].SetMarkerSize(2.5);
-  h_landau_orig[0].SetLineColor(kRed);
+  h_landau_orig[0].SetLineColor(kBlack);
   h_landau_orig[0].SetLineStyle(1);
   h_landau_orig[0].SetLineWidth(2);
+  h_landau_orig[0].Rebin(2);
   h_landau_orig[0].GetXaxis()->SetLimits(0,1000.);
   h_landau_orig[0].GetXaxis()->SetMaxDigits(3); //SetNoExponent(true);
-  h_landau_orig[0].GetYaxis()->SetRangeUser(0.0001,0.1);
+  h_landau_orig[0].GetYaxis()->SetRangeUser(0.0001,1.);
   h_landau_orig[0].GetXaxis()->SetRange(0.,h_landau_orig[0].GetNbinsX()+1);
   h_landau_orig[0].Draw("histe");
   //  TGaxis::SetMaxDigits(3);
   //  h_landau_orig[1].SetMarkerSize(2.5);
   h_landau_orig[1].GetXaxis()->SetLimits(0,1000.);
   //h_landau_orig[1].GetYaxis()->SetRangeUser(0.,0.08);
-  h_landau_orig[1].GetYaxis()->SetRangeUser(0.0001,0.1);
-  h_landau_orig[1].SetLineColor(kBlack);
+  h_landau_orig[1].Rebin(2);
+  h_landau_orig[1].GetYaxis()->SetRangeUser(0.0001,1.);
+  h_landau_orig[1].SetLineColor(kGreen+1);
   h_landau_orig[1].SetLineStyle(2);
   h_landau_orig[1].SetLineWidth(2);
   h_landau_orig[1].GetXaxis()->SetRange(0.,h_landau_orig[1].GetNbinsX()+1);
@@ -155,32 +160,33 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
  				      
   // h_landau_orig[2].SetMarkerSize(2.5);
   h_landau_orig[2].GetXaxis()->SetLimits(0,1000.);
-  h_landau_orig[2].GetYaxis()->SetRangeUser(0.0001,0.1);
+  h_landau_orig[2].GetYaxis()->SetRangeUser(0.0001,1.);
   h_landau_orig[2].GetXaxis()->SetRange(0.,h_landau_orig[2].GetNbinsX()+1);
   //h_landau_orig[2].GetYaxis()->SetRangeUser(0.,0.08);
-  h_landau_orig[2].SetLineColor(kBlue);
+  h_landau_orig[2].SetLineColor(kMagenta);
+  h_landau_orig[2].Rebin(2);
   h_landau_orig[2].SetLineWidth(2);
   h_landau_orig[2].SetLineStyle(3);
   //  h_landau_orig[2].GetXaxis()->SetNoExponent(true);
   h_landau_orig[2].Draw("histesame");
 
-  TLegend* legFDB2 = new TLegend(0.4,0.65,0.8,0.85);
+  TLegend* legFDB2 = new TLegend(0.4,0.7,0.8,0.85);
   legFDB2->SetLineColor(0);
-  legFDB2->SetTextSize(0.025);
+  //legFDB2->SetLegendFont(43);
   for(int i =0; i < irradiations; i++)
     legFDB2->AddEntry(&(h_landau_orig[i]),irr[i],"le");
 
   legFDB2->Draw();
 
   //landau90[i]
-  int color[irradiations] = {632,1,600};
+  int color[irradiations] = {1,417,616};
   TLine *  line2[irradiations];
   TArrow *ar[irradiations];
   //  float height[irradiations] = {;
   
   for(int i =0; i < irradiations; i++){
     //    cout << landau90[i] << endl;
-    line2[i]    = new TLine( bin90[i],0.,bin90[i],0.008);
+    line2[i]    = new TLine( bin90[i],0.,bin90[i],0.015);
     line2[i]->SetLineColor(color[i]);
     line2[i]->SetLineWidth(2);
     line2[i]->SetLineStyle(1);
@@ -414,26 +420,32 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   gStyle->SetPalette(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  
   cout << "starting making hists pretty" << endl;
   h_resq[0].SetTitle(" ");
   h_resq[0].GetYaxis()->SetTitle("Normalized number of events");
-  h_resq[0].GetXaxis()->SetTitle("residual [#mum]");
+  h_resq[0].GetXaxis()->SetTitle("#Deltax [#mum]");
   //  h_resq[0].SetMarkerSize(2.5);
-  h_resq[0].SetLineColor(kRed);
+  h_resq[0].SetLineColor(kBlack);
   h_resq[0].SetLineStyle(1);
   h_resq[0].SetLineWidth(2);
+  h_resq[0].GetXaxis()->SetNdivisions(20,5,3);
   h_resq[0].GetXaxis()->SetRangeUser(-0.1,0.1);
   h_resq[0].GetXaxis()->SetMaxDigits(3); //SetNoExponent(true);
   h_resq[0].GetYaxis()->SetRangeUser(0.00001,10.);
   h_resq[0].GetXaxis()->SetRange(0.,h_resq[0].GetNbinsX() + 1);
   h_resq[0].Draw("histe");
+  cout << " Xaxis " << h_resq[0].GetXaxis()->GetNdivisions() << endl;
+  cout << " RMS " << h_resq[0].GetRMS() << endl;
+
   //  TGaxis::SetMaxDigits(3);
   //  h_resq[1].SetMarkerSize(2.5);
   h_resq[1].GetXaxis()->SetRangeUser(-0.1,0.1);
   h_resq[1].GetXaxis()->SetRange(0.,h_resq[1].GetNbinsX() + 1);
   h_resq[1].GetYaxis()->SetRangeUser(0.00001,10.);
-  h_resq[1].SetLineColor(kBlack);
+  h_resq[1].SetLineColor(kGreen+1);
   h_resq[1].SetLineStyle(2);
   h_resq[1].SetLineWidth(2);
   //  h_resq[1].GetXaxis()->SetNoExponent(true);
@@ -443,15 +455,15 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   h_resq[2].GetXaxis()->SetRangeUser(-0.1,0.1);
   h_resq[2].GetYaxis()->SetRangeUser(0.00001,10.);
   h_resq[2].GetXaxis()->SetRange(0.,h_resq[2].GetNbinsX() + 1);
-  h_resq[2].SetLineColor(kBlue);
+  h_resq[2].SetLineColor(kMagenta);
   h_resq[2].SetLineWidth(2);
   h_resq[2].SetLineStyle(3);
   //  h_resq[2].GetXaxis()->SetNoExponent(true);
   h_resq[2].Draw("histesame");
   
-  TLegend* legresq = new TLegend(0.45,0.72,0.8,0.87);
+  TLegend* legresq = new TLegend(0.35,0.72,0.8,0.87);
   legresq->SetLineColor(0);
-  legresq->SetTextSize(0.02);
+  //  legresq->SetTextSize(0.03);
   for(int i =0; i < irradiations; i++)
     legresq->AddEntry(&(h_resq[i]),irr[i],"le");
   
