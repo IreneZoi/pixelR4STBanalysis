@@ -10,8 +10,8 @@
 #include <TAxis.h>
 #include <sstream>
 
-#include "tdrstyle.C"
-#include "CMS_lumi.C"
+//#include "tdrstyle.C"
+//#include "CMS_lumi.C"
 
 
 bool print=true;
@@ -23,8 +23,8 @@ using namespace std;
 #define biasScan 4
 
 
-void TDR();
-void TDR2(TCanvas * c_all, int period=0, int pos= 11);
+//void TDR();
+//void TDR2(TCanvas * c_all, int period=0, int pos= 11);
 
 void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminary_splitversion", TString func = "RMSself", bool unfolding = false){
 
@@ -65,9 +65,9 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
   TString irr[irradiations+1];
   irr[0] = " Non-irradiated, 5.6 GeV"; // "no irr, 5.6 GeV";
   //  irr[1] = "proton irr at #phi_{eq}=2#times10^{15} cm^{-2}, 5.6 GeV";
-  irr[1] = "#phi_{eq} = 2.1#times10^{15} cm^{-2}, proton, 5.6 GeV";
-  irr[2] = "#phi_{eq} = 4#times10^{15} cm^{-2}, neutron, 5.2 GeV";
-  irr[3] = "#phi_{eq} = 4#times10^{15} cm^{-2}, neutron, 5.6 GeV";
+  irr[1] = "#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton, 5.6 GeV";
+  irr[2] = "#phi_{eq} = 3.6 #times 10^{15} cm^{-2}, neutron, 5.2 GeV";
+  irr[3] = "#phi_{eq} = 3.6 #times 10^{15} cm^{-2}, neutron, 5.6 GeV";
   
   double angle_0[anglesNONirr];
   double angle_1[anglesPirr2];
@@ -272,58 +272,69 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
   gStyle->SetPalette(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-  cN->SetLeftMargin(1.);
+
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(20);
+  //test
+  //cN->SetLeftMargin(0.15);
+  //cN->SetRightMargin(1.5);
+  ///
+  //  cN->SetLeftMargin(1.);
   TGraphErrors* resolutionPlotN[biasScan];
   for (int i = 0; i< biasScan; i++)
     {
       resolutionPlotN[i] = new TGraphErrors(anglesNirr4,angle_2,res_N[i],angleerr_2,reserr_N[i]);
-      resolutionPlotN[i]->SetMarkerSize(2.);
-      //      resolutionPlotN[i]->SetLineStyle(2);
+      resolutionPlotN[i]->SetMarkerSize(1.);
     }
 
 
   resolutionPlotN[0]->SetTitle(" ");
   resolutionPlotN[0]->GetYaxis()->SetTitle("Single hit resolution [#mum]");
-  resolutionPlotN[0]->GetXaxis()->SetTitle("#theta [deg]");
-
-  resolutionPlotN[0]->SetMarkerColor(kCyan-3);
-  resolutionPlotN[0]->SetLineColor(kCyan-3);
-  resolutionPlotN[0]->SetMarkerStyle(20);
-  resolutionPlotN[0]->SetMarkerSize(1.);
+  resolutionPlotN[0]->GetXaxis()->SetTitle("Incident angle [deg]");
+  resolutionPlotN[0]->GetXaxis()->SetTitleFont(43);
+  resolutionPlotN[0]->GetXaxis()->SetTitleSize(20); // labels will be 14 pixels
+  resolutionPlotN[0]->GetYaxis()->SetTitleFont(43);
+  resolutionPlotN[0]->GetYaxis()->SetTitleSize(20); // labels will be 14 pixels
+  resolutionPlotN[0]->GetXaxis()->SetLabelFont(43);
+  resolutionPlotN[0]->GetXaxis()->SetLabelSize(20); // labels will be 14 pixels
+  resolutionPlotN[0]->GetYaxis()->SetLabelFont(43);
+  resolutionPlotN[0]->GetYaxis()->SetLabelSize(20); // labels will be 14 pixels
+  
+  resolutionPlotN[0]->SetMarkerColor(kMagenta-9);
+  resolutionPlotN[0]->SetLineColor(kMagenta-9);
+  resolutionPlotN[0]->SetMarkerStyle(36);
   resolutionPlotN[0]->GetXaxis()->SetLimits(0.,25.);
   resolutionPlotN[0]->GetYaxis()->SetRangeUser(0.,10.);
-  //resolutionPlotN[0]->GetYaxis()->SetRangeUser(4.,7.);
   resolutionPlotN[0]->Draw("AEPC");
 
-  resolutionPlotN[1]->SetMarkerColor(kCyan+2);
-  resolutionPlotN[1]->SetLineColor(kCyan+2);
-  resolutionPlotN[1]->SetMarkerStyle(21);
-  resolutionPlotN[1]->SetMarkerSize(1.);
+  resolutionPlotN[1]->SetMarkerColor(kMagenta-8);
+  resolutionPlotN[1]->SetLineColor(kMagenta-8);
+  resolutionPlotN[1]->SetMarkerStyle(28);
   resolutionPlotN[1]->Draw("EPCsame");
 				      
-  resolutionPlotN[2]->SetMarkerColor(kBlue-9);
-  resolutionPlotN[2]->SetLineColor(kBlue-9);
-  resolutionPlotN[2]->SetMarkerStyle(23);
-  resolutionPlotN[2]->SetMarkerSize(1.);
+  resolutionPlotN[2]->SetMarkerColor(kMagenta-6);
+  resolutionPlotN[2]->SetLineColor(kMagenta-6);
+  resolutionPlotN[2]->SetMarkerStyle(27);
   resolutionPlotN[2]->Draw("EPCsame");
 
-  resolutionPlotN[3]->SetMarkerColor(kBlue);
-  resolutionPlotN[3]->SetLineColor(kBlue);
+  resolutionPlotN[3]->SetMarkerColor(kMagenta);
+  resolutionPlotN[3]->SetLineColor(kMagenta);
   resolutionPlotN[3]->SetMarkerStyle(26);
-  resolutionPlotN[3]->SetMarkerSize(1.);
   resolutionPlotN[3]->Draw("EPCsame");
 
 
 
-  TLegend* legNb = new TLegend(0.15,0.35,0.6,0.4);
+  TLegend* legNb = new TLegend(0.2,0.36,0.6,0.45);
   legNb->SetLineColor(0);
-  legNb->SetTextSize(0.035);
-  legNb->AddEntry(resolutionPlotN[3],"#phi_{eq} = 4#times10^{15} cm^{-2}, neutron, 5.2 GeV","");
+  //legNb->SetTextSize(0.035);
+  legNb->AddEntry(resolutionPlotN[3],"#phi_{eq} = 3.6 #times 10^{15} cm^{-2}, neutron, 5.2 GeV","");
   legNb->Draw();
   
   TLegend* legN = new TLegend(0.4,0.15,0.7,0.35);
   legN->SetLineColor(0);
-  legN->SetTextSize(0.035);
+  //legN->SetTextSize(0.035);
   for(int i =0; i < irradiations+1; i++)
     legN->AddEntry(resolutionPlotN[i],ss_bias[i]+" V","lp");
 
@@ -338,81 +349,29 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   cN->SaveAs(outname+".C");
 
 
-  /*
-
-  ////// for finn
-  //  setTDRStyle();
-  TDR();
-
-  TCanvas *c2 = new TCanvas("c2", "FDB resolution", 1500, 900);
-  gPad->SetTicks(1,1);
-  gROOT->SetStyle("Plain");
-  gStyle->SetPadGridX(0);
-  gStyle->SetPadGridY(0);
-  gStyle->SetPalette(1);
-  gStyle->SetOptStat(0);
-  gStyle->SetOptTitle(0);
-
-  resolutionPlot[0]->Draw("AEP");
-  resolutionPlot[1]->Draw("EPsame");
-  resolutionPlot[2]->Draw("EPsame");
-  resolutionPlot[3]->Draw("EPsame");
-			      
-  TLegend* leg2 = new TLegend(0.65,0.15,0.85,0.25);
-  leg2->SetLineColor(0);
-  leg2->SetTextSize(0.035);
-  leg2->AddEntry(resolutionPlot[0],irr[0],"lp");
-  leg2->AddEntry(resolutionPlot[1],irr[1],"lp");
-
-  leg2->Draw();
-
-
-
-
-  TDR2(c2);
-  outname = outputDir+"ResolutionSummaryPaper_angleScans25_freshVSprotVSneut_"+name;
-  c2->SaveAs(outname+".eps");
-  c2->SaveAs(outname+".png");
-  c2->SaveAs(outname+".pdf");
-  c2->SaveAs(outname+".root");
-  c2->SaveAs(outname+".C");
-  */
-
-
-  ////// for paper
-  //   TDR();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-
 
   TCanvas *c3 = new TCanvas("c3", "FDB resolution", 600, 600);
   gROOT->SetStyle("Plain");
   c3->SetLeftMargin(1.);
-  c3->SetTopMargin(1.);
+  //   c3->SetBottomMargin(.9);
   gStyle->SetPadGridX(0);
   gStyle->SetPadGridY(0);
   gStyle->SetPalette(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
+  //  gEnv->Print();
 
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(15);
+
+  
+  
   TPad *pad2 = new TPad("pad2","",0,0.,1,0.4);
   pad2->SetTopMargin(0.03);
-  pad2->SetBottomMargin(0.3);
+  pad2->SetBottomMargin(0.4);
+  
   pad2->Draw();
 
   //pad2->SetFillStyle(4000); //will be transparent
@@ -420,6 +379,7 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   TPad *pad1 = new TPad("pad1","",0,0.4,1,1);  
   pad1->Draw();
   pad1->SetBottomMargin(0.03);
+  
   pad1->cd();
   gPad->SetTicks(1,1);
 
@@ -434,39 +394,38 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   resolutionPlot[0]->GetYaxis()->SetTitle("Single hit resolution [#mum]");
   //resolutionPlot[0]->GetXaxis()->SetTitle("#theta [deg]");
 
+  resolutionPlot[0]->GetYaxis()->SetTitleFont(43);
+  resolutionPlot[0]->GetYaxis()->SetTitleSize(20); // labels will be 14 pixels
 
-  resolutionPlot[0]->GetYaxis()->SetTitleSize(0.06);
-  resolutionPlot[0]->GetYaxis()->SetTitleOffset(0.7);
-  resolutionPlot[0]->GetYaxis()->SetLabelSize(0.06);
-
-  //  resolutionPlot[0]->GetXaxis()->SetTitleSize(0.045);
-  resolutionPlot[0]->GetXaxis()->SetLabelSize(0.0); //45);
+  resolutionPlot[0]->GetYaxis()->SetLabelFont(43);
+  resolutionPlot[0]->GetYaxis()->SetLabelSize(20); // labels will be 14 pixels
   
+  resolutionPlot[0]->GetXaxis()->SetLabelFont(43);
+  resolutionPlot[0]->GetXaxis()->SetLabelSize(0); // labels will be 14 pixels
 
-
-  
-  resolutionPlot[0]->SetMarkerColor(kRed);
-  resolutionPlot[0]->SetLineColor(kRed);
+  resolutionPlot[0]->SetMarkerColor(kBlack);
+  resolutionPlot[0]->SetLineColor(kBlack);
   resolutionPlot[0]->SetMarkerStyle(20);
 
   resolutionPlot[0]->GetYaxis()->SetRangeUser(0.,10.);
 
 
 
-  resolutionPlot[1]->SetMarkerColor(kBlack);
+  resolutionPlot[1]->SetMarkerColor(kGreen+1);
+  resolutionPlot[1]->SetLineColor(kGreen+1);
   resolutionPlot[1]->SetMarkerStyle(21);
 
 				      
 
-  resolutionPlot[2]->SetMarkerColor(kBlue);
-  resolutionPlot[2]->SetLineColor(kBlue);
-  resolutionPlot[2]->SetMarkerStyle(22);
+  resolutionPlot[2]->SetMarkerColor(kMagenta);
+  resolutionPlot[2]->SetLineColor(kMagenta);
+  resolutionPlot[2]->SetMarkerStyle(26);
 
 
 
-  resolutionPlot[3]->SetMarkerColor(kBlue);
-  resolutionPlot[3]->SetLineColor(kBlue);
-  resolutionPlot[3]->SetMarkerStyle(23);
+  resolutionPlot[3]->SetMarkerColor(kMagenta);
+  resolutionPlot[3]->SetLineColor(kMagenta);
+  resolutionPlot[3]->SetMarkerStyle(32);
 
 
 
@@ -491,10 +450,8 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   
 
 
-  TLegend* leg3 = new TLegend(0.2,0.67,0.6,0.87);
+  TLegend* leg3 = new TLegend(0.15,0.67,0.55,0.87);
   leg3->SetLineColor(0);
-  leg3->SetTextSize(0.035);
-  //  leg3->AddEntry(resolutionPlot[0],"beam momentum 5.6 GeV","");
   leg3->AddEntry(resolutionPlot[0],irr[0],"lp");
   leg3->AddEntry(resolutionPlot[1],irr[1],"lp");
   leg3->AddEntry(resolutionPlot[2],irr[2],"lp");
@@ -504,7 +461,7 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
 
  
   pad2->cd();
-  gROOT->SetStyle("Plain");
+  //  gROOT->SetStyle("Plain");
   TGraphErrors* clsizePlot[irradiations+1];
   gPad->SetTicks(1,1);
 
@@ -517,16 +474,22 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   
   clsizePlot[0]->SetTitle(" ");
   clsizePlot[0]->GetYaxis()->SetTitle("Average cluster size");
-  clsizePlot[0]->GetXaxis()->SetTitle("#theta [deg]");
-  clsizePlot[0]->GetYaxis()->SetTitleSize(0.085);
-  clsizePlot[0]->GetYaxis()->SetTitleOffset(0.5);
+  clsizePlot[0]->GetXaxis()->SetTitle("Incident angle [deg]");
   clsizePlot[0]->GetYaxis()->SetNdivisions(5);
-  clsizePlot[0]->GetYaxis()->SetLabelSize(0.085);
+
+  clsizePlot[0]->GetXaxis()->SetTitleFont(43);
+  clsizePlot[0]->GetXaxis()->SetTitleSize(20); // labels will be 14 pixels
+  clsizePlot[0]->GetXaxis()->SetTitleOffset(3); // labels will be 14 pixels
+  clsizePlot[0]->GetXaxis()->SetLabelFont(43);
+  clsizePlot[0]->GetXaxis()->SetLabelSize(20); // labels will be 14 pixels
   
-  clsizePlot[0]->GetXaxis()->SetTitleSize(0.085);
-  clsizePlot[0]->GetXaxis()->SetLabelSize(0.085);
-  clsizePlot[0]->SetMarkerColor(kRed);
-  clsizePlot[0]->SetLineColor(kRed);
+  clsizePlot[0]->GetYaxis()->SetTitleFont(43);
+  clsizePlot[0]->GetYaxis()->SetTitleSize(20); // labels will be 14 pixels
+  clsizePlot[0]->GetYaxis()->SetLabelFont(43);
+  clsizePlot[0]->GetYaxis()->SetLabelSize(20); // labels will be 14 pixels
+  
+  clsizePlot[0]->SetMarkerColor(kBlack);
+  clsizePlot[0]->SetLineColor(kBlack);
   clsizePlot[0]->SetMarkerStyle(20);
   clsizePlot[0]->SetMarkerSize(1.);
   clsizePlot[0]->GetXaxis()->SetLimits(0.,31.);
@@ -535,22 +498,23 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   //  clsizePlot[0]->Draw("AEPY+");
 
 
-  clsizePlot[1]->SetMarkerColor(kBlack);
+  clsizePlot[1]->SetMarkerColor(kGreen+1);
+  clsizePlot[1]->SetLineColor(kGreen+1);
   clsizePlot[1]->SetMarkerStyle(21);
   clsizePlot[1]->SetMarkerSize(1.);
   clsizePlot[1]->Draw("EPsame");
 
 
-  clsizePlot[2]->SetMarkerColor(kBlue);
-  clsizePlot[2]->SetMarkerStyle(22);
+  clsizePlot[2]->SetMarkerColor(kMagenta);
+  clsizePlot[2]->SetMarkerStyle(26);
   clsizePlot[2]->SetMarkerSize(1.);  
-  clsizePlot[2]->SetLineColor(kBlue);
+  clsizePlot[2]->SetLineColor(kMagenta);
   clsizePlot[2]->Draw("EPsame");
 
 
-  clsizePlot[3]->SetMarkerColor(kBlue);
-  clsizePlot[3]->SetLineColor(kBlue);
-  clsizePlot[3]->SetMarkerStyle(23);
+  clsizePlot[3]->SetMarkerColor(kMagenta);
+  clsizePlot[3]->SetLineColor(kMagenta);
+  clsizePlot[3]->SetMarkerStyle(32);
   clsizePlot[3]->SetMarkerSize(1.);
   clsizePlot[3]->Draw("EPsame");
 
@@ -698,7 +662,7 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   
 }//resolution 
 
-
+/*
 void TDR()
 {
   setTDRStyle();
@@ -723,3 +687,4 @@ void TDR2(TCanvas * c_all, int period = 0, int pos = 11)
   c_all->Update();
   c_all->RedrawAxis();
 }
+*/
