@@ -15,7 +15,7 @@
 #define Angles 8
 bool print=true;
 using namespace std;
-#define dphcuts  1
+#define dphcuts  9
 #define comparisons 1
 #define thresholds 3
 
@@ -51,7 +51,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
   TString inputDir="/home/zoiirene/Output/TextFiles/";
   TString outputDir="/home/zoiirene/Output/Plots/";
   TString inputfile;
-  TString testname="closest_A1213";
+  TString testname="thrScan_A12C13"; //"closest_A12C13";
   TString testnameUnf="RMSself_closest_A13C14_bestnonirr";
   
   TH1F * h_res;
@@ -114,8 +114,8 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
 
   MapTH1 res_map[Angles];
   std::map<std::pair<TString, TString>, TH1F *>::iterator it;
-  int i_dphcut[dphcuts] = {15};
-  TString ss_dphcut[dphcuts] = {"15"};
+  int i_dphcut[dphcuts] = {6, 10, 15, 19, 24, 29, 32, 40, 48}; //{15};
+  TString ss_dphcut[dphcuts] = {"6", "10", "15", "19", "24", "29", "32", "40", "48"}; //{"15"};
 
   TString Label[comparisons] = {"straightTracksY_isoAandCandB_straightTracksX"};
   TString Hist = "dx3_clphABC90evR";
@@ -150,7 +150,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
 
 
   
-  
+  for(int k=0; k<dphcuts;k++){  
   
 
   if(print) cout << "#############         RMS:     ########################"  << endl;
@@ -160,7 +160,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
   for(int j = 0; j < Angles; j++)
     {
       
-      myfile[j].open ("/home/zoiirene/Output/TextFiles/Bscan_"+detectorB+"_dphcutB"+ss_dphcut[0]+"_"+func+"_"+ss_Angle[j]+"deg_rmsTree_"+testname+".txt");
+      myfile[j].open ("/home/zoiirene/Output/TextFiles/Bscan_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+func+"_"+ss_Angle[j]+"deg_rmsTree_"+testname+".txt");
       myfile[j] << "A " << detectorA << "\n";
       myfile[j] << labelA << "\n";
       myfile[j] << "B " << detectorB<< "\n";
@@ -172,13 +172,13 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
       
       for(int i=0; i<BiasVoltages; i++)
 	{
-	  auto it2 = res_map[j].find(std::make_pair(Run[j][i]+"_"+ss_dphcut[0]+"_"+pitch,Hist));
+	  auto it2 = res_map[j].find(std::make_pair(Run[j][i]+"_"+ss_dphcut[k]+"_"+pitch,Hist));
 	  if(it2  != res_map[j].end())
 	    {
 	      if(print)               cout << " found map " << endl;
 	      if(print)                   cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
 	      
-	      FitTH1(it2->second, &(Resolution[j][i]), &(ResolutionError[j][i]), ss_Angle[j]+"_"+ss_BiasVoltage[i]+"_dphcutB"+ss_dphcut[0], detectorA, detectorB, detectorC,func,&(Percentage[i][j]) );
+	      FitTH1(it2->second, &(Resolution[j][i]), &(ResolutionError[j][i]), ss_Angle[j]+"_"+ss_BiasVoltage[i]+"_dphcutB"+ss_dphcut[k], detectorA, detectorB, detectorC,func,&(Percentage[i][j]) );
 	      if(print) cout << "Beam energy " << i<< ": " << ss_BiasVoltage[i] << " GeV -> Resolution: " << Resolution[j][i] << " and res err: " << ResolutionError[j][i] << endl;
 	      myfile[j] << ss_BiasVoltage[i] << " " << Resolution[j][i] << " " << ResolutionError[j][i] << "\n";
 	    }else{
@@ -187,7 +187,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
 	}
       
       myfile[j].close();
-      DrawTGraphWithErrorDouble(BiasVoltages, BiasVoltage, Resolution[j], ResolutionError[j], Hist,Run[j][0], Label[0], "biasScan_dphcutB"+ss_dphcut[0]+"_"+ss_Angle[j]+"_rmsTree", "RMS 95% [#mum]",0.,7.,0.,8., "biasScan_"+ss_Angle[j], "Bias Voltage [V]"  );
+      DrawTGraphWithErrorDouble(BiasVoltages, BiasVoltage, Resolution[j], ResolutionError[j], Hist,Run[j][0], Label[0], "biasScan_dphcutB"+ss_dphcut[k]+"_"+ss_Angle[j]+"_rmsTree", "RMS 95% [#mum]",0.,7.,0.,8., "biasScan_"+ss_Angle[j], "Bias Voltage [V]"  );
     }
   
 
@@ -199,7 +199,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
   for(int j = 0; j < BiasVoltages; j++)
     {
       
-      myfileBias[j].open ("/home/zoiirene/Output/TextFiles/Ascan_"+detectorB+"_dphcutB"+ss_dphcut[0]+"_"+func+"_"+ss_BiasVoltage[j]+"_rmsTree_"+testname+".txt");
+      myfileBias[j].open ("/home/zoiirene/Output/TextFiles/Ascan_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+func+"_"+ss_BiasVoltage[j]+"_rmsTree_"+testname+".txt");
       myfileBias[j] << "A " << detectorA << "\n";
       myfileBias[j] << labelA << "\n";
       myfileBias[j] << "B " << detectorB<< "\n";
@@ -210,7 +210,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
       myfileBias[j] << "Angle(deg) RMS(um) Error\n";
 
 
-      myfileBiasPerc[j].open ("/home/zoiirene/Output/TextFiles/Ascan_"+detectorB+"_dphcutB"+ss_dphcut[0]+"_"+func+"_"+ss_BiasVoltage[j]+"_Percentage_"+testname+".txt");
+      myfileBiasPerc[j].open ("/home/zoiirene/Output/TextFiles/Ascan_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+func+"_"+ss_BiasVoltage[j]+"_Percentage_"+testname+".txt");
       myfileBiasPerc[j] << "A " << detectorA << "\n";
       myfileBiasPerc[j] << labelA << "\n";
       myfileBiasPerc[j] << "B " << detectorB<< "\n";
@@ -245,7 +245,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
 	  
 	  
 	}
-      DrawTGraphWithErrorDouble(BiasVoltages, BiasVoltage, Resolution[j], ResolutionError[j], Hist,Run[j][0], Label[0], "biasScan_dphcutB"+ss_dphcut[0]+"_"+ss_Angle[j]+"_resTree", "Resolution [#mum]",0.,7.,0.,8., "biasScan_"+ss_Angle[j], "Bias Voltage [V]"  );
+      DrawTGraphWithErrorDouble(BiasVoltages, BiasVoltage, Resolution[j], ResolutionError[j], Hist,Run[j][0], Label[0], "biasScan_dphcutB"+ss_dphcut[k]+"_"+ss_Angle[j]+"_resTree", "Resolution [#mum]",0.,7.,0.,8., "biasScan_"+ss_Angle[j], "Bias Voltage [V]"  );
     }
   
 
@@ -253,7 +253,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
   for(int j = 0; j < BiasVoltages; j++)
     {
 
-      myfileBiasUnf[j].open ("/home/zoiirene/Output/TextFiles/Ascan_"+detectorB+"_dphcutB"+ss_dphcut[0]+"_"+func+"_"+ss_BiasVoltage[j]+"_resTree_"+testname+".txt");
+      myfileBiasUnf[j].open ("/home/zoiirene/Output/TextFiles/Ascan_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+func+"_"+ss_BiasVoltage[j]+"_resTree_"+testname+".txt");
       myfileBiasUnf[j] << "A " << detectorA << "\n";
       myfileBiasUnf[j] << labelA << "\n";
       myfileBiasUnf[j] << "B " << detectorB<< "\n";
@@ -319,7 +319,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
 
 
 	}
-      DrawTGraphWithErrorDouble(BiasVoltages, BiasVoltage, Resolution[j], ResolutionError[j], Hist,Run[j][0], Label[0], "biasScan_dphcutB"+ss_dphcut[0]+"_"+ss_Angle[j]+"_resTreeCorr", "Resolution [#mum]",0.,7.,0.,8., "biasScan_"+ss_Angle[j], "Bias Voltage [V]"  );
+      DrawTGraphWithErrorDouble(BiasVoltages, BiasVoltage, Resolution[j], ResolutionError[j], Hist,Run[j][0], Label[0], "biasScan_dphcutB"+ss_dphcut[k]+"_"+ss_Angle[j]+"_resTreeCorr", "Resolution [#mum]",0.,7.,0.,8., "biasScan_"+ss_Angle[j], "Bias Voltage [V]"  );
     }
 
 
@@ -327,7 +327,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
   for(int j = 0; j < BiasVoltages; j++)
     {
 
-      myfileBiasUnf2[j].open ("/home/zoiirene/Output/TextFiles/Ascan_"+detectorB+"_dphcutB"+ss_dphcut[0]+"_"+func+"_"+ss_BiasVoltage[j]+"_resTreeCorr_"+testname+".txt");
+      myfileBiasUnf2[j].open ("/home/zoiirene/Output/TextFiles/Ascan_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+func+"_"+ss_BiasVoltage[j]+"_resTreeCorr_"+testname+".txt");
       myfileBiasUnf2[j] << "A " << detectorA << "\n";
       myfileBiasUnf2[j] << labelA << "\n";
       myfileBiasUnf2[j] << "B " << detectorB<< "\n";
@@ -429,7 +429,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
 
   leg2->Draw("same");
   TString name;
-  name = outputDir+"compare_angle_bias_Scan_dphcutB"+ss_dphcut[0]+"_"+detectorB+"_"+Label[0]+"_"+Hist;
+  name = outputDir+"compare_angle_bias_Scan_dphcutB"+ss_dphcut[k]+"_"+detectorB+"_"+Label[0]+"_"+Hist;
   c2->SaveAs(name+".eps");
   c2->SaveAs(name+".pdf");
   c2->SaveAs(name+".png");
@@ -482,13 +482,13 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
   leg2->SetTextSize(0.03);
   leg2->Draw("same");
   
-  name = outputDir+"compare_angle_bias_Scan_zoom_dphcutB"+ss_dphcut[0]+"_"+detectorB+"_"+Label[0]+"_"+Hist;
+  name = outputDir+"compare_angle_bias_Scan_zoom_dphcutB"+ss_dphcut[k]+"_"+detectorB+"_"+Label[0]+"_"+Hist;
   c2z->SaveAs(name+".eps");
   c2z->SaveAs(name+".pdf");
   c2z->SaveAs(name+".png");
   c2z->SaveAs(name+".root");
 
-
+  }
   ////// cluster size
   /*
   Hist = "hnrowB_ph95";
@@ -500,9 +500,11 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
   for(int j = 0; j < Angles; j++)
     GetHists(&(res_map[j]),BiasVoltages, dphcuts, comparisons,dphcut, Run[j], i_dphcut, Label, Hist, h_res,true,testname);
 
+
+  for(int k =0; k<dphcuts;k++){
   ofstream myfile3[BiasVoltages];
   for(int i =0; i< BiasVoltages; i++){
-    myfile3[i].open ("/home/zoiirene/Output/TextFiles/Ascan_clsizeB_"+detectorB+"_dphcutB"+ss_dphcut[0]+"_"+ss_BiasVoltage[i]+"_"+testname+".txt");
+    myfile3[i].open ("/home/zoiirene/Output/TextFiles/Ascan_clsizeB_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+ss_BiasVoltage[i]+"_"+testname+".txt");
     myfile3[i] << "A " << detectorA << "\n";
     myfile3[i] << labelA << "\n";
     myfile3[i] << "B " << detectorB<< "\n";
@@ -521,8 +523,8 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
 
 
   TLegend* leg2a = new TLegend(0.7,0.35,0.85,0.85);
-  leg2->SetLineColor(0);
-  leg2->SetTextSize(0.04);
+  leg2a->SetLineColor(0);
+  leg2a->SetTextSize(0.04);
 
   
   for(int j = 0; j < Angles; j++)
@@ -540,8 +542,8 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
       for(int i=0; i<BiasVoltages; i++)
 	{
 	  gStyle->SetOptStat(0);
-	  //auto it2 = res_map[j].find(std::make_pair(Run[j][i]+"_"+ss_dphcut[0]+"_"+pitch[0],Hist));
-	  auto it2 = res_map[j].find(std::make_pair(Run[j][i]+"_"+ss_dphcut[0]+"_"+Label[0],Hist));
+	  //auto it2 = res_map[j].find(std::make_pair(Run[j][i]+"_"+ss_dphcut[k]+"_"+pitch[0],Hist));
+	  auto it2 = res_map[j].find(std::make_pair(Run[j][i]+"_"+ss_dphcut[k]+"_"+Label[0],Hist));
 	  if(it2  != res_map[j].end())
 	    {
 	      if(print)  cout << " found map " << endl;
@@ -552,7 +554,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
 	    }else{
 	    cout << "not found map " << Run[j][i]+"_"+Label[0] << " hist " << Hist << endl;
 	  }
-	  color = i+1;
+	  int color = i+1;
 	  if(i+1 ==5) color = 95;
 	  if(i+1 ==10) color = 29;
 	  if(print)  cout << " color " << color << endl;
@@ -583,7 +585,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
       leg2a->SetTextSize(0.03);
       leg2a->Draw("same");
 
-      name = outputDir+"compare_angle"+ss_Angle[j]+"_bias_Scan_clustersize_dphcutB"+ss_dphcut[0]+"_"+detectorB+"_"+Label[0]+"_"+Hist;
+     TString  name = outputDir+"compare_angle"+ss_Angle[j]+"_bias_Scan_clustersize_dphcutB"+ss_dphcut[k]+"_"+detectorB+"_"+Label[0]+"_"+Hist;
       csza[j]->SaveAs(name+".eps");
       csza[j]->SaveAs(name+".pdf");
       csza[j]->SaveAs(name+".png");
@@ -608,7 +610,7 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
     {
        
       grB[j]  = new TGraph(Angles, Angle, NrowB[j]);
-      color = j+1;
+      int color = j+1;
       if(j+1 ==5) color = 95;
       if(j+1 ==10) color = 29;
 
@@ -636,15 +638,15 @@ void resolutionVSbias194nThr_TreeEntries(TString func = "RMSself")
     }
 
   
-  leg2->SetTextSize(0.03);
-  leg2->Draw("same");
+  leg2a->SetTextSize(0.03);
+  leg2a->Draw("same");
   
-  name = outputDir+"compare_angle_bias_Scan_clustersize_dphcutB"+ss_dphcut[0]+"_"+detectorB+"_"+Label[0]+"_"+Hist;
+TString  name = outputDir+"compare_angle_bias_Scan_clustersize_dphcutB"+ss_dphcut[k]+"_"+detectorB+"_"+Label[0]+"_"+Hist;
   csz->SaveAs(name+".eps");
   csz->SaveAs(name+".pdf");
   csz->SaveAs(name+".png");
   csz->SaveAs(name+".root");
-
+  }
 
 
 
