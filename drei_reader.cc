@@ -487,11 +487,11 @@ int main( int argc, char* argv[] )
       if( iev%10000 == 0 )
 	cout << " " << iev << flush;
       
-
-      if( evinfoA->filled == ADD ) cout << endl << "ev " << iev << " added A" << endl;
-      if( evinfoB->filled == ADD ) cout << endl << "ev " << iev << " added B" << endl;
-      if( evinfoC->filled == ADD ) cout << endl << "ev " << iev << " added C" << endl;
-      
+      if(DEBUG){
+	if( evinfoA->filled == ADD ) cout << endl << "ev " << iev << " added A" << endl;
+	if( evinfoB->filled == ADD ) cout << endl << "ev " << iev << " added B" << endl;
+	if( evinfoC->filled == ADD ) cout << endl << "ev " << iev << " added C" << endl;
+      }
 
       uint64_t dtA = evinfoA->evtime - prevtimeA;
       prevtimeA = evinfoA->evtime;
@@ -519,7 +519,7 @@ int main( int argc, char* argv[] )
       
 
       ///////////////              Matching for closest
-      cout << " ########## Matching for closest  ########## "<< endl;
+      if(PRINT) cout << " ########## Matching for closest  ########## "<< endl;
       ///////        A-C cluster correlations: ///////////
       if(PRINT) cout << "entering AC correlation loop " << endl;
       //      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ){
@@ -551,13 +551,13 @@ int main( int argc, char* argv[] )
 		AMatchC.at(cA).index = cC;
 		AMatchC.at(cA).distance = dxyCA;
 		//                AMatchC.at(iA).used = true;
-		cout << "index cA " << cA << " index vlcC[cC] " << cC << " distance AC " << AMatchC.at(cA).distance << " dxyCA " << dxyCA << endl;
+		if(DEBUG) cout << "index cA " << cA << " index vlcC[cC] " << cC << " distance AC " << AMatchC.at(cA).distance << " dxyCA " << dxyCA << endl;
 	      }
 
 	      if( dxyCA < CMatchA.at(cC).distance ){
 		CMatchA.at(cC).index = cA;
 		CMatchA.at(cC).distance = dxyCA;
-		cout << "index cA " << cA << " index vlcC[cC] " << cC << " distance CA " << CMatchA.at(cC).distance << " dxyCA " << dxyCA << endl;
+		if(DEBUG) cout << "index cA " << cA << " index vlcC[cC] " << cC << " distance CA " << CMatchA.at(cC).distance << " dxyCA " << dxyCA << endl;
 	      }
 
 
@@ -590,7 +590,7 @@ int main( int argc, char* argv[] )
 		    }
 		  }
 			  
-		  cout << "index cA " << cA << " index B " << cB << " distance A-B " << AMatchB.at(cA).distance << " dxy " << dxy << endl;
+		  if(DEBUG) cout << "index cA " << cA << " index B " << cB << " distance A-B " << AMatchB.at(cA).distance << " dxy " << dxy << endl;
 		  
 
 		  if(BMatchA.at(cB).used==false){
@@ -604,7 +604,7 @@ int main( int argc, char* argv[] )
 		      BMatchA.at(cB).distance = dxy;
 		    }
 		  }    
-		  cout << "index cA " << cA << " index B " << cB << " distance B-A " << BMatchA.at(cB).distance << " dxy " << dxy << endl;
+		  if(DEBUG)  cout << "index cA " << cA << " index B " << cB << " distance B-A " << BMatchA.at(cB).distance << " dxy " << dxy << endl;
 		  
 
 		  if(CMatchB.at(cC).used==false){		    
@@ -618,7 +618,7 @@ int main( int argc, char* argv[] )
 		      CMatchB.at(cC).distance = dxy;
 		      }
 		  }
-		  cout << "index vlcC[cC] " << cC << " index B " << cB << " distance C-B " << CMatchB.at(cC).distance << " dxy " << dxy << endl;
+		  if(DEBUG)  cout << "index vlcC[cC] " << cC << " index B " << cB << " distance C-B " << CMatchB.at(cC).distance << " dxy " << dxy << endl;
 		  
 		  if(BMatchC.at(cB).used==false){
 		      
@@ -633,47 +633,32 @@ int main( int argc, char* argv[] )
 		    }
 		  }
 		  
-		  cout << "index vlcC[cC] " << cC << " index B " << cB << " distance B-C " << BMatchC.at(cB).distance << " dxy " << dxy << endl;
+		  if(DEBUG) cout << "index vlcC[cC] " << cC << " index B " << cB << " distance B-C " << BMatchC.at(cB).distance << " dxy " << dxy << endl;
 		  
-
-		  //	  cB++;
 	      }//clB
-	      //cA++;   
 	  }//clA
-	  //cC++;
       }//clC
 
-      cout << " #########     summary  " << iev << endl;
+      if(PRINT){
+	cout << " #########     summary  " << iev << endl;
+	for( int IC=0; IC < vclC.size(); ++IC ){
+	  for( int IA=0; IA < vclA.size(); ++IA ){
+	    for( int IB=0; IB < vclB.size(); ++IB ){
+	      cout << " index final IA " << IA << " AMatchC index " <<  AMatchC.at(IA).index << " distance dxyCA " << AMatchC.at(IA).distance << endl;
+	      cout << " index final IC " << IC << " CMatchA index " <<  CMatchA.at(IC).index << " distance dxyCA " << CMatchA.at(IC).distance << endl;
 
-      //      for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ){
-	
-      //	for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA ){
+	      cout << " index final IA " << IA << " AMatchB index " <<  AMatchB.at(IA).index << " distance dxy " << AMatchB.at(IA).distance << endl;
+	      cout << " index final IB " << IB << " BMatchA index " <<  BMatchA.at(IB).index << " distance dxy " << BMatchA.at(IB).distance << endl;
 
-      //	  for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ){
-      for( int IC=0; IC < vclC.size(); ++IC ){
-	for( int IA=0; IA < vclA.size(); ++IA ){
-	  for( int IB=0; IB < vclB.size(); ++IB ){
-	    
-	    
-
-	    cout << " index final IA " << IA << " AMatchC index " <<  AMatchC.at(IA).index << " distance dxyCA " << AMatchC.at(IA).distance << endl;
-	    cout << " index final IC " << IC << " CMatchA index " <<  CMatchA.at(IC).index << " distance dxyCA " << CMatchA.at(IC).distance << endl;
-
-	    cout << " index final IA " << IA << " AMatchB index " <<  AMatchB.at(IA).index << " distance dxy " << AMatchB.at(IA).distance << endl;
-	    cout << " index final IB " << IB << " BMatchA index " <<  BMatchA.at(IB).index << " distance dxy " << BMatchA.at(IB).distance << endl;
-
-	    cout << " index final IC " << IC << " CMatchB index " <<  CMatchB.at(IC).index << " distance dxy " << CMatchB.at(IC).distance << endl;
-	    cout << " index final IB " << IB << " BMatchC index " <<  BMatchC.at(IB).index << " distance dxy " << BMatchC.at(IB).distance << endl;
-	    //IB++;
+	      cout << " index final IC " << IC << " CMatchB index " <<  CMatchB.at(IC).index << " distance dxy " << CMatchB.at(IC).distance << endl;
+	      cout << " index final IB " << IB << " BMatchC index " <<  BMatchC.at(IB).index << " distance dxy " << BMatchC.at(IB).distance << endl;
+	    }
 	  }
-	  //IA++;
 	}
-	//IC++;
-      }
 
       
-      cout << " ########## DONE Matching for closest  ########## "<< endl;
-
+	cout << " ########## DONE Matching for closest  ########## "<< endl;
+      }
 
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1024,7 +1009,7 @@ int main( int argc, char* argv[] )
 				    if( fabs( dxCA ) < straightTracks * beamDivergenceScaled )
 				      { // track angle
 					fillControlHists2(straightTracksY_isoAandCandB_straightTracksX,"straightTracksY_isoAandCandB_straightTracksX",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
-					cout << "event "<< iev << " used distance dxyCA " << dxyCA << " dxy " << dxy   << " cA " << cA << " cB " << cB << "cC " <<cC << endl;
+					if(PRINT) cout << "event "<< iev << " used distance dxyCA " << dxyCA << " dxy " << dxy   << " cA " << cA << " cB " << cB << "cC " <<cC << endl;
 			    
 
 				    
@@ -1061,11 +1046,11 @@ int main( int argc, char* argv[] )
 		      }//straight tracks 
 
 		    //		  iB++;
-		}//clB
-	      cA++;
-	    }//clA
+	      }//clB
+	      //	      cA++;
+	  }//clA
 	  //iC++;
-	}//clC
+      }//clC
     }//first big loop on events
 
   charge_res->Print();
@@ -1706,7 +1691,7 @@ int main( int argc, char* argv[] )
 
   cout << " Cluster ph cut for 90 % events A: " << phA << " B: " << phB << " C: " << phC << endl;
   cout << " 95 % residual is between " << ss_low_ph95 << " and " << ss_high_ph95 << endl; 
-  cout << " 99 % residual is between " << ss_low_ph99 << " and " << ss_high_ph99 << endl; 
+  cout << " 99 % residual is between " << ss_low_ph99 << " and " << ss_high_ph99 << " entries " << hdx3_clphABC90evR99->GetEntries() << endl; 
 
 
 
@@ -1931,8 +1916,8 @@ void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TStr
 	high = maxbin+i;
       
 	Integral = h->Integral(low,high);
-	if(DEBUG) cout << " integral " << Integral << "low " <<low << " high " << high << endl;
-	if(DEBUG) cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
+	cout << " integral " << Integral << "low " <<low << " high " << high << endl;
+	cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
 	
 	//      if(fabs(Integral-integral95)/integral95 < 0.011 || Integral>integral95)//integral>integral95)
 	if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
@@ -1978,14 +1963,27 @@ void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TStr
   
   double sigma = h->GetRMS() * 1000;
   double sigmaerr = h->GetRMSError() * 1000;
-  cout << " resolution " << sigma << " ± " << sigmaerr << endl;
+  cout << " resolution " << sigma << " ± " << sigmaerr << " entries " << h->Integral() << endl;
 
-  h->GetXaxis()->SetRange(1,h->GetNbinsX());
-  cout << "low and hig bin centers strings " << h->GetBinCenter(low) << " " << h->GetBinCenter(high) << endl;
+
+  /*
+  cout << "low and hig bin centers strings " << h->GetBinCenter(low) << " " << h->GetBinCenter(high) << " entries " << h->GetEntries() << endl;
   *dlow  = h->GetBinCenter(low);
   *dhigh = h->GetBinCenter(high);
+  */
+  /*
+  //Getting the low and high of the adjant bins for how Tree->Draw works
+  cout << "low and hig bin centers strings " << h->GetBinCenter(low-1) << " " << h->GetBinCenter(high+1) << " entries " << h->Integral() << endl;
+  *dlow  = h->GetBinCenter(low-1);
+  *dhigh = h->GetBinCenter(high+1);
+  */
+  //using bin edges
+  cout << "low and hig bin centers strings " << h->GetBinLowEdge(low) << " " << h->GetBinCenter(high)+h->GetBinWidth(high)/2. << " entries " << h->Integral() << endl;
+  *dlow  = h->GetBinLowEdge(low);
+  *dhigh = h->GetBinCenter(high)+h->GetBinWidth(high)/2.;
   
-
+  //reset range for further use
+  h->GetXaxis()->SetRange(1,h->GetNbinsX());
 }//getPerc
 
 
