@@ -16,7 +16,7 @@ using namespace std;
 #define measurements 6
 #define irradiation 3
 
-void resolutionSummary_25_gain1(TString name = "preliminary", TString func = "RMS", bool unfolding = false)
+void resolutionSummary_25_gain1(TString name = "preliminary_TreeCorr", TString func = "RMS", bool unfolding = false)
 {
 
   Double_t Resolution[measurements];
@@ -40,7 +40,7 @@ void resolutionSummary_25_gain1(TString name = "preliminary", TString func = "RM
   TString Short[measurements];
   TString thr[measurements];
 
-  TString filename = inputDir+"/TextFiles/resolution_25gain1_"+func+".txt";
+  TString filename = inputDir+"/TextFiles/resolution_25_resTreeCorr_thr12perc.txt";
   cout << filename << endl;
   ifstream stream(filename);
   int i=0;
@@ -61,7 +61,7 @@ void resolutionSummary_25_gain1(TString name = "preliminary", TString func = "RM
 	  if(print)	 cout  << sensor[i] << " " << irr[i] << " " << pitch[i] << " " << bias[i] << " " << angle[i] << " " << beam[i] << " " << Resolution[i] << " " << ResolutionError[i] <<" " << runs[i] << " " << specific[i] << " " << Short[i] << " " << thr[i] << endl;
 	  //  i++;
 	  if(irr[i] == 0) ss_irr[i] = "no irr";
-	  else if (irr[i] == 2) ss_irr[i] = "2#times10^{15}";
+	  else if (irr[i] == 2) ss_irr[i] = "2.1#times10^{15}";
 	  else if (irr[i] == 4) ss_irr[i] = "4#times10^{15}";
 	  //	  ss_irr[i].Form("%f",irr[i]);
 	  cout << " resolution for sensor " << sensor[i] << " is " << Resolution[i] << endl;
