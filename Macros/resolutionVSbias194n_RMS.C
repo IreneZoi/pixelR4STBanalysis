@@ -28,7 +28,7 @@ void resolutionVSbias194n_RMS(TString func = "RMS")
   TString labelA="FDB150P_12_R4S100x25-P4_1, thr 12 ADC";
   TString labelB="FDB150P_12_R4S100x25-P1_1, thr 15 ADC";
   TString labelC="FDB150P_12_R4S100x25-P1_3, thr 12 ADC";
-
+  TString info  ="beam momentum 5.2 GeV";  
   
   
   double BiasVoltage[BiasVoltages];
@@ -426,11 +426,23 @@ void resolutionVSbias194n_RMS(TString func = "RMS")
   for(int j = 0; j < Angles; j++)
     GetHists(&(res_map[j]),BiasVoltages, dphcuts, comparisons,dphcut, Run[j], i_dphcut, Label, Hist, h_res);
 
-
+  ofstream myfile3[BiasVoltages];
+  for(int i =0; i< BiasVoltages; i++){
+    myfile3[i].open ("/home/zoiirene/Output/TextFiles/Ascan_clsizeB_"+detectorB+"_"+ss_BiasVoltage[i]+".txt");
+    myfile3[i] << "A " << detectorA << "\n";
+    myfile3[i] << labelA << "\n";
+    myfile3[i] << "B " << detectorB<< "\n";
+    myfile3[i] << labelB << "\n";
+    myfile3[i] << "C " << detectorC<< "\n";
+    myfile3[i] << labelC << "\n";
+    myfile3[i] << info << "\n";
+    myfile3[i] << "Angle MeanNrowB Error\n";
+  }
 
   TCanvas *csza[Angles];/// = new TCanvas("csza", "csza", 1500, 900);
 
   double NrowB[Angles][BiasVoltages];
+  double  NrowBerror[Angles][BiasVoltages];
 
 
 
@@ -460,6 +472,8 @@ void resolutionVSbias194n_RMS(TString func = "RMS")
 	      if(print)  cout << " found map " << endl;
 	      if(print)  cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetMean() << endl;
 	      NrowB[j][i] = it2->second->GetMean();
+	      NrowBerror[j][i] = it2->second->GetMeanError();
+	      myfile3[i] << " " << Angle[j] << " " << NrowB[j][i]<< " " << NrowBerror[j][i] << "\n";
 	    }
 	  color = i+1;
 	  if(i+1 ==5) color = 95;
@@ -500,7 +514,7 @@ void resolutionVSbias194n_RMS(TString func = "RMS")
     }
 
 
-  
+  for(int i =0; i< BiasVoltages; i++)  myfile3[i].close();  
   TCanvas *csz = new TCanvas("csz", "csz", 1500, 900);
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
