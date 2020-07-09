@@ -302,20 +302,20 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
   resolutionPlotN[0]->GetYaxis()->SetLabelFont(43);
   resolutionPlotN[0]->GetYaxis()->SetLabelSize(20); // labels will be 14 pixels
   
-  resolutionPlotN[0]->SetMarkerColor(kMagenta-9);
-  resolutionPlotN[0]->SetLineColor(kMagenta-9);
+  resolutionPlotN[0]->SetMarkerColor(kMagenta-1);
+  resolutionPlotN[0]->SetLineColor(kMagenta-1);
   resolutionPlotN[0]->SetMarkerStyle(36);
   resolutionPlotN[0]->GetXaxis()->SetLimits(0.,25.);
   resolutionPlotN[0]->GetYaxis()->SetRangeUser(0.,10.);
   resolutionPlotN[0]->Draw("AEPC");
 
-  resolutionPlotN[1]->SetMarkerColor(kMagenta-8);
-  resolutionPlotN[1]->SetLineColor(kMagenta-8);
+  resolutionPlotN[1]->SetMarkerColor(kMagenta-3);
+  resolutionPlotN[1]->SetLineColor(kMagenta-2);
   resolutionPlotN[1]->SetMarkerStyle(28);
   resolutionPlotN[1]->Draw("EPCsame");
 				      
-  resolutionPlotN[2]->SetMarkerColor(kMagenta-6);
-  resolutionPlotN[2]->SetLineColor(kMagenta-6);
+  resolutionPlotN[2]->SetMarkerColor(kMagenta-3);
+  resolutionPlotN[2]->SetLineColor(kMagenta-3);
   resolutionPlotN[2]->SetMarkerStyle(27);
   resolutionPlotN[2]->Draw("EPCsame");
 
