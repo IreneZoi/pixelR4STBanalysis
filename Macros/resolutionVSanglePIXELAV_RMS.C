@@ -29,7 +29,7 @@ void TDR2(TCanvas * c_all);
 
 
 
-void resolutionVSanglePIXELAV_RMS(TString thr ="700", TString function = "RMS")
+void resolutionVSanglePIXELAV_RMS(TString thr ="650", TString function = "RMS")
 {
 
   Double_t Angle[Angles] = {-5,-3.75,-2.5,-1.25,0,1.25,2.5,3.75,5,6.25,7.5,8.75,10,11.25,12.5,13.75,15,16.25,17.5,18.75,20,21.25,22.5,23.75,25,26.25,27.5,28.75,30 };
