@@ -239,14 +239,14 @@ void DrawTGraphError(int comparisons, int * i_dphcut, float * mean, float * rms,
 }
 
 
-
-void GetCheckHists(MapTH1 * map,int runs, int dphcuts, bool dphcut, TString * Run, TString * ss_dphcut, TString * pitch, TString Hist, TH1F * h)
+TH1F* GetMoreCheckHists(MapTH1 * map,int runs, int dphcuts, bool dphcut, TString * Run, TString * ss_dphcut, TString pitch, TString * Hist,int hists , TH1F * h, bool extralabel = false, TString label = " ")
 {
   TString inputDir="/home/zoiirene/Output/";
   TString inputfile, Path;
 
-  TFile * file[runs];
+  TFile * file[runs][dphcuts];
   bool print = true;
+  TH1F * g;
   TString key;
   if(print) cout << "Getting runs "  << endl;
   for(int i=0; i<runs; i++)
@@ -256,21 +256,95 @@ void GetCheckHists(MapTH1 * map,int runs, int dphcuts, bool dphcut, TString * Ru
 
 	  if(print) cout << "Run: "<< i <<" " << Run[i] << endl;
 	  inputfile = "drei-r"+Run[i]+"_irene.root";
+	  if(extralabel) 	  inputfile = "drei-r"+Run[i]+"_irene_"+label+".root";
 	  if(dphcut)
 	    {
-	      inputfile = "drei-r"+Run[i]+"_irene_"+ss_dphcut[l]+".root";
+	      inputfile = "drei-r"+Run[i]+"_irene_dphcutB"+ss_dphcut[l]+".root";
+	      if(extralabel) inputfile = "drei-r"+Run[i]+"_irene_dphcutB"+ss_dphcut[l]+"_"+label+".root";
 	    }
 	  if(print) cout << "File Name: " << inputfile << endl;
 	  Path=inputDir+inputfile;
-	  file[i] = new TFile(Path);
+	  file[i][l] = new TFile(Path);
 	  if(print) cout << "File Path: " << Path << endl;
 
 
 	  if(dphcut)
 	    {
-	      key = Run[i]+"_"+ss_dphcut[l]+"_"+pitch[i];
+	      key = Run[i]+"_"+ss_dphcut[l]+"_"+pitch;
 	    }
-	  else  key = Run[i]+"_"+pitch[i];
+	  else  key = Run[i]+"_"+pitch;
+
+	  for(int k = 0; k < hists ; k++){
+	    cout << "key " << key << " hist " << Hist[k] << endl;
+	  
+	    auto it = map->find(std::make_pair(key,Hist[k]));
+	  
+	  
+	    if(it  != map->end()){
+	      cout << " it  != map->end() " << endl;
+	      if(print)		  cout << " found map " << endl;
+	      cout << "map key " << it->first.first << " " << it->first.second << endl;
+	      
+	      if(print) cout << Path << "  entries " << it->second->GetEntries() << endl;
+	      
+	    }
+	    else{
+	      cout << " it  == map->end() " << endl;
+              cout << "l*runs+i " << l*runs+i << endl;
+	      g = (TH1F*)file[i][l]->Get(Hist[k]);
+              h = (TH1F *)g->Clone();
+	      cout << " Hist " << Hist[k] << " " << h->GetEntries() << endl;
+	      map->insert(std::make_pair(std::make_pair(key,Hist[k]),g));
+	      it = map->find(std::make_pair(key,Hist[k]));
+	      
+	      cout << "map key " << it->first.first << " " << it->first.second << endl;
+	    }
+	      
+
+
+	  //	      if(print) cout << Path << "  entries " << h->GetEntries() << endl;
+	  //file[i][l]->Close();	  
+	}//dphcuts
+    }//runs
+      return h;
+    }
+}
+
+  //TH1F*
+MapTH1   GetCheckHists(MapTH1 * map,int runs, int dphcuts, bool dphcut, TString * Run, TString * ss_dphcut, TString pitch, TString Hist, TH1F * h, bool extralabel = false, TString label = " ")
+{
+  TString inputDir="/home/zoiirene/Output/";
+  TString inputfile, Path;
+
+  TFile * file[runs][dphcuts];
+  bool print = true;
+  TH1F * g;
+  TString key;
+  if(print) cout << "Getting runs "  << endl;
+  for(int i=0; i<runs; i++)
+    {
+      for(int l=0; l<dphcuts; l++)
+	{
+
+	  if(print) cout << "Run: "<< i <<" " << Run[i] << endl;
+	  inputfile = "drei-r"+Run[i]+"_irene.root";
+	  if(extralabel) 	  inputfile = "drei-r"+Run[i]+"_irene_"+label+".root";
+	  if(dphcut)
+	    {
+	      inputfile = "drei-r"+Run[i]+"_irene_dphcutB"+ss_dphcut[l]+".root";
+	      if(extralabel) inputfile = "drei-r"+Run[i]+"_irene_dphcutB"+ss_dphcut[l]+"_"+label+".root";
+	    }
+	  if(print) cout << "File Name: " << inputfile << endl;
+	  Path=inputDir+inputfile;
+	  file[i][l] = new TFile(Path);
+	  if(print) cout << "File Path: " << Path << endl;
+
+
+	  if(dphcut)
+	    {
+	      key = Run[i]+"_"+ss_dphcut[l]+"_"+pitch;
+	    }
+	  else  key = Run[i]+"_"+pitch;
 	  cout << "key " << key << " hist " << Hist << endl;
 	  
 	  auto it = map->find(std::make_pair(key,Hist));
@@ -288,10 +362,12 @@ void GetCheckHists(MapTH1 * map,int runs, int dphcuts, bool dphcut, TString * Ru
 	  else
 	    {
 	      cout << " it  == map->end() " << endl;
-
-	      h = (TH1F*)file[l*runs+i]->Get(Hist);
+              cout << "l*runs+i " << l*runs+i << endl;
+	      g = (TH1F*)file[i][l]->Get(Hist);
+	      g->SetDirectory(0);
+              h = (TH1F *)g->Clone();
 	      cout << " Hist " << Hist << " " << h->GetEntries() << endl;
-	      map->insert(std::make_pair(std::make_pair(key,Hist),h));
+	      map->insert(std::make_pair(std::make_pair(key,Hist),g));
 	      it = map->find(std::make_pair(key,Hist));
 	      
 	      cout << "map key " << it->first.first << " " << it->first.second << endl;
@@ -300,10 +376,12 @@ void GetCheckHists(MapTH1 * map,int runs, int dphcuts, bool dphcut, TString * Ru
 
 
 	  //	      if(print) cout << Path << "  entries " << h->GetEntries() << endl;
-	
+	  file[i][l]->Close();	  
 	}//dphcuts
     }//runs
-    
+
+
+ return *map;
 }//
 
 void GetPixelavHists(MapTH1 * map,int runs, TString * Run, TString * pitch, TString Hist, TH1F * h)
@@ -347,6 +425,7 @@ void GetPixelavHists(MapTH1 * map,int runs, TString * Run, TString * pitch, TStr
 	   cout << " it  == map->end() " << endl;
 	   
 	   h = (TH1F*)file[i]->Get(Hist);
+	   h->SetDirectory(0);
 	   cout << " Hist " << Hist << " " << h->GetEntries() << endl;
 	   map->insert(std::make_pair(std::make_pair(key,Hist),h));
 	   it = map->find(std::make_pair(key,Hist));
@@ -363,8 +442,7 @@ void GetPixelavHists(MapTH1 * map,int runs, TString * Run, TString * pitch, TStr
     
 }//pixelav hists
 
-void GetHists(MapTH1 * map,int runs, int dphcuts, int comparisons,  bool dphcut, TString * Run, int * i_dphcut, TString * Label, TString Hist, TH1F * h, bool extraname = false, TString name = " ")
-{
+void GetHists(MapTH1 * map,int runs, int dphcuts, int comparisons,  bool dphcut, TString * Run, int * i_dphcut, TString * Label, TString Hist, TH1F * h, bool extraname = false, TString name = " "){
   cout << "getting files " << endl;
   TString inputDir="/home/zoiirene/Output/";
   TString inputfile, Path;
@@ -377,65 +455,57 @@ void GetHists(MapTH1 * map,int runs, int dphcuts, int comparisons,  bool dphcut,
   TString key;
   bool print = true;
   if(print) cout << "Getting runs "  << endl;
-  for(int i=0; i<runs; i++)
-    {
-      for(int l=0; l<dphcuts; l++)
-	{
-
-	  if(print) cout << "Run: "<< i <<" " << Run[i] << endl;
-	  inputfile = "drei-r"+Run[i]+"_irene.root";
-	  if(dphcut)
-	    {
-	      inputfile = "drei-r"+Run[i]+"_irene_dphcutB"+ss_dphcut[l]+".root";
-	      if(extraname) inputfile = "drei-r"+Run[i]+"_irene_dphcutB"+ss_dphcut[l]+"_"+name+".root";
-	    }
-	  else{
-	    if(extraname) inputfile = "drei-r"+Run[i]+"_irene_"+name+".root";
-	  }
-	  if(print) cout << "File Name: " << inputfile << endl;
-	  Path=inputDir+inputfile;
-	  file[i][l] = new TFile(Path);
-	  if(print) cout << "File Path: " << Path << endl;
+  for(int i=0; i<runs; i++){
+    for(int l=0; l<dphcuts; l++){
+      if(print) cout << "Run: "<< i <<" " << Run[i] << endl;
+      inputfile = "drei-r"+Run[i]+"_irene.root";
+      if(dphcut){
+	inputfile = "drei-r"+Run[i]+"_irene_dphcutB"+ss_dphcut[l]+".root";
+	if(extraname) inputfile = "drei-r"+Run[i]+"_irene_dphcutB"+ss_dphcut[l]+"_"+name+".root";
+      }	else{
+	if(extraname) inputfile = "drei-r"+Run[i]+"_irene_"+name+".root";
+      }
+      if(print) cout << "File Name: " << inputfile << endl;
+      Path=inputDir+inputfile;
+      file[i][l] = new TFile(Path);
+      if(print) cout << "File Path: " << Path << endl;
+      
 
 
-
-	  for(int j=0; j<comparisons; j++)
-	    {
-	      key = Run[i]+"_"+Label[j];
-	      if(dphcut) key = Run[i]+"_"+ss_dphcut[l]+"_"+Label[j];
-	      if(print) cout << " key " << key << endl;
-	      auto it = map->find(std::make_pair(key,Hist));
-	      if(print) cout << "iterator" << endl;
-	      if(print) cout << "histodir " << Label[j] <<endl;
-
-	      histodir =(TDirectoryFile*)file[i][l]->Get(Label[j]);
-	      if(print) cout << "histodir" << endl;
-	      
-	      if(it  != map->end())
-		{
-		  cout << " it  != map->end() " << endl;
-		  if(print)           cout << " found map " << endl;
-		  cout << "map key " << it->first.first << " " << it->first.second << endl;
-
-		  
-		}
-	      else
-		{
-		  
-		  h = (TH1F*)histodir->Get(Hist);
-		  map->insert(std::make_pair(std::make_pair(key,Hist),h));
-		  it = map->find(std::make_pair(key,Hist));
-		  cout << "map key " << it->first.first << " " << it->first.second << endl;
-
-		}
-	      
-
-
-	      if(print) cout << Path << " " << Label[j] <<"  entries " << h->GetEntries() << endl;
+      for(int j=0; j<comparisons; j++){
+	key = Run[i]+"_"+Label[j];
+	if(dphcut) key = Run[i]+"_"+ss_dphcut[l]+"_"+Label[j];
+	if(print) cout << " key " << key << endl;
+	auto it = map->find(std::make_pair(key,Hist));
+	if(print) cout << "iterator" << endl;
+	if(print) cout << "histodir " << Label[j] <<endl;
 	
-	    }//dphcuts
-	}//comparisons
-    }//runs
+	histodir =(TDirectoryFile*)file[i][l]->Get(Label[j]);
+	if(print) cout << "histodir" << endl;
+	
+	if(it  != map->end()){
+	  cout << " it  != map->end() " << endl;
+	if(print)           cout << " found map " << endl;
+	cout << "map key " << it->first.first << " " << it->first.second << endl;	
+		  
+      }else
+	 {
+	   
+	   h = (TH1F*)histodir->Get(Hist);
+
+	   map->insert(std::make_pair(std::make_pair(key,Hist),h));
+	   it = map->find(std::make_pair(key,Hist));
+	   cout << "map key " << it->first.first << " " << it->first.second << endl;
+	   
+	 }
+	      
+
+      
+      if(print) cout << Path << " " << Label[j] <<"  entries " << h->GetEntries() << endl;
+      
+    }//dphcuts
+  }//comparisons
+}//runs
   cout << " DONE GETTING HISTS!! ********************" << endl;
 }//
 
@@ -549,17 +619,18 @@ void DrawThrScanHists(MapTH1 * map,int comparisons, TString Run, int * i_dphcut,
 	  if(Hist[k] == "clchargeB" || Hist[k] == "clphB")
 	    mean[k][i] = it3->second->GetBinCenter(it3->second->GetMaximumBin());
 
-
+	  
 	  if(Hist[k] == "dx3"||   Hist[k] == "dx3_clchargeAC90evR" ||   Hist[k] == "dx3_clchargeABC90evR"    )
 	    {
 	      cout << " RMS 95" << endl;
-	      FitTH1(it3->second, &(rms_d), &(rmserr), "dphcut"+ss_dphcut[i], Run, Label, Hist[k],"RMS");
+	      cout << " COMMENTED FitTH1 " << endl;
+	      //FitTH1(it3->second, &(rms_d), &(rmserr), "dphcut"+ss_dphcut[i], Run, Label, Hist[k],"RMS");
 	      cout << " success" << endl;
 	      rms[k][i] = (float) rms_d;
 	      rmserror[k][i] = (float) rmserr;
 
 	    }
-
+	  
 	  cout << entries[k][i] << " " << mean[k][i] << " " << rms[k][i] << endl;
 
 
@@ -826,6 +897,74 @@ void DrawHists(MapTH1 * map,int comparisons, TString Run, bool dphcut, TString s
   c2->SaveAs(name+".root");
   //gStyle->SetOptStat(1);
 }//DrawHists
+
+
+void DrawTwoHist(TH1F * h1,TH1F * h2, TString Label1, TString Label2, TString Name,float xmin,float xmax,float ymin, float ymax, bool log = true)
+{
+
+  TString outputDir = "/home/zoiirene/Output/Plots/";
+  
+  TCanvas *c2 = new TCanvas("c2", "c2", 1500, 900);
+  gPad->SetTicks(1,1);
+  gROOT->SetStyle("Plain");
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+  //gStyle->SetOptStat();
+  gStyle->SetOptStat(111111);
+  gStyle->SetOptTitle(0);
+
+  
+  h1->SetLineWidth(2);
+  h1->SetLineColor(kBlue);
+  h1->GetXaxis()->SetRangeUser(xmin,xmax);
+  h1->GetYaxis()->SetRangeUser(ymin,ymax);
+	  //	  leg2->AddEntry(h,Label[i], "l");
+  h1->Draw("hist");
+  c2->Update();
+  TPaveStats *Stats =   (TPaveStats*)h1->GetListOfFunctions()->FindObject("stats");
+  Stats->SetX1NDC(0.55);
+  Stats->SetX2NDC(.75);
+  Stats->SetY1NDC(.4+0.15);
+  Stats->SetY2NDC(.5+0.15);
+  Stats->SetTextColor(kBlue);
+  Stats->SetTextSize(0.02);
+  gPad->Modified();
+  
+
+  
+  h2->SetLineWidth(2);
+  h2->SetLineColor(kRed);
+  h2->SetLineStyle(2);
+  h2->GetXaxis()->SetRangeUser(xmin,xmax);
+  h2->GetYaxis()->SetRangeUser(ymin,ymax);
+  
+  h2->Draw("histsames");
+  c2->Update();
+  TPaveStats *Stats2 =   (TPaveStats*)h2->GetListOfFunctions()->FindObject("stats");
+  Stats2->SetX1NDC(0.55);
+  Stats2->SetX2NDC(.75);
+  Stats2->SetY1NDC(.4+0.3);
+  Stats2->SetY2NDC(.5+0.3);
+  Stats2->SetTextColor(kRed);
+  Stats2->SetTextSize(0.02);
+  gPad->Modified();
+  
+  
+  TLegend* leg2 = new TLegend(0.7,0.3,0.85,0.45);
+  leg2->SetLineColor(0);
+  leg2->SetTextSize(0.02);
+  leg2->AddEntry(h1,Label1, "l");
+  leg2->AddEntry(h2,Label2, "l");
+  leg2->Draw("same");
+  c2->Update();
+  if(log) c2->SetLogy();
+  TString name = outputDir+"compare_"+Label1+"_"+Label2+"_"+"_"+Name;
+  c2->SaveAs(name+".eps");
+  c2->SaveAs(name+".pdf");
+  c2->SaveAs(name+".png");
+  c2->SaveAs(name+".root");
+}
 
 
 void DrawHist(TH1F * h, TString Run, TString ss_dphcut, TString Label, TString Hist,float xmin,float xmax,float ymin, float ymax)
