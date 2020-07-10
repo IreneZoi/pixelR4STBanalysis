@@ -128,7 +128,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   resolutionPlot[1] = new TGraphErrors(momsPirr2,mom_1,res_1,momerr_1,reserr_1);
 
   resolutionPlot[0]->SetTitle(" ");
-  resolutionPlot[0]->GetYaxis()->SetTitle("Single hit resolution [#mum]");
+  resolutionPlot[0]->GetYaxis()->SetTitle("#sigma_{x} [#mum]");
   resolutionPlot[0]->GetXaxis()->SetTitle("p_{beam} [GeV]");
 
   resolutionPlot[0]->GetYaxis()->SetTitleFont(43);

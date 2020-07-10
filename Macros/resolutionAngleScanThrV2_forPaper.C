@@ -276,7 +276,7 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
       if(l==0){
 	leg->AddEntry(resolutionPlot[l],irr[i],"");
 	resolutionPlot[l]->SetMarkerStyle(21);
-	resolutionPlot[0]->GetYaxis()->SetTitle("Single hit resolution [#mum]");
+	resolutionPlot[0]->GetYaxis()->SetTitle("#sigma_{x} [#mum]");
 	resolutionPlot[0]->GetXaxis()->SetTitle("Threshold [%]");
 	resolutionPlot[0]->GetYaxis()->SetTitleFont(43);
 	resolutionPlot[0]->GetYaxis()->SetTitleSize(20); // labels will be 14 pixels
@@ -368,7 +368,7 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
       if(l==0){
 	
 	legAng->AddEntry(resolutionPlotIrr[l],"Optimal angle, 5.6 GeV",0);
-	resolutionPlotIrr[0]->GetYaxis()->SetTitle("Single hit resolution [#mum]");
+	resolutionPlotIrr[0]->GetYaxis()->SetTitle("#sigma_{x} [#mum]");
 	resolutionPlotIrr[0]->GetXaxis()->SetTitle("Threshold [%]");
 
         resolutionPlotIrr[0]->GetYaxis()->SetTitleFont(43);

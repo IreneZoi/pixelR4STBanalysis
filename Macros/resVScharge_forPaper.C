@@ -259,7 +259,7 @@ void resVScharge_forPaper(){
     resolutionPlot[1] = new TGraphErrors(perc,charge_1[i],res_1[i],chargeerr[i],reserr_1[i]);
     
     resolutionPlot[0]->SetTitle(" ");
-    resolutionPlot[0]->GetYaxis()->SetTitle("Single hit resolution [#mum]");
+    resolutionPlot[0]->GetYaxis()->SetTitle("#sigma_{x} [#mum]");
     resolutionPlot[0]->GetXaxis()->SetTitle("Mean cluster charge [ADC]");
     resolutionPlot[0]->SetMarkerSize(1.);
 
