@@ -16,7 +16,7 @@ using namespace std;
 #define measurements 7
 #define irradiation 3
 
-void resolutionSummary_25_TreeEntries(TString name = "preliminary_TreeCorrEntries", TString func = "RMS95", bool unfolding = false)
+void resolutionSummary_25_TreeEntries(TString name = "preliminary_RMSself", TString func = "RMSself", bool unfolding = false)
 {
 
   Double_t Resolution[measurements];
@@ -40,7 +40,7 @@ void resolutionSummary_25_TreeEntries(TString name = "preliminary_TreeCorrEntrie
   TString Short[measurements];
   TString thr[measurements];
 
-  TString filename = inputDir+"/TextFiles/resolution_25_resTreeCorrEntries_thr12perc.txt";
+  TString filename = inputDir+"/TextFiles/resolution_25gain1_RMSself.txt";
   cout << filename << endl;
   ifstream stream(filename);
   int i=0;
@@ -61,8 +61,8 @@ void resolutionSummary_25_TreeEntries(TString name = "preliminary_TreeCorrEntrie
 	  if(print)	 cout  << sensor[i] << " " << irr[i] << " " << pitch[i] << " " << bias[i] << " " << angle[i] << " " << beam[i] << " " << Resolution[i] << " " << ResolutionError[i] <<" " << runs[i] << " " << specific[i] << " " << Short[i] << " " << thr[i] << endl;
 	  //  i++;
 	  if(irr[i] == 0) ss_irr[i] = "no irr";
-	  else if (irr[i] == 2) ss_irr[i] = "2.1#times10^{15}";
-	  else if (irr[i] == 4) ss_irr[i] = "4#times10^{15}";
+	  else if (irr[i] == 2) ss_irr[i] = "2.1 #times 10^{15}";
+	  else if (irr[i] == 4) ss_irr[i] = "3.6 #times 10^{15}";
 	  //	  ss_irr[i].Form("%f",irr[i]);
 	  cout << " resolution for sensor " << sensor[i] << " is " << Resolution[i] << endl;
 	}
@@ -77,17 +77,17 @@ void resolutionSummary_25_TreeEntries(TString name = "preliminary_TreeCorrEntrie
   Double_t x2[] = {irr[0]};
   Double_t x3[] = {irr[1]};
   Double_t x4[] = {irr[2]};
-  Double_t Pstop_RD53Apads_FDB_25[] = {Resolution[2]};
-  Double_t Pstop_RD53Apads_FDB_25_err[] = {ResolutionError[2]};
-  Double_t Pspray_default_FDB_25[] = {Resolution[3]};
-  Double_t Pspray_default_FDB_25_err[] = {ResolutionError[3]};
-  Double_t Pspray_RD53Apads_FDB_25[] = {Resolution[4]};
-  Double_t Pspray_RD53Apads_FDB_25_err[] = {ResolutionError[4]};
+  Double_t Pstop_RD53Apads_FDB_25[] = {Resolution[3]};
+  Double_t Pstop_RD53Apads_FDB_25_err[] = {ResolutionError[3]};
+  Double_t Pspray_default_FDB_25[] = {Resolution[4]};
+  Double_t Pspray_default_FDB_25_err[] = {ResolutionError[4]};
+  Double_t Pspray_RD53Apads_FDB_25[] = {Resolution[5]};
+  Double_t Pspray_RD53Apads_FDB_25_err[] = {ResolutionError[5]};
 
-  Double_t Pstop_default_FDB_25_irr[] = {Resolution[5]};
-  Double_t Pstop_default_FDB_25_irr_err[] = {ResolutionError[5]};
-  Double_t Pstop_default_FDB_25_gain2_irr[] = {Resolution[6]};
-  Double_t Pstop_default_FDB_25_gain2_irr_err[] = {ResolutionError[6]};
+  Double_t Pstop_default_FDB_25_irr[] = {Resolution[6]};
+  Double_t Pstop_default_FDB_25_irr_err[] = {ResolutionError[6]};
+  Double_t Pstop_default_FDB_25_gain2_irr[] = {Resolution[2]};
+  Double_t Pstop_default_FDB_25_gain2_irr_err[] = {ResolutionError[2]};
   
 
   TCanvas *cFDB2 = new TCanvas("cFDB2", "FDB resolution", 1500, 900);
@@ -112,12 +112,16 @@ void resolutionSummary_25_TreeEntries(TString name = "preliminary_TreeCorrEntrie
   
   resolutionPlot[0] = new TGraphErrors(1,FDB1,Pstop_default_FDB_25_preirr,0,Pstop_default_FDB_25_preirr_err);
   resolutionPlot[1] = new TGraphErrors(1,FDB2,Pstop_RD53Apads_FDB_25,0,Pstop_RD53Apads_FDB_25_err);
-  resolutionPlot[2] = new TGraphErrors(1,FDB3,Pspray_default_FDB_25,0,Pspray_default_FDB_25_err);
-  resolutionPlot[3] = new TGraphErrors(1,FDB4,Pspray_RD53Apads_FDB_25,0,Pspray_RD53Apads_FDB_25_err);//,0,0_err);
-  resolutionPlot[4] = new TGraphErrors(1,FTH,Pstop_default_FTH_25_irr,0,Pstop_default_FTH_25_irr_err);//Pspray_RD53Apads_FDB_25);//,0,0);
-  resolutionPlot[5] = new TGraphErrors(1,FDB5,Pstop_default_FDB_25_irr,0,Pstop_default_FDB_25_irr_err);
-  resolutionPlot[6] = new TGraphErrors(1,FDB6,Pstop_default_FDB_25_gain2_irr,0,Pstop_default_FDB_25_gain2_irr_err);
-
+  resolutionPlot[3] = new TGraphErrors(1,FDB3,Pspray_default_FDB_25,0,Pspray_default_FDB_25_err);
+  resolutionPlot[4] = new TGraphErrors(1,FDB4,Pspray_RD53Apads_FDB_25,0,Pspray_RD53Apads_FDB_25_err);//,0,0_err);
+  resolutionPlot[5] = new TGraphErrors(1,FTH,Pstop_default_FTH_25_irr,0,Pstop_default_FTH_25_irr_err);//Pspray_RD53Apads_FDB_25);//,0,0);
+  resolutionPlot[6] = new TGraphErrors(1,FDB5,Pstop_default_FDB_25_irr,0,Pstop_default_FDB_25_irr_err);
+  resolutionPlot[2] = new TGraphErrors(1,FDB6,Pstop_default_FDB_25_gain2_irr,0,Pstop_default_FDB_25_gain2_irr_err);
+  //6-> 2
+  //2->3
+  //3->4
+  //4->5
+  //5->6
 
   resolutionPlot[0]->SetTitle(" ");
   resolutionPlot[0]->GetYaxis()->SetTitle("Resolution [#mum]");
@@ -134,38 +138,38 @@ void resolutionSummary_25_TreeEntries(TString name = "preliminary_TreeCorrEntrie
   resolutionPlot[1]->SetMarkerStyle(21);
   resolutionPlot[1]->Draw("EPsame");
 				      
-  resolutionPlot[2]->SetMarkerSize(2.5);
-  resolutionPlot[2]->SetMarkerColor(kBlue);
-  resolutionPlot[2]->SetMarkerStyle(24);
-  resolutionPlot[2]->Draw("EPsame");
-
   resolutionPlot[3]->SetMarkerSize(2.5);
   resolutionPlot[3]->SetMarkerColor(kBlue);
-  resolutionPlot[3]->SetMarkerStyle(25);
+  resolutionPlot[3]->SetMarkerStyle(24);
   resolutionPlot[3]->Draw("EPsame");
 
   resolutionPlot[4]->SetMarkerSize(2.5);
-  resolutionPlot[4]->SetMarkerColor(kBlue+2);
-  resolutionPlot[4]->SetMarkerStyle(20);
+  resolutionPlot[4]->SetMarkerColor(kBlue);
+  resolutionPlot[4]->SetMarkerStyle(25);
   resolutionPlot[4]->Draw("EPsame");
 
-
   resolutionPlot[5]->SetMarkerSize(2.5);
-  resolutionPlot[5]->SetMarkerColor(kBlue);
+  resolutionPlot[5]->SetMarkerColor(kBlue+2);
   resolutionPlot[5]->SetMarkerStyle(20);
   resolutionPlot[5]->Draw("EPsame");
 
+
   resolutionPlot[6]->SetMarkerSize(2.5);
   resolutionPlot[6]->SetMarkerColor(kBlue);
-  resolutionPlot[6]->SetMarkerStyle(3);
+  resolutionPlot[6]->SetMarkerStyle(20);
   resolutionPlot[6]->Draw("EPsame");
+
+  resolutionPlot[2]->SetMarkerSize(2.5);
+  resolutionPlot[2]->SetMarkerColor(kBlue);
+  resolutionPlot[2]->SetMarkerStyle(3);
+  resolutionPlot[2]->Draw("EPsame");
   
 
   TLegend* legFDB2 = new TLegend(0.15,0.2,0.35,0.4);
   legFDB2->SetLineColor(0);
   legFDB2->SetTextSize(0.027);
 
-  int sens[] = {1,2,3,4,0,5,6};
+  int sens[] = {0,1,6,3,4,5,2};
   for(int i =0; i<gain1_25; i++){
     if( i != 6) legFDB2->AddEntry(resolutionPlot[i],pitch[sens[i]]+"#mum, "+Short[sens[i]]+", "+bias[sens[i]]+"V ("+ss_irr[sens[i]]+"), thr"+thr[sens[i]], "p");
     if( i == 6) legFDB2->AddEntry(resolutionPlot[i],pitch[sens[i]]+"#mum, "+Short[sens[i]]+", "+bias[sens[i]]+"V ("+ss_irr[sens[i]]+"), thr"+thr[sens[i]]+" (gain2)", "p");
