@@ -6,12 +6,12 @@
 
 bool print=true;
 using namespace std;
-#define measurements 6
+#define measurements 7
 #define irradiation 3
-#define dphcuts  3
+#define dphcuts  1
 #define comparisons 1
 
-void bestRes(TString func = "RMS", bool unfolding = false)
+void bestRes(TString func = "RMSself", bool unfolding = false)
 {
   TString unf = "Unfolded";
   TString filename = "/home/zoiirene/Output/TextFiles/resolution_25gain1_"+func;
@@ -25,7 +25,7 @@ void bestRes(TString func = "RMS", bool unfolding = false)
     //  "108", 
     "120i",
     "150", 
-    //"130i",
+    "130i",
     "148", 
     "146", 
     "163",
@@ -40,7 +40,7 @@ void bestRes(TString func = "RMS", bool unfolding = false)
     //0, 
     2, 
     0, 
-    //2, 
+    2, 
     0, 
     0, 
     0,
@@ -55,7 +55,7 @@ void bestRes(TString func = "RMS", bool unfolding = false)
     //25,
     25,
     25,
-    //25,
+    25,
     25,
     25,
     25,
@@ -70,7 +70,7 @@ void bestRes(TString func = "RMS", bool unfolding = false)
     //    "200", 
     "800", 
     "120", 
-    //"600", 
+    "600", 
     "120", 
     "120", 
     "120",
@@ -85,7 +85,7 @@ void bestRes(TString func = "RMS", bool unfolding = false)
     //    "12.5", 
     "10 ", 
     "12.5",
-    //"11.25",
+    "11.25",
     " 8.75 ",
     "15 ",
     "11.25",
@@ -100,10 +100,10 @@ void bestRes(TString func = "RMS", bool unfolding = false)
    //5.6,//6
    5.6,  // no 6 GeV data!!! 
    5.6,  //6 to be analysed.. is from different set of data 
-   //5,6, //6
+   5.6, //6
    5.6, //6 to be analysed.. is from a different set of data       
    5.6,  //6 to be analysed.. is from a different set of data 
-   5.6 , //6
+   5.6, //6
    5.6
    // 5.6,//6
    // 5.6,//6
@@ -115,7 +115,7 @@ void bestRes(TString func = "RMS", bool unfolding = false)
    //   "1827", 
    "2801",      
    "2775",      
-   //"1820", 
+   "1820", 
    "2743",      
    "2773",      
    "2832",
@@ -127,11 +127,26 @@ void bestRes(TString func = "RMS", bool unfolding = false)
    // "1846"
    
  };
+ TString filelabel[measurements] = {
+   //
+   "thrScan_A12C15",
+   "closest_A11C15",
+   "closest_A32C42",
+   "thrScan_A13C14",
+   "closest_A11C14",
+   "closest2_A11C12",
+   "thrScan_A12C13"
+   //
+   //
+   //
+   //
+   //
+ };
  TString specific[measurements] = {
    //"FTH150P_6_R4S100x25-P1_2", 
    "FTH150P_6_R4S100x25-P1_2",
    "FDB150P_12_R4S100x25-P1_3",
-   //"FDB150P_12_R4S100x25-P1_4",
+   "FDB150P_12_R4S100x25-P1_4",
    "FDB150P_12_R4S100x25-P4_1",
    "FDB150Y_2_R4S100x25-Y2_2",
    "FDB150Y_2_R4S100x25-Y6_1",
@@ -146,7 +161,7 @@ void bestRes(TString func = "RMS", bool unfolding = false)
    //   "Pstop_default_FTH",
    "Pstop_default_FTH",   
    "Pstop_default_FDB",   
-   //"Pstop_default_FDB",   
+   "Pstop_default_FDB",   
    "Pstop_RD53Apads_FDB", 
    "Pspray_default_FDB",  
    "Pspray_RD53Apads_FDB",
@@ -161,10 +176,10 @@ void bestRes(TString func = "RMS", bool unfolding = false)
    //15, 
    15, 
    12, 
-   //30, 
+   20, 
    12, 
-   12, 
-   12,
+   13, 
+   14,
    15
    // 12, 
    // 20, 
@@ -172,7 +187,7 @@ void bestRes(TString func = "RMS", bool unfolding = false)
    // 12, 
    // 25
  };
- Double_t Resolution[measurements],ResolutionError[measurements];
+ Double_t Resolution[measurements],ResolutionError[measurements],Percentage[measurements];
  Double_t RMS[measurements],RMSError[measurements];
  TString search;
  TString comment;
@@ -182,23 +197,36 @@ void bestRes(TString func = "RMS", bool unfolding = false)
  
  TString Label[comparisons] = {"straightTracksY_isoAandCandB_straightTracksX"};
  TString Hist = "dx3_clchargeABC90evR";
- bool dphcut = false;
+ bool dphcut = true;
  TH1F * h_res;
- GetHists(&res_map,measurements, 1, comparisons,dphcut, runs, thr, Label, Hist, h_res);
+ //GetHists(&res_map,measurements, 1, comparisons,dphcut, runs, thr, Label, Hist, h_res);
+ TString ss_thr[measurements];
 
+ TString ss_pitch = "25";
+ TH1F * hdx3_clchargeABC90evR; 
+ for(int i = 0; i<measurements;i++){
+   cout << " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     " << runs[i] << endl;
+   TString Run[1] = {runs[i]};
+   ss_thr[i].Form("%d",thr[i]);
+   TString ss_dphcut[1] ={ss_thr[i]};
+   TString label = filelabel[i];
+   res_map =    GetCheckHists(&res_map, 1, dphcuts,dphcut, Run,ss_dphcut,ss_pitch, Hist,hdx3_clchargeABC90evR,true,label);
+ }
+ 
  /*
  auto it2 = res_map.find(std::make_pair(runs[0]+"_"+ss_dphcut[0]+"_"+Label[0],Hist));
  if(print)               cout << " found map " << endl;
  if(print)                   cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
  */
-
- double freshres = 2.68;
- double freshres_err = 0.01;
+ cout << " ################################################################# " << endl;
+ double freshres = 3.32;
+ double freshres_err = 0.02;
  for(int i=0; i<measurements; i++)
    {
-     ss_dphcut[i].Form("%d",thr[i]);
-     cout << ss_dphcut[i] << endl;
-     auto it2 = res_map.find(std::make_pair(runs[i]+"_"+Label[0],Hist));
+     cout << " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     " << runs[i] << endl;     
+     ss_thr[i].Form("%d",thr[i]);
+     cout << ss_thr[i] << endl;
+     auto it2 = res_map.find(std::make_pair(runs[i]+"_"+ss_thr[i]+"_"+ss_pitch,Hist)); //run dphcut pitch
 
      if(it2  != res_map.end())
        {
@@ -206,7 +234,7 @@ void bestRes(TString func = "RMS", bool unfolding = false)
 	 if(print)               cout << " found map " << endl;
 	 if(print)                   cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
 
-	 FitTH1(it2->second, &(RMS[i]), &(RMSError[i]),  "dphcut"+ss_dphcut[i], runs[i], Label[0], Hist, "RMS");
+	 FitTH1(it2->second, &(RMS[i]), &(RMSError[i]),  "dphcut"+ss_thr[i], runs[i], Label[0], Hist, func,&(Percentage[i]));
 
 	 if(print) cout << "run " << i<< ": " << runs[i] << " RMS: " << RMS[i] << " and res err: " << RMSError[i] << endl;
 
@@ -214,7 +242,7 @@ void bestRes(TString func = "RMS", bool unfolding = false)
 	 ResolutionError[i] = RMSError[i];
 
 
-	 if(i==0 || i == 5)	 ExtractRes(&(Resolution[i]), &(ResolutionError[i]), true,freshres,freshres_err);
+	 if(irr[i]!=0 )	 ExtractRes(&(Resolution[i]), &(ResolutionError[i]), true,freshres,freshres_err);
 	 else if (i!=0)  ExtractRes(&(Resolution[i]), &(ResolutionError[i]));
 	 if(print) cout << "run " << i<< ": " << runs[i] << " Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << endl;
 
