@@ -9,7 +9,6 @@
 #include <TMap.h>
 #include <TAxis.h>
 #include <sstream>
-#include "resolution.h"
 #include "fileHandler.h"
 
 #define Iterations 6
@@ -18,7 +17,7 @@ bool print=true;
 using namespace std;
 
 
-void alignmentPlot()
+void alignmentPlot_2743()
 {
 
 
