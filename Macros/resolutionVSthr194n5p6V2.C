@@ -144,51 +144,47 @@ void resolutionVSthr194n5p6V2(TString func = "RMSself")
   
 
   ////// cluster size
-  /*
-  Hist = "hnrowB_ph95";
-  TH1F * hnrowB_clphABC90evR[Angles]; // = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
-  for(int j = 0; j < Angles; j++)
-    hnrowB_clphABC90evR[j] =   GetCheckHists(&(res_map[j]), BiasVoltages, dphcuts,dphcut, Run[j],ss_dphcut,pitch, Hist,hnrowB_clphABC90evR[j],true,""+label+"");
-  */
-  /*
+
+
   Hist = "nrowB";
   cout << " Hist "<< Hist << endl;  
-   for(int j = 0; j < Angles; j++)    {
-     GetHists(&(res_map[j]),BiasVoltages, dphcuts, comparisons,dphcut, Run[j], i_dphcut, Label, Hist, h_res,true,label);
-  }
+  for(int j = 0; j < Angles; j++)
+    GetHists(&(res_map[j]),BiasVoltages, dphcuts, comparisons,dphcut, Run[j], i_dphcut, Label, Hist, h_res,true,label);
   
-   ofstream myfile3; 
-   myfile3.open ("/home/zoiirene/Output/TextFiles/ThrScan_clsizeB_"+detectorB+"_"+ss_BiasVoltage[0]+"_bestAngle_5p6_"+label+".txt");
-   myfile3 << "A " << detectorA << "\n";
-   myfile3 << labelA << "\n";
-   myfile3 << "B " << detectorB<< "\n";
-   myfile3 << labelB << "\n";
-   myfile3 << "C " << detectorC<< "\n";
-   myfile3 << labelC << "\n";
-   myfile3 << info << "\n";
-   myfile3 << "Angle MeanNrowB Error\n";
 
-   double NrowB[Angles][dphcuts];
-   double  NrowBerror[Angles][dphcuts];
+  for(int i=0; i<dphcuts; i++)     {   
+    ofstream myfile3; 
+    myfile3.open ("/home/zoiirene/Output/TextFiles/ThrScan_clsizeB_"+detectorB+"_"+ss_BiasVoltage[0]+"_dphcuts"+ss_dphcut[i]+"_bestAngle_5p6_"+label+".txt");
+    myfile3 << "A " << detectorA << "\n";
+    myfile3 << labelA << "\n";
+    myfile3 << "B " << detectorB<< "\n";
+    myfile3 << labelB << "\n";
+    myfile3 << "C " << detectorC<< "\n";
+    myfile3 << labelC << "\n";
+    myfile3 << info << "\n";
+    myfile3 << "dphcut MeanNrowB Error\n";
+    
+    double NrowB[Angles][dphcuts];
+    double  NrowBerror[Angles][dphcuts];
    
 
-   for(int i=0; i<dphcuts; i++)     {
-     auto it2 = res_map[0].find(std::make_pair(Run[0][0]+"_"+ss_dphcut[i]+"_"+Label[0],Hist));
-     //auto it2 = res_map[0].find(std::make_pair(Run[0][0]+"_"+ss_dphcut[i]+"_"+pitch[0],Hist));
-     if(it2  != res_map[0].end())
-       {
-	 if(print)  cout << " found map " << endl;
-	 if(print)  cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetMean() << endl;
-	 NrowB[0][i] = it2->second->GetMean();
-	 NrowBerror[0][i] = it2->second->GetMeanError();
-	 myfile3 << " " << i_dphcut[0] << " " << NrowB[0][i]<< " " << NrowBerror[0][i] << "\n";
-       }else{
-       cout << "not found " << Run[0][0]+"_"+ss_dphcut[i]+"_"+Label[0] << " hist  " << Hist << endl;
-     }
-   }
+
+    auto it2 = res_map[0].find(std::make_pair(Run[0][0]+"_"+ss_dphcut[i]+"_"+Label[0],Hist));
+    //auto it2 = res_map[0].find(std::make_pair(Run[0][0]+"_"+ss_dphcut[i]+"_"+pitch[0],Hist));
+    if(it2  != res_map[0].end())     {
+      if(print)  cout << " found map " << endl;
+      if(print)  cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetMean() << endl;
+      NrowB[0][i] = it2->second->GetMean();
+      NrowBerror[0][i] = it2->second->GetMeanError();
+      myfile3 << " " << i_dphcut[i] << " " << NrowB[0][i]<< " " << NrowBerror[0][i] << "\n";
+    }else{
+      cout << "not found " << Run[0][0]+"_"+ss_dphcut[i]+"_"+Label[0] << " hist  " << Hist << endl;
+    }
+    myfile3.close();
+  }
    
-  myfile3.close();
-  */
+
+
 
   /*
   TCanvas *csza[Angles];/// = new TCanvas("csza", "csza", 1500, 900);
