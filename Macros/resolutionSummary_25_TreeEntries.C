@@ -110,48 +110,43 @@ void resolutionSummary_25_TreeEntries(TString name = "preliminary_RMSself", TStr
   int gain1_25 = measurements;
   TGraphErrors* resolutionPlot[gain1_25];
   
-  resolutionPlot[0] = new TGraphErrors(1,FDB1,Pstop_default_FDB_25_preirr,0,Pstop_default_FDB_25_preirr_err);
-  resolutionPlot[1] = new TGraphErrors(1,FDB2,Pstop_RD53Apads_FDB_25,0,Pstop_RD53Apads_FDB_25_err);
-  resolutionPlot[3] = new TGraphErrors(1,FDB3,Pspray_default_FDB_25,0,Pspray_default_FDB_25_err);
-  resolutionPlot[4] = new TGraphErrors(1,FDB4,Pspray_RD53Apads_FDB_25,0,Pspray_RD53Apads_FDB_25_err);//,0,0_err);
-  resolutionPlot[5] = new TGraphErrors(1,FTH,Pstop_default_FTH_25_irr,0,Pstop_default_FTH_25_irr_err);//Pspray_RD53Apads_FDB_25);//,0,0);
+  resolutionPlot[1] = new TGraphErrors(1,FDB1,Pstop_default_FDB_25_preirr,0,Pstop_default_FDB_25_preirr_err);
+  resolutionPlot[3] = new TGraphErrors(1,FDB2,Pstop_RD53Apads_FDB_25,0,Pstop_RD53Apads_FDB_25_err);
+  resolutionPlot[4] = new TGraphErrors(1,FDB3,Pspray_default_FDB_25,0,Pspray_default_FDB_25_err);
+  resolutionPlot[5] = new TGraphErrors(1,FDB4,Pspray_RD53Apads_FDB_25,0,Pspray_RD53Apads_FDB_25_err);//,0,0_err);
+  resolutionPlot[0] = new TGraphErrors(1,FTH,Pstop_default_FTH_25_irr,0,Pstop_default_FTH_25_irr_err);//Pspray_RD53Apads_FDB_25);//,0,0);
   resolutionPlot[6] = new TGraphErrors(1,FDB5,Pstop_default_FDB_25_irr,0,Pstop_default_FDB_25_irr_err);
   resolutionPlot[2] = new TGraphErrors(1,FDB6,Pstop_default_FDB_25_gain2_irr,0,Pstop_default_FDB_25_gain2_irr_err);
-  //6-> 2
-  //2->3
-  //3->4
-  //4->5
-  //5->6
 
-  resolutionPlot[0]->SetTitle(" ");
-  resolutionPlot[0]->GetYaxis()->SetTitle("Resolution [#mum]");
-  resolutionPlot[0]->GetXaxis()->SetTitle("Tested samples");
-  resolutionPlot[0]->SetMarkerSize(2.5);
-  resolutionPlot[0]->SetMarkerColor(kBlue);
-  resolutionPlot[0]->SetMarkerStyle(20);
-  resolutionPlot[0]->GetXaxis()->SetLimits(-1.,7.);
-  resolutionPlot[0]->GetYaxis()->SetRangeUser(0.,6.);
-  resolutionPlot[0]->Draw("AEP");
-
+  resolutionPlot[1]->SetTitle(" ");
+  resolutionPlot[1]->GetYaxis()->SetTitle("Resolution [#mum]");
+  resolutionPlot[1]->GetXaxis()->SetTitle("Tested samples");
   resolutionPlot[1]->SetMarkerSize(2.5);
   resolutionPlot[1]->SetMarkerColor(kBlue);
-  resolutionPlot[1]->SetMarkerStyle(21);
-  resolutionPlot[1]->Draw("EPsame");
-				      
+  resolutionPlot[1]->SetMarkerStyle(20);
+  resolutionPlot[1]->GetXaxis()->SetLimits(-1.,7.);
+  resolutionPlot[1]->GetYaxis()->SetRangeUser(0.,6.);
+  resolutionPlot[1]->Draw("AEP");
+
   resolutionPlot[3]->SetMarkerSize(2.5);
   resolutionPlot[3]->SetMarkerColor(kBlue);
-  resolutionPlot[3]->SetMarkerStyle(24);
+  resolutionPlot[3]->SetMarkerStyle(21);
   resolutionPlot[3]->Draw("EPsame");
-
+				      
   resolutionPlot[4]->SetMarkerSize(2.5);
   resolutionPlot[4]->SetMarkerColor(kBlue);
-  resolutionPlot[4]->SetMarkerStyle(25);
+  resolutionPlot[4]->SetMarkerStyle(24);
   resolutionPlot[4]->Draw("EPsame");
 
   resolutionPlot[5]->SetMarkerSize(2.5);
-  resolutionPlot[5]->SetMarkerColor(kBlue+2);
-  resolutionPlot[5]->SetMarkerStyle(20);
+  resolutionPlot[5]->SetMarkerColor(kBlue);
+  resolutionPlot[5]->SetMarkerStyle(25);
   resolutionPlot[5]->Draw("EPsame");
+
+  resolutionPlot[0]->SetMarkerSize(2.5);
+  resolutionPlot[0]->SetMarkerColor(kBlue+2);
+  resolutionPlot[0]->SetMarkerStyle(20);
+  resolutionPlot[0]->Draw("EPsame");
 
 
   resolutionPlot[6]->SetMarkerSize(2.5);
@@ -169,10 +164,10 @@ void resolutionSummary_25_TreeEntries(TString name = "preliminary_RMSself", TStr
   legFDB2->SetLineColor(0);
   legFDB2->SetTextSize(0.027);
 
-  int sens[] = {0,1,6,3,4,5,2};
+  int sens[] = {1,3,4,5,0,6,2};
   for(int i =0; i<gain1_25; i++){
-    if( i != 6) legFDB2->AddEntry(resolutionPlot[i],pitch[sens[i]]+"#mum, "+Short[sens[i]]+", "+bias[sens[i]]+"V ("+ss_irr[sens[i]]+"), thr"+thr[sens[i]], "p");
-    if( i == 6) legFDB2->AddEntry(resolutionPlot[i],pitch[sens[i]]+"#mum, "+Short[sens[i]]+", "+bias[sens[i]]+"V ("+ss_irr[sens[i]]+"), thr"+thr[sens[i]]+" (gain2)", "p");
+    if( i != 6) legFDB2->AddEntry(resolutionPlot[sens[i]],pitch[sens[i]]+"#mum, "+Short[sens[i]]+", "+bias[sens[i]]+"V ("+ss_irr[sens[i]]+"), thr"+thr[sens[i]], "p");
+    if( i == 6) legFDB2->AddEntry(resolutionPlot[sens[i]],pitch[sens[i]]+"#mum, "+Short[sens[i]]+", "+bias[sens[i]]+"V ("+ss_irr[sens[i]]+"), thr"+thr[sens[i]]+" (gain2)", "p");
 
   }
 
