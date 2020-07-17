@@ -16,7 +16,7 @@ using namespace std;
 #define measurements 6
 #define irradiation 3
 
-void resolutionSummary_25_gain1(TString name = "preliminary_TreeCorr", TString func = "RMS", bool unfolding = false)
+void resolutionSummary_25_gain1(TString name = "preliminary_TreeCorr", TString func = "RMSself", bool unfolding = false)
 {
 
   Double_t Resolution[measurements];
