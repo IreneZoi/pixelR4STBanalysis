@@ -65,28 +65,32 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
   filenames_pt2[2] = "_RMSself_800_resTreeCorr_thrScan_A12C13.txt"; //5.2 GeV
   filenames_pt2[3] = "_thrScan_A12C13.txt";
 
-  TString filenames2_pt1[irradiations];
+  TString filenames2_pt1[irradiations+1];
   filenames2_pt1[0] = "Ascan_clsizeB_148_dphcutB";
   filenames2_pt1[1] = "Ascan_clsizeB_120i_dphcutB";
   filenames2_pt1[2] = "Ascan_clsizeB_194i_dphcutB";
-  TString filenames2_pt2[irradiations];
+  filenames2_pt1[3] = "ThrScan_clsizeB_194i_800_dphcuts"; 
+  
+  TString filenames2_pt2[irradiations+1];
   filenames2_pt2[0] = "_RMSself_thrScan_A13C14.txt";
   filenames2_pt2[1] = "__RMSself_thrScan_A12C15.txt";
   filenames2_pt2[2] = "_800_thrScan_A12C13.txt";
-
+  filenames2_pt2[3] = "_bestAngle_5p6_thrScan_A12C13.txt";
   
-  TString irr[irradiations];
+  TString irr[irradiations+1];
   irr[0] = " Non-irradiated, 120 V, 5.6 GeV"; // "no irr, 5.6 GeV";
   //  irr[1] = "proton irr at #phi_{eq}=2#times10^{15} cm^{-2}, 5.6 GeV";
   irr[1] = "#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton, 800 V, 5.6 GeV";
   irr[2] = "#phi_{eq} = 3.6 #times 10^{15} cm^{-2}, neutron, 800 V, 5.2 GeV";
+  irr[3] = "#phi_{eq} = 3.6 #times 10^{15} cm^{-2}, neutron, 800 V, 5.2 GeV";
 
 
-  TString irrshort[irradiations];
+  TString irrshort[irradiations+1];
   irrshort[0] = " Non-irradiated, 120 V"; // "no irr, 5.6 GeV";
   //  irr[1] = "proton irr at #phi_{eq}=2#times10^{15} cm^{-2}, 5.6 GeV";
   irrshort[1] = "#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton, 800 V";
   irrshort[2] = "#phi_{eq} = 3.6 #times 10^{15} cm^{-2}, neutron, 800 V";
+  irrshort[3] = "#phi_{eq} = 3.6 #times 10^{15} cm^{-2}, neutron, 800 V";
   
   
   
@@ -118,11 +122,15 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
   for(int i =0; i< irradiations+1; i++)    {
     cout << irr[i] << endl;
     for(int l = 0; l< dphcuts ; l++){
-      cout << "dphcut "<< ss_dphcutPerc[l] << endl;
+      cout << "dphcut % "<< ss_dphcutPerc[l] << endl;
       TString  ss_dphcut=ss_dphcut_0[l];
       if(i==1) ss_dphcut=ss_dphcut_1[l];
-      if(i==2 || i==3) ss_dphcut=ss_dphcut_2[l];
-
+      if(i==2 || i==3) {
+	cout << "dphcut ADC "<< ss_dphcut_2[l] << endl;
+	ss_dphcut=ss_dphcut_2[l];
+      }
+      cout << "dphcut ADC "<< ss_dphcut << endl;
+       
       TString filename      = inputDir+filenames_pt1[i]+ss_dphcut+filenames_pt2[i];
       cout << filename << endl;
       ifstream stream(filename);
@@ -171,6 +179,86 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
     }//cuts
   }//irradiations
 
+
+
+  //clsize file for IEEE
+  double clsize_0[anglesNONirr][dphcuts];
+  double clsize_1[anglesPirr2][dphcuts];
+  double clsizeerr_0[anglesNONirr][dphcuts];
+  double clsizeerr_1[anglesPirr2][dphcuts];
+  double clsizeerr_2[anglesNirr4][dphcuts];
+  double clsize_2[anglesNirr4][dphcuts];
+  double clsize_3[dphcuts]; //mean of nrowB of straightTracksY_isoAandCandB_straightTracksX (same as after cut on charge), drei-r3839_irene_dphcutB15_closest_A12C13.root neutron irr, 5.6 GeV
+  double clsizeerr_3[dphcuts]; //mean error
+
+  double clsize,clsizeerror;
+  cout << " %%%%%%%%% now reading cluster size " << endl;
+  int lines2[irradiations+1] = {8,8,8,8};
+  for(int i =0; i< irradiations+1; ++i)    {
+    TString pt1= filenames2_pt1[i];
+    cout << irr[i] << " " << filenames2_pt1[i] << endl;
+    for(int l = 0; l< dphcuts ; l++){
+      cout << "dphcut % "<< ss_dphcutPerc[l] << endl;
+      TString  ss_dphcut=ss_dphcut_0[l];
+      if(i==1) ss_dphcut=ss_dphcut_1[l];
+      if(i==2 || i==3) {
+	ss_dphcut=ss_dphcut_2[l];
+	cout << l << " dphcut ADC "<< ss_dphcut_2[l] << endl;
+      }
+      cout << "dphcut ADC "<< ss_dphcut << endl;
+
+      cout << " inputDir "<< inputDir <<  " " << filenames2_pt1[i]<<  endl;
+      cout << inputDir+filenames2_pt1[i]+ss_dphcut+filenames2_pt2[i] << endl;
+      TString filename      = inputDir+pt1+ss_dphcut+filenames2_pt2[i];
+      
+      cout << filename << endl;
+      ifstream stream(filename);
+      
+      std::string line;
+      if(!stream.is_open())	{
+	cout << " File " << filename << " not opened" << endl;
+      }
+      else{
+	for(int k =0; k<lines2[i];k++) {
+	  std::getline(stream,line);
+	  if(print) cout << k << " line " << line << endl;
+	}
+        cout << " getting #  measurements "<< measurements[i] << endl;
+	for(int j= 0; j < measurements[i]; j++){
+	  stream  >> angle >> clsize >> clsizeerror ;
+	  if(print)	 cout << "line " << j+lines[i]-1 << endl;
+	  if(i==0){
+	    clsize_0[j][l] = clsize;
+	    clsizeerr_0[j][l] = clsizeerror;
+	    if(print)	 cout  << angle_0[j] << " " << clsize_0[j][l] << " " << clsizeerr_0[j][l] << endl;
+	  }
+	  if(i==1){
+	    clsize_1[j][l] = clsize;
+	    clsizeerr_1[j][l] = clsizeerror;
+	    if(print)	 cout  << angle_1[j] << " " << clsize_1[j][l] << " " << clsizeerr_1[j][l] << endl;
+	  }
+	  if(i==2){
+	    clsize_2[j][l] = clsize;
+	    clsizeerr_2[j][l] = clsizeerror;
+	    if(print)	 cout  << angle_2[j] << " " << clsize_2[j][l] << " " << clsizeerr_2[j][l] << endl;
+	  }
+          if(i==3){
+	    clsize_3[l] = clsize;
+	    clsizeerr_3[l] = clsizeerror;
+	    if(print)    cout  << angle << " " << clsize_3[l] << " " << clsizeerr_3[l] << endl;
+	  }
+	  cout << " cut "<< ss_dphcut <<  " " << filenames2_pt1[i]<<  endl;
+	}//measurements
+      }//file scanning
+    }//cuts
+  }//irradiations
+
+
+
+
+
+
+
   measurements[0] = anglesNONirrD;
   measurements[1] = anglesNONirrD;
   measurements[2] = anglesNirr4D;
@@ -212,6 +300,8 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
 }
 
 
+  
+	        
   
   //  int start[irradiations] = {5,5,0};
   /////// plots!
@@ -313,15 +403,13 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
     cFDB2[i]->SaveAs(outname+".C");
   }
 
-
-
-
   ///////////////////////////////
   //now compare irradiations at best angle
 
   int colors_irr[irradiations]={1,417,616};
   int marker_irr[irradiations]={20,21,32};
-
+  int bestThr[irradiations]={6,12,9};
+  
   TCanvas *c  = new TCanvas("c", "FDB resolution", 600, 600);
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
@@ -342,9 +430,9 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
   //legFDB2->SetNColumns(5);
   legAng->SetLineColor(0);
   //legAng->SetTextSize(0.03);
-  TLegend* legIrr = new TLegend(0.15,0.65,0.8,0.8);
+  TLegend* legIrr = new TLegend(0.15,0.6,0.8,0.8);
   legIrr->SetLineColor(0);
-  //legIrr->SetTextSize(0.035);
+		  //legIrr->SetTextSize(0.035);
   legIrr->SetFillStyle(0);
   legIrr->SetBorderSize(0);
     //TPaveText *pt = new TPaveText(.15,.8,.65,.85,"NDC");
@@ -352,8 +440,8 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
     
     //pt->Draw();
 
-  TGraphErrors* resolutionPlotIrr[irradiations];
-  for (int l =0; l < irradiations; l++){
+   TGraphErrors* resolutionPlotIrr[irradiations];
+   for (int l =0; l < irradiations; l++){
     
     if(l==0) resolutionPlotIrr[0] = new TGraphErrors(dphcuts,i_dphcutPerc,resd_0[1],err_0[1],reserrord_0[1]);
     if(l==1) resolutionPlotIrr[1] = new TGraphErrors(dphcuts,i_dphcutPerc,resd_1[1],err_0[1],reserrord_1[1]);
@@ -402,6 +490,122 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
     c->SaveAs(outname+".pdf");
     c->SaveAs(outname+".root");
     c->SaveAs(outname+".C");
+
+
+
+
+  ///////////////////////////////
+  //now compare irradiations and cluster size at best angle
+
+
+  TCanvas *cc  = new TCanvas("cc", "FDB resolution", 600, 600);
+  gPad->SetTicks(1,1);
+  gROOT->SetStyle("Plain");
+  cc->SetLeftMargin(1.);
+  cc->SetTopMargin(1.);
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(0);
+  gStyle->SetOptTitle(0);
+
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(20);
+
+  cout << " initialized new canvas" << endl;
+  TPad *pad2 = new TPad("pad2","",0,0.,1,0.45);
+  pad2->SetTopMargin(0.03);
+  pad2->SetBottomMargin(0.4);
+
+  pad2->Draw();
+
+  //pad2->SetFillStyle(4000); //will be transparent
+  //#pad2->SetFrameFillStyle(0);
+  TPad *pad1 = new TPad("pad1","",0,0.45,1,1);
+  pad1->Draw();
+  pad1->SetBottomMargin(0.03);
+
+  pad1->cd();
+  gPad->SetTicks(1,1);
+  
+  resolutionPlotIrr[0]->GetXaxis()->SetTitleSize(0); // labels will be 14 pixels
+  resolutionPlotIrr[0]->GetXaxis()->SetLabelSize(0); // labels will be 14 pixels
+  resolutionPlotIrr[0]->Draw("AEP");
+
+  resolutionPlotIrr[1]->Draw("EPsame");
+  resolutionPlotIrr[2]->Draw("EPsame");
+
+  legAng->Draw();
+  legIrr->Draw();
+
+
+
+		  pad2->cd();
+  //  gROOT->SetStyle("Plain");
+  TGraphErrors* clsizePlot[irradiations];
+  gPad->SetTicks(1,1);
+		  
+  clsizePlot[0] = new TGraphErrors(dphcuts,i_dphcutPerc,clsize_0[11],err_0[1],clsizeerr_0[11]);
+  clsizePlot[1] = new TGraphErrors(dphcuts,i_dphcutPerc,clsize_1[11],err_0[1],clsizeerr_1[11]);
+  clsizePlot[2] = new TGraphErrors(dphcuts,i_dphcutPerc,clsize_3,err_0[1],clsizeerr_3);
+  cout << " initialized new tgraps" << endl;
+
+
+
+  clsizePlot[0]->GetYaxis()->SetTitle("Average cluster size");
+  clsizePlot[0]->GetXaxis()->SetTitle("Threshold [%]");
+
+  clsizePlot[0]->GetYaxis()->SetNdivisions(5,0,5);
+			       
+  clsizePlot[0]->GetXaxis()->SetTitleFont(43);
+  clsizePlot[0]->GetXaxis()->SetTitleSize(20); // labels will be 14 pixels
+  clsizePlot[0]->GetXaxis()->SetTitleOffset(3); // labels will be 14 pixels
+  clsizePlot[0]->GetXaxis()->SetLabelFont(43);
+  clsizePlot[0]->GetXaxis()->SetLabelSize(20); // labels will be 14 pixels
+
+  clsizePlot[0]->GetYaxis()->SetTitleFont(43);
+  clsizePlot[0]->GetYaxis()->SetTitleSize(20); // labels will be 14 pixels
+  clsizePlot[0]->GetYaxis()->SetLabelFont(43);
+  clsizePlot[0]->GetYaxis()->SetLabelSize(20); // labels will be 14 pixels
+  clsizePlot[0]->GetXaxis()->SetLimits(0.,35.);
+  clsizePlot[0]->GetYaxis()->SetRangeUser(0.,5.);
+
+  
+  for (int l =0; l < irradiations; l++){
+		  
+    clsizePlot[l]->SetTitle(" ");
+    clsizePlot[l]->SetMarkerSize(1.);
+    clsizePlot[l]->SetMarkerColor(colors_irr[l]);
+    clsizePlot[l]->SetLineColor(colors_irr[l]);
+    clsizePlot[l]->SetMarkerStyle(marker_irr[l]);
+    cout << " initialized styles" << endl;
+    if(l==0)  clsizePlot[0]->Draw("AEP");
+    else
+      clsizePlot[l]->Draw("EPsame");
+
+    TLine *  lineb = new TLine( bestThr[l],0.,bestThr[l],5.);
+    lineb->SetLineColor(colors_irr[l]);
+    lineb->SetLineWidth(2);
+    lineb->SetLineStyle(2);
+    lineb->Draw("same");
+    
+  }
+  TLine *  linea = new TLine( 0.,2.,35.,2.);
+  linea->SetLineColor(kGray);
+  linea->SetLineWidth(2);
+  linea->SetLineStyle(2);
+  linea->Draw("same");
+  
+  pad1->cd();
+   cout << " back to pad 1" << endl;		  
+   outname = outputDir+"ResolutionSummaryPaper_angleScans25_"+name+"_clsize_allirr";
+   cc->SaveAs(outname+".eps");
+   cc->SaveAs(outname+".png");
+   cc->SaveAs(outname+".pdf");
+   cc->SaveAs(outname+".root");
+   cc->SaveAs(outname+".C");
 
 
 
