@@ -78,7 +78,7 @@ void resolution_2775_TreeEntries(TString function = "RMSself")
   TString ss_dphcut[dphcuts] = {"12"};
 
   TString Label[comparisons] = {"straightTracksY_isoAandCandB_straightTracksX"};
-  TString Hist = "dx3_clchargeABC90evR"; 
+  TString Hist = "dx3_clphABC90evR"; 
   bool dphcut = true;
 
   //GetHists(&res_map,Angles, dphcuts, comparisons,dphcut, Run, i_dphcut, Label, Hist, h_res);
@@ -112,7 +112,7 @@ void resolution_2775_TreeEntries(TString function = "RMSself")
 	  if(print)               cout << " found map " << endl;
 	  if(print)                   cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
 
-	  
+
 	  FitTH1(it2->second, &(Resolution[i]), &(ResolutionError[i]), ss_Angle[i], detectorA[i], detectorB[i], detectorC[i], function , &(Percentage[i]));
 	  if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << endl;
 	  myfile[i] << " " << Angle[i] << " " << Resolution[i] << " " << ResolutionError[i] << "\n";
