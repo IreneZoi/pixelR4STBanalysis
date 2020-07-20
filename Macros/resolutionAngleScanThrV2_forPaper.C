@@ -331,7 +331,7 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
     gStyle->SetLegendTextSize(20);
     
     TLegend* legFDB2 = new TLegend(0.15,0.65,0.8,0.8);
-    legFDB2->SetNColumns(5);
+    legFDB2->SetNColumns(4);
     legFDB2->SetLineColor(0);
     //legFDB2->SetTextSize(0.03);
     TLegend* leg = new TLegend(0.05,0.8,0.45,0.85);
@@ -385,13 +385,13 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
 	resolutionPlot[0]->GetYaxis()->SetRangeUser(0.,12.);
 	resolutionPlot[0]->Draw("AEP");
       }	  
-      else
+      if(l !=3)
 	resolutionPlot[l]->Draw("EPsame");
       
 
       TString ss_angle;
       ss_angle.Form("%.2g",ANGLE);
-      legFDB2->AddEntry(resolutionPlot[l],ss_angle+" deg","lp");
+      if(l !=3) legFDB2->AddEntry(resolutionPlot[l],ss_angle+" deg","lp");
     }
     legFDB2->Draw();
     leg->Draw();
