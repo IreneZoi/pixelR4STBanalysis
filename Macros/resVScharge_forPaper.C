@@ -111,7 +111,8 @@ void resVScharge_forPaper(){
 
   /////// plots!
   TH1I * Landau[irradiations][angles];
-  TGraph * gLandau[irradiations][angles];
+  TH1F * fLandau[irradiations][angles];
+  //  TGraph * gLandau[irradiations][angles];
   for(int l = 0; l < irradiations; l++){
     cout << irr[l] << endl;
     for(int i = 0; i< angles; i++){
@@ -121,18 +122,29 @@ void resVScharge_forPaper(){
       Landau[l][i] = (TH1I*)canvas->GetPrimitive("clphB");
       cout << Landau[l][i]->GetEntries() << endl;
       Landau[l][i]->Rebin(2);
-      //Landau[l][i]->Rebin(2);
-      Double_t x[Landau[l][i]->GetNbinsX()];
-      Double_t y[Landau[l][i]->GetNbinsX()];
+      fLandau[l][i] = new TH1F("f","f",Landau[l][i]->GetNbinsX(),0.,1000.);
+      //Landau[l][i]->Copy(fLandau[l][i]);
+      //cout << fLandau[l][i].Integral() << endl;
+      //fLandau[l][i].Scale(1./fLandau[l][i].Integral());
+      //cout << fLandau[l][i].Integral() << endl;
+      //Landau[l][i].Rebin(2);
+      //Double_t x[Landau[l][i].GetNbinsX()];
+      //Double_t y[Landau[l][i].GetNbinsX()];
       
       for(int j = 1; j <= Landau[l][i]->GetNbinsX(); j++ ){
+
 	cout << Landau[l][i]->GetBinCenter(j) << " " << Landau[l][i]->GetBinContent(j) << endl;
-	//gLandau[l][i]->SetPoint(j-1, (Double_t) Landau[l][i]->GetBinCenter(j),(Double_t) Landau[l][i]->GetBinContent(j));
-	x[j] = Landau[l][i]->GetBinCenter(j);
-	y[j] = Landau[l][i]->GetBinContent(j);
+        cout << ((float) Landau[l][i]->GetBinContent(j))/((float) Landau[l][i]->GetEntries()) << endl;
+	fLandau[l][i]->SetBinContent(j,((float) Landau[l][i]->GetBinContent(j))/((float) Landau[l][i]->GetEntries()));
+	cout << fLandau[l][i]->GetBinCenter(j) << " " << fLandau[l][i]->GetBinContent(j) << endl;
+	//gLandau[l][i].SetPoint(j-1, (Double_t) Landau[l][i].GetBinCenter(j),(Double_t) Landau[l][i].GetBinContent(j));
+	//x[j] = Landau[l][i].GetBinCenter(j);
+	//y[j] = (double) Landau[l][i].GetBinContent(j)/(double)  Landau[l][i].GetEntries() ; ///Landau[l][i].GetBinWidth(j);
+     	//cout << x[j]  << " " << y[j]  << endl;
       }
-      gLandau[l][i] = new TGraph(Landau[l][i]->GetNbinsX(),x,y);
-      cout << "got TGraph " << endl;
+      
+      //gLandau[l][i] = new TGraph(Landau[l][i].GetNbinsX(),x,y);
+      //cout << "got TGraph " << endl;
     }
   }
   
@@ -193,59 +205,59 @@ void resVScharge_forPaper(){
 
 
 
-    Landau[0][i]->SetLineColor(kBlack);
-    Landau[0][i]->SetLineWidth(2);
-    Landau[0][i]->GetXaxis()->SetLimits(0.,1000.);
-    Landau[0][i]->GetYaxis()->SetRangeUser(0.,4000.);
+    fLandau[0][i]->SetLineColor(kBlack);
+    fLandau[0][i]->SetLineWidth(2);
+    fLandau[0][i]->GetXaxis()->SetLimits(0.,1000.);
+    fLandau[0][i]->GetYaxis()->SetRangeUser(0.,0.16);
 
-    //    Landau[0][i]->GetXaxis()->SetMaxDigits(3);
-    Landau[0][i]->GetYaxis()->SetMaxDigits(3);
-    Landau[0][i]->GetYaxis()->SetTitle("Number of clusters");
-    Landau[0][i]->GetXaxis()->SetTitle("Cluster charge [ADC]");
+    //    fLandau[0][i]->GetXaxis()->SetMaxDigits(3);
+    fLandau[0][i]->GetYaxis()->SetMaxDigits(3);
+    fLandau[0][i]->GetYaxis()->SetTitle("Normalized number of clusters");
+    fLandau[0][i]->GetXaxis()->SetTitle("Cluster charge [ADC]");
 
-    Landau[0][i]->GetXaxis()->SetTitleFont(43);
-    Landau[0][i]->GetXaxis()->SetTitleOffset(2.5);
-    Landau[0][i]->GetXaxis()->SetTitleSize(15); // labels will be 14 pixels
+    fLandau[0][i]->GetXaxis()->SetTitleFont(43);
+    fLandau[0][i]->GetXaxis()->SetTitleOffset(2.5);
+    fLandau[0][i]->GetXaxis()->SetTitleSize(15); // labels will be 14 pixels
 
-    Landau[0][i]->GetYaxis()->SetTitleFont(43);
-    Landau[0][i]->GetYaxis()->SetTitleSize(15); // labels will be 14 pixels
-    Landau[0][i]->GetYaxis()->SetTitleOffset(1.5);
+    fLandau[0][i]->GetYaxis()->SetTitleFont(43);
+    fLandau[0][i]->GetYaxis()->SetTitleSize(15); // labels will be 14 pixels
+    fLandau[0][i]->GetYaxis()->SetTitleOffset(1.8); //1.5);
     
-    Landau[0][i]->GetXaxis()->SetLabelFont(43);
-    Landau[0][i]->GetXaxis()->SetLabelSize(15); // labels will be 14 pixels
-    Landau[0][i]->GetYaxis()->SetLabelFont(43);
-    Landau[0][i]->GetYaxis()->SetLabelSize(15); // labels will be 14 pixels
+    fLandau[0][i]->GetXaxis()->SetLabelFont(43);
+    fLandau[0][i]->GetXaxis()->SetLabelSize(15); // labels will be 14 pixels
+    fLandau[0][i]->GetYaxis()->SetLabelFont(43);
+    fLandau[0][i]->GetYaxis()->SetLabelSize(15); // labels will be 14 pixels
 
-    
-
-
-
-    //Landau[0][i]->SetLineStyle(2);
-    //Landau[1][i]->SetLineStyle(2);
-    Landau[0][i]->SetMarkerStyle(20);
-
-    Landau[1][i]->SetMarkerColor(kGreen+1);
-    Landau[1][i]->SetLineColor(kGreen+1);
-
-    Landau[1][i]->SetLineWidth(2);
-    Landau[1][i]->SetLineStyle(2);
-
-    Landau[1][i]->SetMarkerStyle(21);
-    Landau[0][i]->GetXaxis()->SetLimits(0.,1000.);
-    //    Landau[0][i]->GetXaxis()->SetMaxDigits(3);
     
 
 
+
+    //fLandau[0][i]->SetLineStyle(2);
+    //fLandau[1][i]->SetLineStyle(2);
+    fLandau[0][i]->SetMarkerStyle(20);
+
+    fLandau[1][i]->SetMarkerColor(kGreen+1);
+    fLandau[1][i]->SetLineColor(kGreen+1);
+
+    fLandau[1][i]->SetLineWidth(2);
+    fLandau[1][i]->SetLineStyle(2);
+
+    fLandau[1][i]->SetMarkerStyle(21);
+    //fLandau[0][i]->GetXaxis()->SetLimits(0.,1000.);
+    //    fLandau[0][i]->GetXaxis()->SetMaxDigits(3);
     
-    Landau[0][i]->Draw("hist");
-    Landau[1][i]->Draw("histsame");
+
+
+    
+    fLandau[0][i]->Draw("hist");
+    fLandau[1][i]->Draw("histsame");
     TLegend* leg = new TLegend(0.35,0.6,0.85,0.8);
     leg->SetLineColor(0);
     leg->SetFillStyle(0);
     //    leg->SetTextSize(0.05);
     leg->AddEntry(resolutionPlot[0],AnglesNice[i],"");
     for(int l =0; l < irradiations; l++)
-      leg->AddEntry(Landau[l][i],irr[l],"lp");
+      leg->AddEntry(fLandau[l][i],irr[l],"lp");
 
     leg->Draw();
 
@@ -270,7 +282,7 @@ void resVScharge_forPaper(){
     
     resolutionPlot[0]->GetYaxis()->SetTitleFont(43);
     resolutionPlot[0]->GetYaxis()->SetTitleSize(15); // labels will be 14 pixels
-    resolutionPlot[0]->GetYaxis()->SetTitleOffset(1.5);
+    resolutionPlot[0]->GetYaxis()->SetTitleOffset(1.8);
     
     resolutionPlot[0]->GetXaxis()->SetLabelFont(43);
     resolutionPlot[0]->GetXaxis()->SetLabelSize(15); // labels will be 14 pixels
@@ -336,8 +348,9 @@ void resVScharge_forPaper(){
     cFDB2[i]->SaveAs(outname+".pdf");
     cFDB2[i]->SaveAs(outname+".root");
     cFDB2[i]->SaveAs(outname+".C");
+    cout << "saved" << endl;
   }//angles
-
+  cout << "done"<< endl;
 
 
 
