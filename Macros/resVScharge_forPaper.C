@@ -168,16 +168,19 @@ void resVScharge_forPaper(){
     
     TGraphErrors* resolutionPlot[irradiations];
     TPad *pad2 = new TPad("pad2","",0,0.,1,0.5);
-    pad2->SetTopMargin(0.01);
-    pad2->SetBottomMargin(0.3);
+    pad2->SetBottomMargin(0.18);
+    pad2->SetTopMargin(0.05);
     pad2->Draw();
 
     //pad2->SetFillStyle(4000); //will be transparent
     //#pad2->SetFrameFillStyle(0);
-    TPad *pad1 = new TPad("pad1","",0,0.55,1,1);
+    TPad *pad1 = new TPad("pad1","",0,0.5,1,1);
     pad1->Draw();
-    pad1->SetBottomMargin(0.15);
-    pad1->cd();
+
+    pad1->SetTopMargin(0.05);
+    pad1->SetBottomMargin(0.2);
+
+    pad2->cd();
     gPad->SetTicks(1,1);
     /*
     gLandau[0][i]->SetLineColor(kBlack);
@@ -207,7 +210,8 @@ void resVScharge_forPaper(){
 
     fLandau[0][i]->SetLineColor(kBlack);
     fLandau[0][i]->SetLineWidth(2);
-    fLandau[0][i]->GetXaxis()->SetLimits(0.,1000.);
+    fLandau[0][i]->GetXaxis()->SetLimits(0.,500.);
+    fLandau[1][i]->GetXaxis()->SetLimits(0.,500.);
     fLandau[0][i]->GetYaxis()->SetRangeUser(0.,0.16);
 
     //    fLandau[0][i]->GetXaxis()->SetMaxDigits(3);
@@ -264,7 +268,7 @@ void resVScharge_forPaper(){
 
     
     //    pad2->Draw();
-    pad2->cd();
+    pad1->cd();
 
     gPad->SetTicks(1,1);
     resolutionPlot[0] = new TGraphErrors(perc,charge_0[i],res_0[i],chargeerr[i],reserr_0[i]);
@@ -300,7 +304,7 @@ void resVScharge_forPaper(){
     resolutionPlot[0]->SetMarkerColor(kBlack);
     resolutionPlot[0]->SetLineColor(kBlack);
     resolutionPlot[0]->SetMarkerStyle(20);
-    resolutionPlot[0]->GetXaxis()->SetLimits(0.,300.);
+    resolutionPlot[0]->GetXaxis()->SetLimits(0.,500.);
     resolutionPlot[0]->GetYaxis()->SetRangeUser(0.,15.);
     resolutionPlot[0]->Draw("AEP");
     
