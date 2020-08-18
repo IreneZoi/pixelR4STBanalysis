@@ -45,7 +45,7 @@ void resolution_2775_TreeEntries(TString function = "RMSself")
   TString name= "closest_A11C15";
   TH1F * h_res;//[Angles];
 
-  Int_t run[Angles]={2775}; 
+  Int_t run[Angles]={2779}; 
   TString Run[Angles];
   ostringstream strs[Angles];
 

@@ -114,7 +114,7 @@ void bestRes(TString func = "RMSself", bool unfolding = false)
  TString runs[measurements] = {
    //   "1827", 
    "2801",      
-   "2775",      
+   "2779",      
    "1820", 
    "2743",      
    "2773",      
