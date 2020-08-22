@@ -114,7 +114,7 @@ void resVScharge_forPaper(){
   TH1F * fLandau[irradiations][angles];
   //  TGraph * gLandau[irradiations][angles];
   for(int l = 0; l < irradiations; l++){
-    cout << irr[l] << endl;
+    cout <<"%%%%%%%% irr "<< irr[l] << endl;
     for(int i = 0; i< angles; i++){
       cout << AnglesNice[i] << endl;
       TFile *file = new TFile(rootfilenames[l][i]);
@@ -122,6 +122,8 @@ void resVScharge_forPaper(){
       Landau[l][i] = (TH1I*)canvas->GetPrimitive("clphB");
       cout << Landau[l][i]->GetEntries() << endl;
       Landau[l][i]->Rebin(2);
+      cout << " bins "<< Landau[l][i]->GetNbinsX() << endl;
+      cout << "maximum " << Landau[l][i]->GetBinCenter(Landau[l][i]->GetMaximumBin()) << endl;
       fLandau[l][i] = new TH1F("f","f",Landau[l][i]->GetNbinsX(),0.,1000.);
       //Landau[l][i]->Copy(fLandau[l][i]);
       //cout << fLandau[l][i].Integral() << endl;
@@ -132,8 +134,7 @@ void resVScharge_forPaper(){
       //Double_t y[Landau[l][i].GetNbinsX()];
       
       for(int j = 1; j <= Landau[l][i]->GetNbinsX(); j++ ){
-
-	cout << Landau[l][i]->GetBinCenter(j) << " " << Landau[l][i]->GetBinContent(j) << endl;
+        cout << "BIN "<< j << " Bin center " << Landau[l][i]->GetBinCenter(j) << " bin content " << Landau[l][i]->GetBinContent(j) << endl;
         cout << ((float) Landau[l][i]->GetBinContent(j))/((float) Landau[l][i]->GetEntries()) << endl;
 	fLandau[l][i]->SetBinContent(j,((float) Landau[l][i]->GetBinContent(j))/((float) Landau[l][i]->GetEntries()));
 	cout << fLandau[l][i]->GetBinCenter(j) << " " << fLandau[l][i]->GetBinContent(j) << endl;
@@ -210,8 +211,9 @@ void resVScharge_forPaper(){
 
     fLandau[0][i]->SetLineColor(kBlack);
     fLandau[0][i]->SetLineWidth(2);
-    fLandau[0][i]->GetXaxis()->SetLimits(0.,500.);
-    fLandau[1][i]->GetXaxis()->SetLimits(0.,500.);
+    fLandau[0][i]->GetXaxis()->SetRangeUser(0.,500.);
+    //    fLandau[0][i]->GetXaxis()->SetLimits(0.,1000.);
+    //fLandau[1][i]->GetXaxis()->SetLimits(0.,1000.);
     fLandau[0][i]->GetYaxis()->SetRangeUser(0.,0.16);
 
     //    fLandau[0][i]->GetXaxis()->SetMaxDigits(3);
@@ -255,7 +257,7 @@ void resVScharge_forPaper(){
     
     fLandau[0][i]->Draw("hist");
     fLandau[1][i]->Draw("histsame");
-    TLegend* leg = new TLegend(0.35,0.6,0.85,0.8);
+    TLegend* leg = new TLegend(0.35,0.7,0.85,0.88);
     leg->SetLineColor(0);
     leg->SetFillStyle(0);
     //    leg->SetTextSize(0.05);
