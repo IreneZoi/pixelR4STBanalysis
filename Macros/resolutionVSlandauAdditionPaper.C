@@ -95,7 +95,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
 	}//angles
     }// file scanning
 
-
+  float perc[Cuts];
   for(int i=0; i<Angles; i++)  {
   if(print) cout << "Getting files "  << endl;
     if(print) cout << "Run: "<< i <<" " << run[i] << endl;
@@ -133,11 +133,12 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
     integral = hclphB->Integral(0,hclphB->GetNbinsX()+1);
     if(print)      cout << " integral " << integral << " entries " << hclphB->GetEntries()<<  endl;
 
-    for(int k = 0; k< Cuts; k++){
-      float perc = (float) (k+1)*0.05;
-      cout << " perc " << perc << endl;
 
-      integral_per[k] = perc *integral; //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
+    for(int k = 0; k< Cuts; k++){
+      perc[k] = (float) (k+1)*0.05;
+      cout << " perc " << perc[k] << endl;
+
+      integral_per[k] = perc[k] *integral; //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
       cout << " integral " << integral_per[k] << endl;
 	
       high[i][k] = 0;
@@ -152,14 +153,14 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
 	if(print) cout << " integral " << integrating << " high " << high[i][k] << endl;
 	m++;
       }
-      cout << " integral "<< perc << " " << integral_per[k] << " obtained " << integrating << endl;
+      cout << " integral "<< perc[k] << " " << integral_per[k] << " obtained " << integrating << endl;
     }//cuts
     
   
 
     
     for(int k = 0; k< Cuts; k++){
-      cout << " perc " << (float) (k+1) * 0.05 << " integral " << integral_per[k] << " high bin " << high[i][k] << " integral high " << hclphB->Integral(1,hclphB->FindBin(high[i][k])) << endl;
+      cout << " perc " << perc[k] << " integral " << integral_per[k] << " high bin " << high[i][k] << " integral high " << hclphB->Integral(1,hclphB->FindBin(high[i][k])) << endl;
       hclphB->GetXaxis()->SetRange(1,hclphB->FindBin(high[i][k]));
       average[k] = hclphB->GetMean();
       hclphB->GetXaxis()->SetRange(1,hclphB->GetNbinsX());
@@ -204,7 +205,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
 
 
   for(int k = 0; k< Cuts; k++){
-    if(i==0) ss_perc[k].Form("%d",k);
+    if(i==0) ss_perc[k].Form("%d",perc[k]);
     TH1I * hdx3treeph = new TH1I("hdx3treeph", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
     hdx3ph[k] = new TH1I("hdx3treeph", "triplet dx3  ; dx [mm];triplets", 500, -0.5, 0.5 );
 
@@ -228,7 +229,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
     cout << "deleted" << endl;
     cout << hdx3ph[k]->GetTitle() << " entries " << hdx3ph[k]->GetEntries() << endl;
     hdx3ph[k]->GetXaxis()->SetRangeUser(-0.05,0.05);
-    hdx3ph[k]->Write("hdx3ph"+ss_perc[k]);
+    hdx3ph[k]->Write("hdx3ph_"+ss_perc[k]);
     hdx3ph[k]->GetXaxis()->SetRangeUser(-0.5,0.5);
 
   } // cuts
@@ -287,7 +288,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
     myfile << labelC << "\n";
     myfile << info << "\n";
 
-    myfile << "phBcenter RES(um) Error highlimit \n";
+    myfile << "phBcenter RES(um) Error highlimit percent \n";
 
     Double_t charge[Cuts] = {
      (Double_t) high[i][0]/2.,
@@ -340,7 +341,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
       linea[k]->SetLineWidth(2);
       linea[k]->SetLineStyle(2);
       linea[k]->Draw("same");
-      myfile <<average[k] << " " <<sigma[i][k] << " " << sigmaerr[i][k] << " " << high[i][k] <<"\n";
+      myfile <<average[k] << " " <<sigma[i][k] << " " << sigmaerr[i][k] << " " << high[i][k] << " " << perc[k] <<"\n";
     }
   
     
