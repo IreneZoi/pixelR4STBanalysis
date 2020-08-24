@@ -255,11 +255,19 @@ void resVSchargePerc_forPaper(){
     //    fLandau[0][i]->GetXaxis()->SetMaxDigits(3);
     
 
-
     
     fLandau[0][i]->Draw("hist");
     fLandau[1][i]->Draw("histsame");
 
+    TLine *  lineano = new TLine( high_0[i][17],0.,high_0[i][17],0.1);
+    lineano->SetLineColor(kGray);
+    cout << " high_0[i][17] " <<  high_0[i][17] << endl;
+    lineano->Draw("same");
+    TLine *  lineairr = new TLine( high_1[i][17],0.,high_1[i][17],0.1);
+    lineairr->SetLineColor(kGray);
+    lineairr->SetLineStyle(2);
+    lineairr->Draw("same");
+    
 
 
     TLegend* leg = new TLegend(0.35,0.7,0.85,0.88);
