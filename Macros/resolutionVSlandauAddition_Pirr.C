@@ -175,7 +175,33 @@ void resolutionVSlandauAddition_Pirr(TString function = "RMSself"){
       cout << " integral "<< perc << " " << integral_per[k] << " obtained " << integrating << endl;
     }
 
+    TH1I * hclphA = (TH1I*)histodir->Get("clphA");
+    integral = hclphA->Integral(0,hclphA->GetNbinsX()+1);
+    float perc90 = 0.9;
+    double integral_per90 = perc90 *integral; //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
+    int    highA = 0;
+    double integrating = 0;
+    int m = 1;
+    while(integrating<integral_per90)    {
+      integrating= hclphA->Integral(1,m); //hclph[j]->GetNbinsX()-i);
+      highA = hclphA->GetBinCenter(m); //hclph[j]->GetNbinsX()-i);
+      m++;
+    }
+    cout << " integral A " << integral_per90 << " obtained " << integrating << endl;
 
+    TH1I * hclphC = (TH1I*)histodir->Get("clphC");
+    integral = hclphC->Integral(0,hclphC->GetNbinsX()+1);
+    integral_per90 = perc90 *integral; //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
+    int    highC = 0;
+    integrating = 0;
+    m = 1;
+    while(integrating<integral_per90)    {
+      integrating= hclphC->Integral(1,m); //hclph[j]->GetNbinsX()-i);
+      highC = hclphC->GetBinCenter(m); //hclph[j]->GetNbinsX()-i);
+      m++;
+    }
+    cout << " integral C " << integral_per90 << " obtained " << integrating << endl;
+    
     
 
     for(int k = 0; k< Cuts; k++){
@@ -229,14 +255,18 @@ void resolutionVSlandauAddition_Pirr(TString function = "RMSself"){
     TH1I * hdx3treeph = new TH1I("hdx3treeph", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
     hdx3ph[k] = new TH1I("hdx3treeph", "triplet dx3  ; dx [mm];triplets", 500, -0.5, 0.5 );
 
-    TString phB_high;
+    TString phB_high,phA_high,phC_high;
+
+
     phB_high=ph[k];
-
-
+    phA_high.Form("%d",highA);
+    phC_high.Form("%d",highC);
     cout << " cut " << k << endl;
     cout << " B " << phB_high << endl;
+
+    tree->Draw("dx3tree>>hdx3treeph","clphBiiitree<"+phB_high+"&&clphAiiitree<"+phA_high+"&&clphCiiitree<"+phC_high,"goff");
     
-    tree->Draw("dx3tree>>hdx3treeph","clphBiiitree<"+phB_high);
+
     //tree->Draw("dx3tree>>hdx3treeph","clphBiiitree>"+phB_low+"&&clphBiiitree<"+phB_high) ; 
     //hdx3treeph =
     hdx3ph[k] = (TH1I*)gDirectory->Get("hdx3treeph");

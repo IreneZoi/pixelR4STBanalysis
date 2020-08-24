@@ -24,9 +24,9 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
   TString detectorA="146";
   TString detectorB="148";
   TString detectorC="163";
-  TString labelA="FDB150Y_2_R4S100x25-Y2_2, thr 22 ADC";
-  TString labelC="FDB150Y_2_R4S100x25-Y6_1, thr 22 ADC";
-  TString labelB="Pstop_RD53Apads_FDB, thr 22 ADC";
+  TString labelA="FDB150Y_2_R4S100x25-Y2_2, thr 13 ADC";
+  TString labelC="FDB150Y_2_R4S100x25-Y6_1, thr 14 ADC";
+  TString labelB="Pstop_RD53Apads_FDB, thr 12 ADC";
   TString info = "beam energy 5.6 GeV";
   double average[Cuts];
 
@@ -63,7 +63,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
   cout << "######## Angle dependent    resolution unfolding       ###########" << endl;
   TString testnameUnf="RMSself6sig_closest_A13C14_bestnonirr";
   TString  filenames = "Ascan_resTree_148_dphcutB12_"+testnameUnf+".txt";
-  filenames      = inputDir+filenames;
+  filenames      = inputDir+"TextFiles/"+filenames;
   cout << filenames << endl;
   ifstream stream(filenames);
   double angle;
@@ -131,7 +131,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
     TDirectory * histodir =(TDirectoryFile*)file->Get(dir);
     hclphB = (TH1I*)histodir->Get("clphB");
     integral = hclphB->Integral(0,hclphB->GetNbinsX()+1);
-    if(print)      cout << " integral " << integral << " entries " << hclphB->GetEntries()<<  endl;
+    //    if(print)      cout << " integral " << integral << " entries " << hclphB->GetEntries()<<  endl;
 
 
     for(int k = 0; k< Cuts; k++){
@@ -139,7 +139,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
       cout << " perc " << perc[k] << endl;
 
       integral_per[k] = perc[k] *integral; //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
-      cout << " integral " << integral_per[k] << endl;
+      //cout << " integral " << integral_per[k] << endl;
 	
       high[i][k] = 0;
 	
@@ -147,15 +147,45 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
       int m = 1;
       while(integrating<integral_per[k])    {
 	  
-	if(print) cout << " while "<< i << endl;
+	//if(print) cout << " while "<< i << endl;
 	integrating= hclphB->Integral(1,m); //hclph[j]->GetNbinsX()-i);
 	high[i][k] = hclphB->GetBinCenter(m); //hclph[j]->GetNbinsX()-i);
-	if(print) cout << " integral " << integrating << " high " << high[i][k] << endl;
+	//if(print) cout << " integral " << integrating << " high " << high[i][k] << endl;
 	m++;
       }
       cout << " integral "<< perc[k] << " " << integral_per[k] << " obtained " << integrating << endl;
     }//cuts
+
+
+    TH1I * hclphA = (TH1I*)histodir->Get("clphA");
+    integral = hclphA->Integral(0,hclphA->GetNbinsX()+1);
+    float perc90 = 0.9;
+    double integral_per90 = perc90 *integral; //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
+    int    highA = 0;
+    double integrating = 0;
+    int m = 1;
+    while(integrating<integral_per90)    {
+      integrating= hclphA->Integral(1,m); //hclph[j]->GetNbinsX()-i);
+      highA = hclphA->GetBinCenter(m); //hclph[j]->GetNbinsX()-i);
+      m++;
+    }
+    cout << " integral A " << integral_per90 << " obtained " << integrating << endl;
+
+    TH1I * hclphC = (TH1I*)histodir->Get("clphC");
+    integral = hclphC->Integral(0,hclphC->GetNbinsX()+1);
+    integral_per90 = perc90 *integral; //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
+    int    highC = 0;
+    integrating = 0;
+    m = 1;
+    while(integrating<integral_per90)    {
+      integrating= hclphC->Integral(1,m); //hclph[j]->GetNbinsX()-i);
+      highC = hclphC->GetBinCenter(m); //hclph[j]->GetNbinsX()-i);
+      m++;
+    }
+    cout << " integral C " << integral_per90 << " obtained " << integrating << endl;
+
     
+
   
 
     
@@ -209,15 +239,16 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
     TH1I * hdx3treeph = new TH1I("hdx3treeph", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
     hdx3ph[k] = new TH1I("hdx3treeph", "triplet dx3  ; dx [mm];triplets", 500, -0.5, 0.5 );
 
-    TString phB_high; 
+    TString phB_high,phA_high,phC_high; 
     
     
     phB_high=ph[k];
-      
+    phA_high.Form("%d",highA);
+    phC_high.Form("%d",highC);
     cout << " cut " << k << endl;
     cout << " B " << phB_high << endl;
     
-    tree->Draw("dx3tree>>hdx3treeph","clphBiiitree<"+phB_high,"goff");
+    tree->Draw("dx3tree>>hdx3treeph","clphBiiitree<"+phB_high+"&&clphAiiitree<"+phA_high+"&&clphCiiitree<"+phC_high,"goff");
     //tree->Draw("dx3tree>>hdx3treeph","clphBiiitree>"+phB_low+"&&clphBiiitree<"+phB_high) ; 
     //hdx3treeph =
     hdx3ph[k] = (TH1I*)gDirectory->Get("hdx3treeph");
@@ -249,7 +280,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
 
     cout << " RMS " << sigma[i][k] << " ± " << sigmaerr[i][k] << endl;
     FitTH1(hdx3ph[k], &(sigma[i][k]), &(sigmaerr[i][k]), ss_perc[k], detectorA, detectorB, detectorC, function,&(Percentage[i][k]) );
-
+    cout << " Fresh " << freshresA[i] << endl;
     ExtractRes(&(sigma[i][k]), &(sigmaerr[i][k]), true,freshresA[i],freshresA_err[i]);
 
     cout << " RES " << sigma[i][k] << " ± " << sigmaerr[i][k] << endl;
