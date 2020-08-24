@@ -106,7 +106,7 @@ void ExtractRes(Double_t *  sigma, Double_t *  sigmaerr, bool isIRR = false, Dou
     {
       Double_t sigma_orig = *sigma;
       Double_t sigmaerr_orig = *sigmaerr;
-      
+      cout << " TMath::Sqrt((2*sigma_orig*sigma_orig-sigma_fresh*sigma_fresh)/2.) " << endl;
       *sigma = TMath::Sqrt((2*sigma_orig*sigma_orig-sigma_fresh*sigma_fresh)/2.);
       *sigmaerr = TMath::Sqrt( 1./(*sigma)*sigma_orig*sigma_orig*sigmaerr_orig*sigmaerr_orig  + 0.25/(*sigma)*sigma_fresh*sigma_fresh*sigmaerr_fresh*sigmaerr_fresh );
       
