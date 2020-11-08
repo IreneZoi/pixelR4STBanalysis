@@ -20,7 +20,7 @@ bool print=true;
 using namespace std;
 #define runNONirr "2743"
 #define runPirr2 "2801"
-#define runNirr4 "3839"
+#define runNirr4 "3778" //"3839"
 #define irradiations 3
 
 void TDR();
@@ -54,29 +54,25 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   int i_dphcut[1] = {12}; 
   Double_t d_dphcut[1] = {12};
   TString ss_dphcut[1] = {"12"};
-  TString inputfileNONirr= "closest_A13C14_bestnonirr";
+  TString inputfileNONirr= "dycut_A13C14";
   GetHists(&landau_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res,true,inputfileNONirr);
   
   //proton
-
   Run[0] = runPirr2;
   i_dphcut[0] = 15; 
   d_dphcut[0] = 15;
   ss_dphcut[0] = "15";
-  TString  inputfilePirr2="closest_A12C15_bestproton";
+  TString  inputfilePirr2="dycut_A12C15";
   GetHists(&landau_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res,true,inputfilePirr2);
-    
-  
 
   //neutron
-
   Run[0] = runNirr4;
   i_dphcut[0] = 15; 
   d_dphcut[0] = 15;
   ss_dphcut[0] = "15";
-  TString inputfileNirr4="closest_A12C13";
+  TString inputfileNirr4="dycut_A12C13";
   GetHists(&landau_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res,true,inputfileNirr4);
-    
+
   TH1F  h_landau[irradiations];
   TH1F  h_landau_orig[irradiations];
   
@@ -103,10 +99,10 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
           int j = 0;
 	  while(integral[i]>integral90[i])
 	    {
-	      cout << " while "<< j << endl;
+	      //cout << " while "<< j << endl;
 	      integral[i] =  h_landau[i].Integral(0, h_landau[i].GetNbinsX()-j);
 	      bin90[i] =  h_landau[i].GetBinCenter( h_landau[i].GetNbinsX()-j);
-	      cout << " integral " << integral[i] << " high " << bin90[i] << endl;
+	      //cout << " integral " << integral[i] << " high " << bin90[i] << endl;
 	      j++;
 	    }
 	  cout << " integral90 " << integral90[i] << endl;
@@ -211,149 +207,9 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   cFDB2->SaveAs(outname+".C");
 
 
-  /*
-  // ####################    residual   ################
-  Hist = "dx3_clchargeABC90evR95";
-  
-  // Non-irr 
-  MapTH1 rmsq_map;
-  Run[0] = runNONirr;
-  i_dphcut[0] = 22; 
-  d_dphcut[0] = 22;
-  ss_dphcut[0] = "22";
-  //  GetHists(&rmsq_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res);
-  TH1F * hdx3_clchargeABC90evR; // = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
-  hdx3_clchargeABC90evR =    GetCheckHists(&rmsq_map, 1, 1,dphcut, Run,ss_dphcut,pitch, Hist,hdx3_clchargeABC90evR,true,"testEntries");
-  
-  //proton
-
-  Run[0] = runPirr2;
-  i_dphcut[0] = 15; 
-  d_dphcut[0] = 15;
-  ss_dphcut[0] = "15";
-  //  GetHists(&rmsq_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res);
-  hdx3_clchargeABC90evR =    GetCheckHists(&rmsq_map, 1, 1,dphcut, Run,ss_dphcut,pitch, Hist,hdx3_clchargeABC90evR,true,"testEntries");
-  
-  
-
-  //neutron
-
-  Run[0] = runNirr4;
-  i_dphcut[0] = 18; 
-  d_dphcut[0] = 18;
-  ss_dphcut[0] = "18";
-  //GetHists(&rmsq_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res);
-  hdx3_clchargeABC90evR =    GetCheckHists(&rmsq_map, 1, 1,dphcut, Run,ss_dphcut,pitch, Hist,hdx3_clchargeABC90evR,true,"testEntries");
-  
-  TH1F  h_resq[irradiations];
-  for(int i=0; i<irradiations; i++)
-    {
-      auto it2 = rmsq_map.find(std::make_pair(runs[i]+"_"+ss_dphcuts[i]+"_"+pitch[0],Hist));
-      if(it2  != rmsq_map.end())
-	{
-	  if(print)               cout << " found map " << endl;
-	  if(print)               cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
-	  h_resq[i] = *it2->second;
-	  cout << "integral " << h_resq[i].Integral() << endl;
-	  //	  landau90[i]= 0.9*h_resq[i].Integral();
-	  h_resq[i].Scale(1./h_resq[i].Integral());
-	}
-      else cout << "map key " << it2->first.first << " not found " << endl;
-    }
-
-
-  /////// plots!
-
-  
-  TCanvas *cresq = new TCanvas("cresq", "FDB resolution", 600, 600);
-  cresq->SetLeftMargin(0.12);  
-  cresq->SetRightMargin(-0.1);  
-  gPad->SetTicks(1,1);
-  gROOT->SetStyle("Plain");
-  gStyle->SetPadGridX(0);
-  gStyle->SetPadGridY(0);
-  gStyle->SetPalette(1);
-  gStyle->SetOptStat(0);
-  gStyle->SetOptTitle(0);
-
-  cout << "starting making hists pretty" << endl;
-  h_resq[0].SetTitle(" ");
-  h_resq[0].GetYaxis()->SetTitle("Normalized number of events");
-  h_resq[0].GetXaxis()->SetTitle("residual [mm]");
-  //  h_resq[0].SetMarkerSize(2.5);
-  h_resq[0].SetLineColor(kRed);
-  h_resq[0].SetLineStyle(1);
-  h_resq[0].SetLineWidth(2);
-  h_resq[0].GetXaxis()->SetLimits(-0.5,0.5);
-  h_resq[0].GetXaxis()->SetMaxDigits(3); //SetNoExponent(true);
-  h_resq[0].GetYaxis()->SetRangeUser(0.00001,10.);
-  h_resq[0].GetXaxis()->SetRange(0.,h_resq[0].GetNbinsX() + 1);
-  h_resq[0].Draw("histe");
-  //  TGaxis::SetMaxDigits(3);
-  //  h_resq[1].SetMarkerSize(2.5);
-  h_resq[1].GetXaxis()->SetLimits(-0.5,0.5);
-  h_resq[1].GetXaxis()->SetRange(0.,h_resq[1].GetNbinsX() + 1);
-  h_resq[1].GetYaxis()->SetRangeUser(0.00001,10.);
-  h_resq[1].SetLineColor(kBlack);
-  h_resq[1].SetLineStyle(2);
-  h_resq[1].SetLineWidth(2);
-  //  h_resq[1].GetXaxis()->SetNoExponent(true);
-  h_resq[1].Draw("histesame");
- 				      
-  // h_resq[2].SetMarkerSize(2.5);
-  h_resq[2].GetXaxis()->SetLimits(-0.5,0.5);
-  h_resq[2].GetXaxis()->SetRange(0, h_resq[2].GetNbinsX() + 1);
-  h_resq[2].GetYaxis()->SetRangeUser(0.00001,10.);
-  //h_resq[2].GetYaxis()->SetRangeUser(0.,0.08);
-  h_resq[2].SetLineColor(kBlue);
-  h_resq[2].SetLineWidth(2);
-  h_resq[2].SetLineStyle(3);
-  //  h_resq[2].GetXaxis()->SetNoExponent(true);
-  h_resq[2].Draw("histesame");
-
-  TLegend* legresq = new TLegend(0.45,0.72,0.8,0.87);
-  legresq->SetLineColor(0);
-  legresq->SetTextSize(0.02);
-  for(int i =0; i < irradiations; i++)
-    legresq->AddEntry(&(h_resq[i]),irr[i],"le");
-
-  legresq->Draw();
-
-  /*
-  int color[irradiations] = {632,1,600};
-  TLine *  line2[irradiations];
-  TArrow *ar[irradiations];
-  
-  for(int i =0; i < irradiations; i++){
-    cout << landau90[i] << endl;
-    line2[i]    = new TLine( landau90[i],0.,landau90[i],0.007);
-    line2[i]->SetLineColor(color[i]);
-    line2[i]->SetLineWidth(2);
-    line2[i]->SetLineStyle(1);
-    line2[i]->Draw("same");
-    ar[i]  = new TArrow(landau90[i],0.006,landau90[i]-6000,0.006,0.03,"|>"); //,"<|");
-    ar[i]->SetLineColor(color[i]);
-    ar[i]->SetFillColor(color[i]);
-    ar[i]->SetAngle(30);
-    
-    ar[i]->Draw();
-
-  }
-  */
-  /*
-  cresq->SetLogy();
-  
-  outname = outputDir+"ResQ95_3irr_bestAngle_"+name;
-  cresq->SaveAs(outname+".eps");
-  cresq->SaveAs(outname+".png");
-  cresq->SaveAs(outname+".pdf");
-  cresq->SaveAs(outname+".root");
-  cresq->SaveAs(outname+".C");
-  */
-
   // ####################    residual   ################
   Hist = "dx3_clphABC90evR";
-  TH1F * hdx3_clchargeABC90evR;  
+  TH1F * hdx3_clchargeABC90evR;
   // Non-irr 
   MapTH1 rmsph_map;
   Run[0] = runNONirr;
@@ -382,8 +238,7 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   i_dphcut[0] = 15; 
   d_dphcut[0] = 15;
   ss_dphcut[0] = "15";
-  //GetHists(&rmsph_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res);
-  //hdx3_clchargeABC90evR =
+  //rmsph_map = GetCheckHists(&rmsph_map, 1, 1,dphcut, Run,ss_dphcut,pitch, Hist,hdx3_clchargeABC90evR,true,inputfileNirr4);
   rmsph_map = GetCheckHists(&rmsph_map, 1, 1,dphcut, Run,ss_dphcut,pitch, Hist,hdx3_clchargeABC90evR,true,inputfileNirr4);
 
 
@@ -393,6 +248,7 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   for(int i=0; i<irradiations; i++)
     {
       auto it2 = rmsph_map.find(std::make_pair(runs[i]+"_"+ss_dphcuts[i]+"_"+pitch,Hist));
+      //      if( i==2) it2 = rmsph_map.find(std::make_pair(runs[i]+"_"+pitch,Hist));
       if(it2  != rmsph_map.end())
 	{
 	  if(print)               cout << " found map " << endl;
@@ -420,20 +276,22 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   gStyle->SetPadGridX(0);
   gStyle->SetPadGridY(0);
   gStyle->SetPalette(1);
-  gStyle->SetOptStat(0);
+  gStyle->SetOptStat(1110);
   gStyle->SetOptTitle(0);
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
   
   cout << "starting making hists pretty" << endl;
   h_resq[0].SetTitle(" ");
+  cout << "title fine" << endl;
+  
   h_resq[0].GetYaxis()->SetTitle("Normalized number of events");
   h_resq[0].GetXaxis()->SetTitle("#Deltax [#mum]");
   //  h_resq[0].SetMarkerSize(2.5);
   h_resq[0].SetLineColor(kBlack);
   h_resq[0].SetLineStyle(1);
   h_resq[0].SetLineWidth(2);
-  h_resq[0].GetXaxis()->SetNdivisions(20,5,3);
+  //  h_resq[0].GetXaxis()->SetNdivisions(20,5,3);
   h_resq[0].GetXaxis()->SetRangeUser(-0.1,0.1);
   h_resq[0].GetXaxis()->SetMaxDigits(3); //SetNoExponent(true);
   h_resq[0].GetYaxis()->SetRangeUser(0.00001,10.);
@@ -441,7 +299,17 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   h_resq[0].Draw("histe");
   cout << " Xaxis " << h_resq[0].GetXaxis()->GetNdivisions() << endl;
   cout << " RMS " << h_resq[0].GetRMS() << endl;
+  cresph->Update();
+  TPaveStats *Stats =   (TPaveStats*)h_resq[0].FindObject("stats");     //GetListOfFunctions()->FindObject("stats");
 
+  Stats->SetX1NDC(0.15);
+  Stats->SetX2NDC(.35);
+  Stats->SetY1NDC(.6);
+  Stats->SetY2NDC(.7);
+  //  gPad->Modified();
+  cout << "stats fine" << endl;
+
+  
   //  TGaxis::SetMaxDigits(3);
   //  h_resq[1].SetMarkerSize(2.5);
   h_resq[1].GetXaxis()->SetRangeUser(-0.1,0.1);
@@ -451,8 +319,21 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   h_resq[1].SetLineStyle(2);
   h_resq[1].SetLineWidth(2);
   //  h_resq[1].GetXaxis()->SetNoExponent(true);
-  h_resq[1].Draw("histesame");
- 				      
+  h_resq[1].Draw("histesames");
+  cout << "second hist fine" << endl;
+
+  cresph->Update();
+  TPaveStats *Stats1 =   (TPaveStats*)h_resq[1].FindObject("stats");     //GetListOfFunctions()->FindObject("stats");
+
+  Stats1->SetX1NDC(0.15);
+  Stats1->SetX2NDC(.35);
+  Stats1->SetY1NDC(.49);
+  Stats1->SetY2NDC(.59);
+  Stats1->SetLineColor(kGreen+1);
+  Stats1->SetLineStyle(2);
+  gPad->Modified();
+
+  
   // h_resq[2].SetMarkerSize(2.5);
   h_resq[2].GetXaxis()->SetRangeUser(-0.1,0.1);
   h_resq[2].GetYaxis()->SetRangeUser(0.00001,10.);
@@ -461,7 +342,19 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   h_resq[2].SetLineWidth(2);
   h_resq[2].SetLineStyle(3);
   //  h_resq[2].GetXaxis()->SetNoExponent(true);
-  h_resq[2].Draw("histesame");
+  h_resq[2].Draw("histesames");
+  cresph->Update();
+  cout << "third hist also" << endl;
+  
+  TPaveStats *Stats2 =   (TPaveStats*)h_resq[2].FindObject("stats");     //GetListOfFunctions()->FindObject("stats");
+
+  Stats2->SetX1NDC(0.15);
+  Stats2->SetX2NDC(.35);
+  Stats2->SetY1NDC(.38);
+  Stats2->SetY2NDC(.48);
+  Stats2->SetLineColor(kMagenta);
+  Stats2->SetLineStyle(3);
+  gPad->Modified();
   
   TLegend* legresq = new TLegend(0.35,0.72,0.8,0.87);
   legresq->SetLineColor(0);
@@ -506,6 +399,498 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
 
 
 
+
+    /////// non log version
+
+  
+  TCanvas *cresph2 = new TCanvas("cresph2", "FDB resolution", 600, 600);
+  cresph2->SetLeftMargin(0.12);  
+  cresph2->SetRightMargin(-0.1);  
+  gPad->SetTicks(1,1);
+  gROOT->SetStyle("Plain");
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(0);
+  gStyle->SetOptTitle(0);
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  int colors[irradiations]={1,417,616};
+  Double_t minrange[irradiations]={-0.0233376*1000.,-0.0466377*1000, -0.0342384*1000};
+  Double_t maxrange[irradiations]={0.024754*1000.,0.0439273*1000,0.0345828*1000};
+    
+  Float_t Mean[irradiations];
+  Float_t RMS[irradiations];
+
+  TString Mean_ss[irradiations];
+  TString RMS_ss[irradiations];
+
+  TLegend* legB = new TLegend(0.25,0.85,0.4,0.88);
+  legB->SetLineColor(0);
+  legB->AddEntry(&(h_resq[0]),"#theta = 8.8 deg","");
+  
+  TLegend* legresq2 = new TLegend(0.13,0.67,0.69,0.85);
+  legresq2->SetLineColor(0);
+
+  
+  cout << "starting making hists pretty" << endl;
+  for( int i = 0 ; i < irradiations; i ++){
+    cout << "            " << irr[i] << endl;
+    h_resq[i].SetTitle(" ");
+    h_resq[i].GetYaxis()->SetTitle("Normalized number of events");
+    h_resq[i].GetXaxis()->SetTitle("#Deltax [#mum]");
+
+    h_resq[i].SetMarkerColor(color[i]);
+    h_resq[i].SetLineColor(color[i]);
+    h_resq[i].SetLineStyle(1+i);
+    h_resq[i].SetLineWidth(2);
+    h_resq[i].GetXaxis()->SetRangeUser(minrange[i],maxrange[i]);
+    h_resq[i].GetYaxis()->SetRangeUser(0.,0.35);
+    
+    h_resq[i].Draw("histesames");
+    cresph->Update();
+    cout << " changed range " <<endl;
+    Mean[i]=h_resq[i].GetMean();
+    RMS[i]=h_resq[i].GetRMS();
+    cout << " mean " << Mean[i] << endl;
+    cout << " rms "<< RMS[i] << endl;
+
+
+    std::stringstream stream_m;
+    stream_m << std::fixed << std::setprecision(2) << Mean[i];
+    std::string s_m = stream_m.str();
+    std::stringstream stream_r;
+    stream_r << std::fixed << std::setprecision(2) << RMS[i];
+    std::string s_r = stream_r.str();
+
+    //Mean_ss[i].Form("%f",Mean[i]);
+    //    RMS_ss[i].Form("%f",RMS[i]);
+    if(i!=0)  gPad->Modified();
+    irr[0] = "Non-irradiated";//, 120 V"; // "no irr, 5.6 GeV";
+    irr[1] = "#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton";//, 800 V";
+    irr[2] = "#phi_{eq} = 3.6 #times 10^{15} cm^{-2}, neutron";//, 800 V";
+
+    legresq2->AddEntry(&(h_resq[i]),irr[i]+", #mu = "+s_m+" #mum, RMS = "+s_r+" #mum","le");
+    h_resq[i].GetXaxis()->SetRangeUser(-50.,50.);
+
+  }
+    
+   
+  legB->Draw();
+  
+  legresq2->Draw();
+
+
+  for (int i = 0 ; i < irradiations; i ++){
+    TLine *  linemin = new TLine( minrange[i],0.,minrange[i],0.2);
+    linemin->SetLineColor(color[i]);
+    linemin->SetLineWidth(2);
+    linemin->SetLineStyle(1+i);
+    linemin->Draw("same");
+
+    TArrow *armin = new TArrow(minrange[i],0.1,minrange[i]+6,0.1,0.03,"|>"); //,"<|");
+    armin->SetLineColor(color[i]);
+    armin->SetFillColor(color[i]);
+    armin->SetAngle(30);
+    armin->Draw();
+
+    TLine *  linemax = new TLine( maxrange[i],0.,maxrange[i],0.2);
+    linemax->SetLineColor(color[i]);
+    linemax->SetLineWidth(2);
+    linemax->SetLineStyle(1+i);
+    linemax->Draw("same");
+
+    TArrow *armax = new TArrow(maxrange[i],0.1,maxrange[i]-6,0.1,0.03,"|>"); //,"<|");
+    armax->SetLineColor(color[i]);
+    armax->SetFillColor(color[i]);
+    armax->SetAngle(30);
+    armax->Draw();
+
+  }
+  
+
+
+  
+  outname = outputDir+"ResPHAllnoLog_3irr_bestAngle_"+name;
+  cresph2->SaveAs(outname+".eps");
+  cresph2->SaveAs(outname+".png");
+  cresph2->SaveAs(outname+".pdf");
+  cresph2->SaveAs(outname+".root");
+  cresph2->SaveAs(outname+".C");
+
+
+
+  ////// clsize 2 versions
+  // version 90 cut
+  Hist = "nrowB_clphABC90evR";
+
+  MapTH1 nr_map;
+  Run[0] = runNONirr;
+  i_dphcut[0] = 12;
+  d_dphcut[0] = 12;
+  ss_dphcut[0] = "12";
+  //  GetHists(&nr_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res);
+  //hdx3_clchargeABC90evR =
+  nr_map = GetCheckHists(&nr_map, 1, 1,dphcut, Run,ss_dphcut,pitch, Hist,hdx3_clchargeABC90evR,true,inputfileNONirr);
+
+  //proton
+
+  Run[0] = runPirr2;
+  i_dphcut[0] = 15;
+  d_dphcut[0] = 15;
+  ss_dphcut[0] = "15";
+  //  GetHists(&nr_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res);
+  //hdx3_clchargeABC90evR =
+  nr_map = GetCheckHists(&nr_map, 1, 1,dphcut, Run,ss_dphcut,pitch, Hist,hdx3_clchargeABC90evR,true,inputfilePirr2);
+
+
+
+  //neutron
+
+  Run[0] = runNirr4;
+  i_dphcut[0] = 15;
+  d_dphcut[0] = 15;
+  ss_dphcut[0] = "15";
+  //nr_map = GetCheckHists(&nr_map, 1, 1,dphcut, Run,ss_dphcut,pitch, Hist,hdx3_clchargeABC90evR,true,inputfileNirr4);
+  nr_map = GetCheckHists(&nr_map, 1, 1,dphcut, Run,ss_dphcut,pitch, Hist,hdx3_clchargeABC90evR,true,inputfileNirr4);
+
+  
+  TH1F  h_NrowB[irradiations];
+  for(int i=0; i<irradiations; i++)
+    {
+      auto it2 = nr_map.find(std::make_pair(runs[i]+"_"+ss_dphcuts[i]+"_"+pitch,Hist));
+      //auto it2 = res_map.find(std::make_pair(Run[i]+"_"+ss_dphcut[k]+"_"+pitch,Hist));
+      if(it2  != nr_map.end())
+	{
+	    if(print)               cout << " found map " << endl;
+	    if(print)               cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
+	    cout << " Getting clusters " << endl;
+
+	    h_NrowB[i] = * it2->second;
+	    //	    h_NrowB[i].Sumw2();
+	    cout << h_NrowB[i].Integral() << endl;
+	    cout << 1./h_NrowB[i].Integral() << endl;
+	    Double_t norm = 1./h_NrowB[i].Integral();
+	    if (h_NrowB[i].GetSumw2N() == 0) h_NrowB[i].Sumw2(kTRUE);
+	    h_NrowB[i].Scale(norm,"width"); //1./h_NrowB[i].Integral());
+	    cout << h_NrowB[i].Integral() << endl;
+	    if (h_NrowB[i].GetSumw2N() == 0) h_NrowB[i].Sumw2(kTRUE);
+
+	}
+
+    }
+
+
+  TCanvas *cnB90 = new TCanvas("cnB90", "FDB resolution", 600, 600);
+  cnB90->SetLeftMargin(0.12);  
+  cnB90->SetRightMargin(-0.1);  
+  gPad->SetTicks(1,1);
+  gROOT->SetStyle("Plain");
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(1110);
+  gStyle->SetOptTitle(0);
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  
+  cout << "starting making hists pretty" << endl;
+  h_NrowB[0].SetTitle(" ");
+  h_NrowB[0].GetYaxis()->SetTitle("Normalized number of events");
+  h_NrowB[0].GetXaxis()->SetTitle("Cluster size on central plane [pixels]");
+  //  h_NrowB[0].SetMarkerSize(2.5);
+  h_NrowB[0].SetLineColor(kBlack);
+  h_NrowB[0].SetLineStyle(1);
+  h_NrowB[0].SetLineWidth(2);
+  //h_NrowB[0].GetXaxis()->SetNdivisions(20,5,3);
+  h_NrowB[0].GetXaxis()->SetRangeUser(0,10);
+  //h_NrowB[0].GetXaxis()->SetMaxDigits(3); //SetNoExponent(true);
+  //h_NrowB[0].GetYaxis()->SetRangeUser(0.,40000);
+  h_NrowB[0].GetYaxis()->SetLimits(0.,0.1); //RangeUser(0.,40000);
+  //  h_NrowB[0].GetXaxis()->SetRange(0.,h_NrowB[0].GetNbinsX() + 1);
+  h_NrowB[0].Draw("histe");
+  cout << " Xaxis " << h_NrowB[0].GetXaxis()->GetNdivisions() << endl;
+  cout << " RMS " << h_NrowB[0].GetRMS() << endl;
+  cnB90->Update();
+  //TPaveStats *
+  Stats =   (TPaveStats*)h_NrowB[0].FindObject("stats");     //GetListOfFunctions()->FindObject("stats");
+
+  Stats->SetX1NDC(0.65);
+  Stats->SetX2NDC(.85);
+  Stats->SetY1NDC(.55);
+  Stats->SetY2NDC(.65);
+  //  gPad->Modified();
+
+  
+  //  TGaxis::SetMaxDigits(3);
+  //  h_NrowB[1].SetMarkerSize(2.5);
+  //h_NrowB[1].GetXaxis()->SetRangeUser(-0.1,0.1);
+  //  h_NrowB[1].GetXaxis()->SetRange(0.,h_NrowB[1].GetNbinsX() + 1);
+  //h_NrowB[1].GetYaxis()->SetRangeUser(0.00001,10.);
+  h_NrowB[1].SetLineColor(kGreen+1);
+  h_NrowB[1].SetLineStyle(2);
+  h_NrowB[1].SetLineWidth(2);
+  //  h_NrowB[1].GetXaxis()->SetNoExponent(true);
+  h_NrowB[1].Draw("histesames");
+  cnB90->Update();
+  //TPaveStats *
+  Stats1 =   (TPaveStats*)h_NrowB[1].FindObject("stats");     //GetListOfFunctions()->FindObject("stats");
+
+  Stats1->SetX1NDC(0.65);
+  Stats1->SetX2NDC(.85);
+  Stats1->SetY1NDC(.44);
+  Stats1->SetY2NDC(.54);
+  Stats1->SetLineColor(kGreen+1);
+  Stats1->SetLineStyle(2);
+  gPad->Modified();
+
+  
+  // h_NrowB[2].SetMarkerSize(2.5);
+  //h_NrowB[2].GetXaxis()->SetRangeUser(-0.1,0.1);
+  //h_NrowB[2].GetYaxis()->SetRangeUser(0.00001,10.);
+  //h_NrowB[2].GetXaxis()->SetRange(0.,h_NrowB[2].GetNbinsX() + 1);
+  h_NrowB[2].SetLineColor(kMagenta);
+  h_NrowB[2].SetLineWidth(2);
+  h_NrowB[2].SetLineStyle(3);
+  //  h_NrowB[2].GetXaxis()->SetNoExponent(true);
+  h_NrowB[2].Draw("histesames");
+  cnB90->Update();
+  //TPaveStats *
+  Stats2 =   (TPaveStats*)h_NrowB[2].FindObject("stats");     //GetListOfFunctions()->FindObject("stats");
+
+  Stats2->SetX1NDC(0.65);
+  Stats2->SetX2NDC(.85);
+  Stats2->SetY1NDC(.33);
+  Stats2->SetY2NDC(.43);
+  Stats2->SetLineColor(kMagenta);
+  Stats2->SetLineStyle(3);
+  gPad->Modified();
+  
+  TLegend* legnB90 = new TLegend(0.35,0.72,0.8,0.87);
+  legnB90->SetLineColor(0);
+  //  legnB90->SetTextSize(0.03);
+  for(int i =0; i < irradiations; i++)
+    legnB90->AddEntry(&(h_NrowB[i]),irr[i],"le");
+  
+  legnB90->Draw();
+
+  /*
+  int color[irradiations] = {632,1,600};
+  TLine *  line2[irradiations];
+  TArrow *ar[irradiations];
+  
+  for(int i =0; i < irradiations; i++){
+    cout << landau90[i] << endl;
+    line2[i]    = new TLine( landau90[i],0.,landau90[i],0.007);
+    line2[i].SetLineColor(color[i]);
+    line2[i].SetLineWidth(2);
+    line2[i].SetLineStyle(1);
+    line2[i].Draw("same");
+    ar[i]  = new TArrow(landau90[i],0.006,landau90[i]-6000,0.006,0.03,"|>"); //,"<|");
+    ar[i].SetLineColor(color[i]);
+    ar[i].SetFillColor(color[i]);
+    ar[i].SetAngle(30);
+    
+    ar[i].Draw();
+
+  }
+  */
+
+ 
+  
+  outname = outputDir+"ClB90PHAll_3irr_bestAngle_"+name;
+  cnB90->SaveAs(outname+".eps");
+  cnB90->SaveAs(outname+".png");
+  cnB90->SaveAs(outname+".pdf");
+  cnB90->SaveAs(outname+".root");
+  cnB90->SaveAs(outname+".C");
+
+
+
+
+
+  
+
+  /// no 90 cut
+
+  Hist = "nrowB";
+
+  cout << " Getting " << Hist << endl;
+
+  // GetHists(&res_map,Angles, dphcuts, comparisons,dphcut, Run, i_dphcut, Label, Hist, h_res,true,label);
+
+  MapTH1 nrB_map;
+  Run[0] = runNONirr;
+  i_dphcut[0] = 12;
+  d_dphcut[0] = 12;
+  ss_dphcut[0] = "12";
+  //  GetHists(&nr_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res);
+  //hdx3_clargeABC90evR =
+  //  void GetHists(MapTH1 * map,int runs, int dphcuts, int comparisons,  bool dphcut, TString * Run, int * i_dphcut, TString * Label, TString Hist, TH1F * h, bool extraname = false, TString name = " "){
+  GetHists(&nrB_map, 1, 1,1,dphcut, Run,i_dphcut, Label,Hist,hdx3_clchargeABC90evR,true,inputfileNONirr);
+
+    
+  //proton
+
+  Run[0] = runPirr2;
+  i_dphcut[0] = 15;
+  d_dphcut[0] = 15;
+  ss_dphcut[0] = "15";
+  //  GetHists(&nr_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res);
+  //hdx3_clchargeABC90evR =
+  GetHists(&nrB_map, 1, 1,1,dphcut, Run,i_dphcut,Label, Hist,hdx3_clchargeABC90evR,true,inputfilePirr2);
+
+
+
+  //neutron
+
+  Run[0] = runNirr4;
+  i_dphcut[0] = 15;
+  d_dphcut[0] = 15;
+  ss_dphcut[0] = "15";
+  //nr_map = GetCheckHists(&nr_map, 1, 1,dphcut, Run,ss_dphcut,pitch, Hist,hdx3_clchargeABC90evR,true,inputfileNirr4);
+  GetHists(&nrB_map, 1, 1, 1,dphcut, Run,i_dphcut,Label, Hist,hdx3_clchargeABC90evR,true,inputfileNirr4);
+
+  for(int i=0; i<irradiations; i++)
+    {
+      auto it2 = nrB_map.find(std::make_pair(runs[i]+"_"+ss_dphcuts[i]+"_"+Label[0],Hist));
+      //auto it2 = res_map.find(std::make_pair(Run[i]+"_"+ss_dphcut[k]+"_"+pitch,Hist));
+      if(it2  != nrB_map.end())
+	{
+	    if(print)               cout << " found map " << endl;
+	    if(print)               cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
+	    cout << " Getting clusters " << endl;
+
+
+	    h_NrowB[i] =* it2->second; 
+
+	  }
+
+    }
+
+
+  TCanvas *cnB = new TCanvas("cnB", "FDB resolution", 600, 600);
+  cnB->SetLeftMargin(0.12);  
+  cnB->SetRightMargin(-0.1);  
+  gPad->SetTicks(1,1);
+  gROOT->SetStyle("Plain");
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(1110);
+  gStyle->SetOptTitle(0);
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  
+  cout << "starting making hists pretty" << endl;
+  h_NrowB[0].SetTitle(" ");
+  h_NrowB[0].GetYaxis()->SetTitle("Normalized number of events");
+  h_NrowB[0].GetXaxis()->SetTitle("Cluster size on central plane [pixels]");
+  //  h_NrowB[0].SetMarkerSize(2.5);
+  h_NrowB[0].SetLineColor(kBlack);
+  h_NrowB[0].SetLineStyle(1);
+  h_NrowB[0].SetLineWidth(2);
+  //h_NrowB[0].GetXaxis()->SetNdivisions(20,5,3);
+  h_NrowB[0].GetXaxis()->SetRangeUser(0,10);
+  h_NrowB[0].GetXaxis()->SetMaxDigits(3); //SetNoExponent(true);
+  h_NrowB[0].GetYaxis()->SetRangeUser(0.,40000.);
+  h_NrowB[0].GetXaxis()->SetRange(0.,h_NrowB[0].GetNbinsX() + 1);
+  h_NrowB[0].Draw("histe");
+  cout << " Xaxis " << h_NrowB[0].GetXaxis()->GetNdivisions() << endl;
+  cout << " RMS " << h_NrowB[0].GetRMS() << endl;
+  cnB->Update();
+  //TPaveStats *
+  Stats =   (TPaveStats*)h_NrowB[0].FindObject("stats");     //GetListOfFunctions()->FindObject("stats");
+
+  Stats->SetX1NDC(0.15);
+  Stats->SetX2NDC(.35);
+  Stats->SetY1NDC(.6);
+  Stats->SetY2NDC(.7);
+  //  gPad->Modified();
+
+  
+  //  TGaxis::SetMaxDigits(3);
+  //  h_NrowB[1].SetMarkerSize(2.5);
+  h_NrowB[1].GetXaxis()->SetRangeUser(-0.1,0.1);
+  h_NrowB[1].GetXaxis()->SetRange(0.,h_NrowB[1].GetNbinsX() + 1);
+  h_NrowB[1].GetYaxis()->SetRangeUser(0.00001,10.);
+  h_NrowB[1].SetLineColor(kGreen+1);
+  h_NrowB[1].SetLineStyle(2);
+  h_NrowB[1].SetLineWidth(2);
+  //  h_NrowB[1].GetXaxis()->SetNoExponent(true);
+  h_NrowB[1].Draw("histesames");
+  cnB->Update();
+  //TPaveStats *
+  Stats1 =   (TPaveStats*)h_NrowB[1].FindObject("stats");     //GetListOfFunctions()->FindObject("stats");
+
+  Stats1->SetX1NDC(0.15);
+  Stats1->SetX2NDC(.35);
+  Stats1->SetY1NDC(.49);
+  Stats1->SetY2NDC(.59);
+  Stats1->SetLineColor(kGreen+1);
+  Stats1->SetLineStyle(2);
+  gPad->Modified();
+
+  
+  // h_NrowB[2].SetMarkerSize(2.5);
+  h_NrowB[2].GetXaxis()->SetRangeUser(-0.1,0.1);
+  h_NrowB[2].GetYaxis()->SetRangeUser(0.00001,10.);
+  h_NrowB[2].GetXaxis()->SetRange(0.,h_NrowB[2].GetNbinsX() + 1);
+  h_NrowB[2].SetLineColor(kMagenta);
+  h_NrowB[2].SetLineWidth(2);
+  h_NrowB[2].SetLineStyle(3);
+  //  h_NrowB[2].GetXaxis()->SetNoExponent(true);
+  h_NrowB[2].Draw("histesames");
+  cnB->Update();
+  //TPaveStats *
+  Stats2 =   (TPaveStats*)h_NrowB[2].FindObject("stats");     //GetListOfFunctions()->FindObject("stats");
+
+  Stats2->SetX1NDC(0.15);
+  Stats2->SetX2NDC(.35);
+  Stats2->SetY1NDC(.38);
+  Stats2->SetY2NDC(.48);
+  Stats2->SetLineColor(kMagenta);
+  Stats2->SetLineStyle(3);
+  gPad->Modified();
+  /*
+  TLegend* legnB90 = new TLegend(0.35,0.72,0.8,0.87);
+  legnB90->SetLineColor(0);
+  //  legnB90->SetTextSize(0.03);
+  for(int i =0; i < irradiations; i++)
+    legnB90->AddEntry(&(h_NrowB[i]),irr[i],"le");
+  */
+  legnB90->Draw();
+
+  /*
+  int color[irradiations] = {632,1,600};
+  TLine *  line2[irradiations];
+  TArrow *ar[irradiations];
+  
+  for(int i =0; i < irradiations; i++){
+    cout << landau90[i] << endl;
+    line2[i]    = new TLine( landau90[i],0.,landau90[i],0.007);
+    line2[i].SetLineColor(color[i]);
+    line2[i].SetLineWidth(2);
+    line2[i].SetLineStyle(1);
+    line2[i].Draw("same");
+    ar[i]  = new TArrow(landau90[i],0.006,landau90[i]-6000,0.006,0.03,"|>"); //,"<|");
+    ar[i].SetLineColor(color[i]);
+    ar[i].SetFillColor(color[i]);
+    ar[i].SetAngle(30);
+    
+    ar[i].  Draw();
+
+  }
+  */
+
+ 
+  
+  outname = outputDir+"ClB_PHAll_3irr_bestAngle_"+name;
+  cnB->SaveAs(outname+".eps");
+  cnB->SaveAs(outname+".png");
+  cnB->SaveAs(outname+".pdf");
+  cnB->SaveAs(outname+".root");
+  cnB->SaveAs(outname+".C");
 
 
 
