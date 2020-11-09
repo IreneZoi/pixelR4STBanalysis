@@ -32,10 +32,10 @@ void resVSchargePerc_forPaper(){
   TString rootfilenames[irradiations][angles];
   TString Angles[angles]={"0.000000","8.750000","27.500000"};
   TString AnglesNice[angles]={"0 deg","8.8 deg","27.5 deg"};
-  TString baseNONirr="Ascan_resTree_148_dphcutB12_RMSself_closest_A13C14_bestnonirr_angle";
-  TString basePirr2="Ascan_resTree_120i_dphcutB15_RMSself_closest_A12C15_bestproton_";
-  TString baseNONirrROOT="_dphcut12_closest_A13C14_bestnonirr.root";
-  TString basePirr2ROOT="_dphcut15_closest_A12C15_bestproton.root";
+  TString baseNONirr="Ascan_resTree_148_dphcutB12_RMSself_dycut_A13C14_angle";
+  TString basePirr2="Ascan_resTree_120i_dphcutB15_RMSself_dycut_A12C15_";
+  TString baseNONirrROOT="_dphcut12_dycut_A13C14.root";
+  TString basePirr2ROOT="_dphcut15_dycut_A12C15.root";
   for(int i = 0; i< angles; i++){
     filenames[0][i]=inputDir+baseNONirr+Angles[i]+".txt";
     filenames[1][i]=inputDir+basePirr2+Angles[i]+".txt";
