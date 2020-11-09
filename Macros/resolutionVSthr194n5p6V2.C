@@ -65,7 +65,7 @@ void resolutionVSthr194n5p6V2(TString func = "RMSself")
   TString Label[comparisons] = {"straightTracksY_isoAandCandB_straightTracksX"};
   TString Hist = "dx3_clphABC90evR";
   bool dphcut = true;
-  TString label = "thrScan_A12C13"; 
+  TString label = "dycut_A12C13"; 
   TH1F * hdx3_clchargeABC90evR[Angles];
   for(int j = 0; j < Angles; j++)
     {
@@ -113,7 +113,7 @@ void resolutionVSthr194n5p6V2(TString func = "RMSself")
   
     //////////////          RESOLUTION ///////////////////////
     if(print) cout << "*************    RMS: *************"  << endl;
-    double freshres = 3.89; // Ascan_resTree_148_dphcutB12_RMSself_closest_A13C14_bestnonirr.txt  29/06/2020 deg 12.5
+    double freshres = 3.86; // Ascan_resTree_148_dphcutB12_RMSself_dycut_A13C14.txt  04/11/2020 deg 12.5
     double freshres_err = 0.03;
     ofstream myfileUnf;
 	myfileUnf.open ("/home/zoiirene/Output/TextFiles/AScanTreeCorr_"+detectorB+"_5p6_"+func+"_"+ss_BiasVoltage[0]+"_bestAngle_res_dphcut"+ss_dphcut[l]+"_"+label+".txt");
@@ -143,6 +143,52 @@ void resolutionVSthr194n5p6V2(TString func = "RMSself")
   }//dphcuts
   
 
+  ///  cluster size
+  
+
+  Hist = "nrowB_clphABC90evR";
+  for(int j = 0; j < Angles; j++)
+    {
+      res_map[j] =  GetCheckHists(&(res_map[j]), Angles, dphcuts,dphcut, Run[j],ss_dphcut,pitch, Hist,hdx3_clchargeABC90evR[j],true,label);
+    }
+  
+
+
+  for(int i=0; i<dphcuts; i++)     {
+    ofstream myfile3;
+    myfile3.open ("/home/zoiirene/Output/TextFiles/ThrScan_clsizeB_"+detectorB+"_"+ss_BiasVoltage[0]+"_dphcuts"+ss_dphcut[i]+"_bestAngle_5p6_"+label+"_ABC90.txt");
+    myfile3 << "A " << detectorA << "\n";
+    myfile3 << labelA << "\n";
+    myfile3 << "B " << detectorB<< "\n";
+    myfile3 << labelB << "\n";
+    myfile3 << "C " << detectorC<< "\n";
+    myfile3 << labelC << "\n";
+    myfile3 << info << "\n";
+    myfile3 << "dphcut MeanNrowB Error\n";
+
+    double NrowB[Angles][dphcuts];
+    double  NrowBerror[Angles][dphcuts];
+
+
+
+    auto it2 = res_map[0].find(std::make_pair(Run[0][0]+"_"+ss_dphcut[i]+"_"+pitch,Hist));
+    //auto it2 = res_map[0].find(std::make_pair(Run[0][0]+"_"+ss_dphcut[i]+"_"+pitch[0],Hist));
+    if(it2  != res_map[0].end())     {
+      if(print)  cout << " found map " << endl;
+      if(print)  cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetMean() << endl;
+      NrowB[0][i] = it2->second->GetMean();
+      NrowBerror[0][i] = it2->second->GetMeanError();
+      myfile3 << " " << i_dphcut[i] << " " << NrowB[0][i]<< " " << NrowBerror[0][i] << "\n";
+    }else{
+      cout << "not found " << Run[0][0]+"_"+ss_dphcut[i]+"_"+pitch << " hist  " << Hist << endl;
+    }
+    myfile3.close();
+  }
+
+
+
+
+  
   ////// cluster size
 
 
@@ -153,16 +199,16 @@ void resolutionVSthr194n5p6V2(TString func = "RMSself")
   
 
   for(int i=0; i<dphcuts; i++)     {   
-    ofstream myfile3; 
-    myfile3.open ("/home/zoiirene/Output/TextFiles/ThrScan_clsizeB_"+detectorB+"_"+ss_BiasVoltage[0]+"_dphcuts"+ss_dphcut[i]+"_bestAngle_5p6_"+label+".txt");
-    myfile3 << "A " << detectorA << "\n";
-    myfile3 << labelA << "\n";
-    myfile3 << "B " << detectorB<< "\n";
-    myfile3 << labelB << "\n";
-    myfile3 << "C " << detectorC<< "\n";
-    myfile3 << labelC << "\n";
-    myfile3 << info << "\n";
-    myfile3 << "dphcut MeanNrowB Error\n";
+    ofstream myfile4; 
+    myfile4.open ("/home/zoiirene/Output/TextFiles/ThrScan_clsizeB_"+detectorB+"_"+ss_BiasVoltage[0]+"_dphcuts"+ss_dphcut[i]+"_bestAngle_5p6_"+label+".txt");
+    myfile4 << "A " << detectorA << "\n";
+    myfile4 << labelA << "\n";
+    myfile4 << "B " << detectorB<< "\n";
+    myfile4 << labelB << "\n";
+    myfile4 << "C " << detectorC<< "\n";
+    myfile4 << labelC << "\n";
+    myfile4 << info << "\n";
+    myfile4 << "dphcut MeanNrowB Error\n";
     
     double NrowB[Angles][dphcuts];
     double  NrowBerror[Angles][dphcuts];
@@ -176,11 +222,11 @@ void resolutionVSthr194n5p6V2(TString func = "RMSself")
       if(print)  cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetMean() << endl;
       NrowB[0][i] = it2->second->GetMean();
       NrowBerror[0][i] = it2->second->GetMeanError();
-      myfile3 << " " << i_dphcut[i] << " " << NrowB[0][i]<< " " << NrowBerror[0][i] << "\n";
+      myfile4 << " " << i_dphcut[i] << " " << NrowB[0][i]<< " " << NrowBerror[0][i] << "\n";
     }else{
       cout << "not found " << Run[0][0]+"_"+ss_dphcut[i]+"_"+Label[0] << " hist  " << Hist << endl;
     }
-    myfile3.close();
+    myfile4.close();
   }
    
 
