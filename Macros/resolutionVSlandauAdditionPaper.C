@@ -47,7 +47,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
 
   TString inputDir="/home/zoiirene/Output/";
   TString outputDir="/home/zoiirene/Output/Plots/";
-  TString label = "closest_A13C14_bestnonirr";
+  TString label = "dycut_A13C14";
   TString ss_dphcut = "12";
   TString ss_perc[Cuts];
   double sigma[Angles][Cuts] ;
@@ -61,7 +61,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
   TString pitch = "25";
   
   cout << "######## Angle dependent    resolution unfolding       ###########" << endl;
-  TString testnameUnf="RMSself6sig_closest_A13C14_bestnonirr";
+  TString testnameUnf="RMSselfiso600_dycut_A13C14";
   TString  filenames = "Ascan_resTree_148_dphcutB12_"+testnameUnf+".txt";
   filenames      = inputDir+"TextFiles/"+filenames;
   cout << filenames << endl;

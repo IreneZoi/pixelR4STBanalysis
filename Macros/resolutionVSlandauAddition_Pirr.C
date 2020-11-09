@@ -30,13 +30,13 @@ void resolutionVSlandauAddition_Pirr(TString function = "RMSself"){
   TString labelB="Pstop_default_FTH, 800V, thr 15 ADC";
   TString labelC="Pspray_RD53Apads_FDB, thr 12 ADC";
   TString info = "beam energy 5.6 GeV";
-  TString testname="closest_A12C15_bestproton";
+  TString testname="dycut_A12C15";
   TString inputDir="/home/zoiirene/Output/";
   TString outputDir="/home/zoiirene/Output/Plots/";
 
-  TString testnameUnf="RMSself6sig_closest_A13C14_bestnonirr";
+  TString testnameUnf="RMSselfiso600_dycut_A13C14"; //RMSself6sig_closest_A13C14_bestnonirr";
   TString  filenames = "Ascan_resTree_148_dphcutB12_"+testnameUnf+".txt";
-  filenames      = inputDir+filenames;
+  filenames      = inputDir+"/TextFiles/"+filenames;
   cout << filenames << endl;
   ifstream stream(filenames);
   double angle;
@@ -88,7 +88,7 @@ void resolutionVSlandauAddition_Pirr(TString function = "RMSself"){
   TString Run[Angles];
   ostringstream strs[Angles];
 
-  TString label = "closest_A12C15_bestproton";
+  TString label = "dycut_A12C15";
 
   TString ss_dphcut = "15";
   TString ss_perc[Cuts];
@@ -156,6 +156,8 @@ void resolutionVSlandauAddition_Pirr(TString function = "RMSself"){
     for(int k = 0; k< Cuts; k++){
       perc[k] = (float) (k+1) * 0.05 ;
       cout << " perc " << perc[k] << endl;
+      ss_perc[k].Form("%f",perc[k]);
+      cout << "ss perc " << ss_perc[k] << endl;
 
       integral_per[k] = perc[k] *integral; //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
       cout << " integral " << integral_per[k] << endl;
@@ -251,7 +253,6 @@ void resolutionVSlandauAddition_Pirr(TString function = "RMSself"){
 
 
   for(int k = 0; k< Cuts; k++){
-    if(i==0) ss_perc[k].Form("%d",perc[k]);
     TH1I * hdx3treeph = new TH1I("hdx3treeph", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
     hdx3ph[k] = new TH1I("hdx3treeph", "triplet dx3  ; dx [mm];triplets", 500, -0.5, 0.5 );
 
@@ -292,7 +293,6 @@ void resolutionVSlandauAddition_Pirr(TString function = "RMSself"){
 
   sigma[i][k] = hdx3ph[k]->GetRMS() * 1000;
   sigmaerr[i][k] = hdx3ph[k]->GetRMSError() * 1000;
-
 
   cout << " RMS " << sigma[i][k] << " ± " << sigmaerr[i][k] << endl;
   FitTH1(hdx3ph[k], &(sigma[i][k]), &(sigmaerr[i][k]), ss_perc[k], detectorA, detectorB, detectorC, function,&(Percentage[i][k]) );
