@@ -26,6 +26,7 @@
 #include <fstream> // files
 #include <vector>
 #include <list>
+#include <tgmath.h>
 #include <cmath>
 #include <time.h> // clock_gettime
 #include <sched.h> // getcpu
@@ -985,9 +986,11 @@ int main( int argc, char* argv[] )
 		  }
 		  cout << " index C " << iC << " index B " << iB <<  " distance dxy " << dxy << endl;
 */
-
-	
-		    if( fabs( dy3 ) < straightTracks * beamDivergenceScaled ) //+ 0.05 )
+		  /*
+		  cout <<  "  straightTracks * beamDivergenceScaled " <<  straightTracks * beamDivergenceScaled << endl;
+		  cout <<  "  ptchc * 2. / sqrt(12.) " <<  ptchc * 2. / sqrt(12.) << endl;
+		  */
+		  if( fabs( dy3 ) < ptchc * 2. / sqrt(12.) ) // straightTracks * beamDivergenceScaled ) //+ 0.05 )
 		      { // cut on y, look at x, see madx3vsy
 		    
 			fillControlHists2(straightTracksY,"straightTracksY",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
@@ -1011,7 +1014,7 @@ int main( int argc, char* argv[] )
 					fillControlHists2(straightTracksY_isoAandCandB_straightTracksX,"straightTracksY_isoAandCandB_straightTracksX",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 					if(PRINT) cout << "event "<< iev << " used distance dxyCA " << dxyCA << " dxy " << dxy   << " cA " << cA << " cB " << cB << "cC " <<cC << endl;
 			    
-
+					 
 				    
 					if(PRINT) cout << " filling hists for resolution studies! " << endl;		  
 					hclqAiii->Fill(vclA[cA].q);
@@ -1323,7 +1326,22 @@ int main( int argc, char* argv[] )
   if(DEBUG)  cout << hdxy_clphABC90evR->GetTitle() << " entries " << hdxy_clphABC90evR->GetEntries() << endl;
   hdxy_clphABC90evR->Write();
 
+  // cluster size final
+ 
+  TH1I * hnrowBtreeph = new TH1I("hnrowBtreeph", "hnrowBtreeph ; number of rows in cluster [pixels];triplets", 40, 0.5, 40.5 );
+  charge_res->Draw("nrowBtree>>hnrowBtreeph","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC,"goff");
+  hnrowBtreeph = (TH1I*)gDirectory->Get("hnrowBtreeph");
+  if(DEBUG) cout << hnrowBtreeph->GetTitle() << " entries " << hnrowBtreeph->GetEntries() << endl;
+  hnrowBtreeph->Write();
 
+  for(int i =0; i<hnrowBtreeph->GetEntries(); i++)  {
+    hnrowB_clphABC90evR->SetBinContent(i+1,hnrowBtreeph->GetBinContent(i+1));
+  }
+  if(DEBUG) cout << hnrowB_clphABC90evR->GetTitle() << " entries " << hnrowB_clphABC90evR->GetEntries() << endl;
+  hnrowB_clphABC90evR->Write();
+  
+
+  //////////////////////////////////////////
   
   double dlow, dhigh;
   TString ss_low,ss_high;
@@ -1818,7 +1836,17 @@ int main( int argc, char* argv[] )
       }
       else
 	cout << "  not enough" << endl;
-      
+
+      double newdx3corr = dx3corr;
+
+      cout << endl << dx3vsx->GetTitle() << " entries " << dx3vsx->GetEntries() << endl;
+      if( aligniteration > 3 && dx3vsx->GetEntries() > 999 ) {
+	cout << "******* common angle  ********" << endl;
+	newdx3corr += alignangle(dx3vsx,"C",runnum,aligniteration);
+      }
+      else
+	cout << "  not enough" << endl;
+
       ++aligniteration;
       cout << endl
 	   << "for " << alignFileName << endl
@@ -1829,7 +1857,10 @@ int main( int argc, char* argv[] )
 	   << "alignxC " << setw(11) << newalignxC << endl
 	   << "alignyC " << setw(11) << newalignyC << endl
 	   << "alignfC " << setw(11) << newalignfC << endl
-	;
+	   << "dx3corr " << setw(11) << newdx3corr << endl
+	
+
+      	;
 
       cout << "update alignment file? (y/n)" << endl;
       string ans;
@@ -1865,7 +1896,7 @@ int main( int argc, char* argv[] )
 	alignFile << "dphcutA " << setw(11) << dphcut[A] << endl;
 	alignFile << "dphcutB " << setw(11) << dphcut[B] << endl;
 	alignFile << "dphcutC " << setw(11) << dphcut[C] << endl;
-	alignFile << "dx3c " << setw(11) << dx3corr << endl;
+	alignFile << "dx3c " << setw(11) << newdx3corr << endl;
         alignFile.close();
       }
     }//DOALIGNMENT
@@ -2179,6 +2210,7 @@ double alignangle(TProfile * h, TString plane,TString run,int iteration)
 }
 
 
+
 vector<cluster> getClus( vector <pixel> pb, int fCluCut ) // 1 = no gap
 {
   // returns clusters with local coordinates
@@ -2240,10 +2272,10 @@ vector<cluster> getClus( vector <pixel> pb, int fCluCut ) // 1 = no gap
 	  double q = p->q;
 	  c.q += q; //cluster charge
 	  if(c.q < 0)	  cout << "negative cluster charge " << c.q << endl;
-	  //c.col += (*p).col*ph;
-	  //c.row += (*p).row*ph;
-	  c.col += (*p).col*q; //pixel charge is a weight on the pixel position
-	  c.row += (*p).row*q;
+	  c.col += (*p).col*ph;
+	  c.row += (*p).row*ph;
+	  //c.col += (*p).col*q; //pixel charge is a weight on the pixel position
+	  //c.row += (*p).row*q;
 	}
 
       c.size = c.vpix.size();
@@ -2251,8 +2283,10 @@ vector<cluster> getClus( vector <pixel> pb, int fCluCut ) // 1 = no gap
       //if(PRINT) cout << "(cluster with " << c.vpix.size() << " pixels)" << endl;
 
       //cluster coordinates is the average of the pixel coordianates 
-      c.col /= c.q;
-      c.row /= c.q;
+      //c.col /= c.q;
+      //c.row /= c.q;
+      c.col /= c.sum;
+      c.row /= c.sum;
       
       v.push_back(c); // add cluster to vector
       
@@ -2574,7 +2608,7 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 	{
 
 	  bool done = 0;
-	  double isolationCut = 0.3; // [mm]
+	  double isolationCut = 0.6; //0.3; // [mm]
 	  double pitchc = 0.100; // [mm]
 	  double pitchr = 0.025; // [mm]
 	  if(fifty)
@@ -2867,6 +2901,7 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   */
   TH1I * hdx3_clchargeABC90evR = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
   TH1I * hdx3_clphABC90evR = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+  TH1I * hnrowB_clphABC90evR = new TH1I("nrowB_clphABC90evR", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
   /*
   TH1I * hdx3_clchargeABC80evR = new TH1I("dx3_clchargeABC80evR ", "triplet dx_clchargeABC80evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 80% events in Landau (only high tail)
   TH1I * hdx3_clphABC80evR = new TH1I("dx3_clphABC80evR ", "triplet dx_clphABC80evR ; dx [mm];triplets", 500, -0.5, 0.5 );
@@ -4861,8 +4896,9 @@ void bookHists()
 
   //hdx3b = new TH1I("hdx3", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   // hdx3tree = new TH1I("hdx3tree", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
- hdx3_clchargeABC90evR = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
- hdx3_clphABC90evR = new TH1I("dx3_clphABC90evR ", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+ hdx3_clchargeABC90evR = new TH1I("dx3_clchargeABC90evR", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
+ hdx3_clphABC90evR = new TH1I("dx3_clphABC90evR", "triplet dx_clphABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 );
+ hnrowB_clphABC90evR = new TH1I("nrowB_clphABC90evR", "B number of rows ;number of rows [pixels];B clusters on tracks", 40, 0.5, 40.5 );
  hdxyCA_clphABC90evR  = new TH1I("dxyCA_clphABC90evR","dxyCA_clphABC90evR ; dxyCA [mm]; triplets",100, 0.,0.3);
  hdxy_clphABC90evR = new TH1I("dxy_clphABC90evR","dxy_clphABC90evR ; dxy [mm]; triplets",100, 0.,0.3);
  
