@@ -57,7 +57,7 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
   TString inputfile;
   TString  name;
   TH1F * h_res;
-  TString label = "closest_A32C42";
+  TString label = "dycut_A32C42";//"closest_A32C42";
   Int_t run[BeamEnergies]={1819,1818,1817,1816,1815,1814,1813,1812,1811,1810,1800,1820,1822};
   TString Run[BeamEnergies];
   ostringstream strs[BeamEnergies];
@@ -75,7 +75,7 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
 
       BeamEnergyInverse[i]=1/BeamEnergy[i];
       BeamEnergyInverseSquare[i]=BeamEnergyInverse[i]*BeamEnergyInverse[i];
-      BeamEnergyError[i]=0.35; //GeV
+      BeamEnergyError[i]=0.158; //GeV https://www.sciencedirect.com/science/article/pii/S0168900218317868?via%3Dihub#sec7.3
       BeamEnergyInverseSquareError[i]=BeamEnergyError[i]*2*TMath::Power(BeamEnergyInverse[i],3);
       if(print) cout << "Beam energy " << i<< ": " << BeamEnergy[i] << " GeV" << endl;
       strs[i] << BeamEnergy[i];
@@ -228,13 +228,33 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
 
   
   //////////////          RESOLUTION ///////////////////////
-  double freshres = 3.65; //41;   //Ascan_resTree_148_dphcutB12_RMSself6sig_closest_A13C14_bestnonirr.txt 29/06/2020
-  double freshres_err = 0.02;
+  //double freshres = 3.65; //41;   //Ascan_resTree_148_dphcutB12_RMSself6sig_closest_A13C14_bestnonirr.txt 29/06/2020
+  //double freshres_err = 0.02;
 
+  //try idea of using non irr mom scan fit function //dycut version
+  double sigma_MS2 = 156.209;
+  double sigma_r2 = 6.24228;
+
+  TF1 *fnotsq_nonirr = new TF1("fnotsq","TMath::Sqrt([0]+[1]/(x*x))", 0., 7.);
+  fnotsq_nonirr->SetParameter(0,sigma_r2);
+  fnotsq_nonirr->SetParameter(1,sigma_MS2);
+  
+  
   
   for(int i=0; i<BeamEnergies; i++)
     {
 
+      double freshres = fnotsq_nonirr->Eval(BeamEnergy[i]);
+      cout << " fresh "<< freshres << endl;
+      double freshres_plus=fnotsq_nonirr->Eval(BeamEnergy[i]+BeamEnergyError[i]); 
+      double freshres_minus=fnotsq_nonirr->Eval(BeamEnergy[i]-BeamEnergyError[i]);
+      cout << " plus "<< freshres_plus << endl;
+      cout << " minus "<< freshres_minus << endl;
+
+
+      double freshres_err = std::max(abs(freshres-freshres_plus),abs(freshres_minus-freshres));
+      cout << "err "<< freshres_err << endl;
+	
       if(print) cout << "Energy " << i<< ": " << ss_BeamEnergy[i] << " GeV -> Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << endl;
       ExtractRes(&(Resolution[i]),&(ResolutionError[i]),true, freshres, freshres_err);
       myfile2 << ss_BeamEnergy[i] << " " << Resolution[i] << " " << ResolutionError[i] << "\n";
@@ -406,11 +426,16 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
   fnotsq->SetParName(0,"#sigma_{hit}^{2}");
   fnotsq->SetParName(1,"#sigma_{MS}^{2}");
   fnotsq->SetParLimits(0,0,30);
+  cout << " par 0 " << endl;
   fnotsq->SetParLimits(1,100,1000);
-  //fnotsq->SetParameter(0,fit32->GetParameter(0));
-  //fnotsq->SetParameter(1,fit32->GetParameter(1));
+  cout << " par 1 " << endl;
+  fnotsq->SetParameter(0,fit32->GetParameter(0));
+  fnotsq->SetParameter(1,fit32->GetParameter(1));
+  resolutionPlotMyParam->Fit("fnotsq","R");
+  resolutionPlotMyParam->Fit("fnotsq","R");
   resolutionPlotMyParam->Fit("fnotsq","R");
 
+  
   resolutionPlotMyParam->Draw("AEP");
   fnotsq->Draw("same");
   ostringstream strfit4[2];
