@@ -38,7 +38,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
 
   TString filenames[irradiations];
   filenames[0] = "Mscan_163_RMSself_resTree.txt";
-  filenames[1] = "Mscan_130i_RMSself_resTree_closest_A32C42.txt"; 
+  filenames[1] = "Mscan_130i_RMSself_resTree_dycut_A32C42.txt"; 
 
   double mom_0[momsNONirr];
   double mom_1[momsPirr2];
@@ -82,7 +82,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
 	      if(i==0)
 		{
 		  mom_0[j] = mom;
-		  momerr_0[j] = 0.35;//GeV
+		  momerr_0[j] = 0.158;//GeV https://www.sciencedirect.com/science/article/pii/S0168900218317868?via%3Dihub#sec7.3
 		  res_0[j] = res;
 		  reserr_0[j] = reserror;
 		  if(print)	 cout  << mom_0[j] << " " << res_0[j] << " " << reserr_0[j] << endl;
@@ -90,7 +90,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
 	      if(i==1)
 		{
 		  mom_1[j] = mom;
-		  momerr_1[j] = 0.35;
+		  momerr_1[j] = 0.158;
 		  res_1[j] = res;
 		  reserr_1[j] = reserror;
 		  if(print)	 cout  << mom_1[j] << " " << res_1[j] << " " << reserr_1[j] << endl;
@@ -161,7 +161,12 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   fnotsq->SetParLimits(1,0,200);
   resolutionPlot[0]->Fit("fnotsq","R");
 
+  TF1 *fit = resolutionPlot[0]->GetFunction("fnotsq");
+  Double_t chi2 = fit->GetChisquare();
+  Double_t ndof = fit->GetNDF();
+  cout << " chi2 "<< chi2 << " / " << " ndof "<< ndof << " = "<< chi2/ndof << endl;
 
+  
   fnotsq->Draw("same");
   ostringstream strfit4[2];
   TString ss_fit4[2];
@@ -189,10 +194,13 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   fnotsqi->SetLineColor(kOrange);
   fnotsqi->SetParName(0,"#sigma_{hit}^{2}");
   fnotsqi->SetParName(1,"#sigma_{MS}^{2}");
-  fnotsqi->SetParLimits(0,0,50);
-  fnotsqi->SetParLimits(1,0,1000);
+  fnotsqi->SetParLimits(0,0,30);
+  fnotsqi->SetParLimits(1,100,1000);
   //fnotsqi->SetParameter(0,fit32->GetParameter(0));
   //fnotsqi->SetParameter(1,fit32->GetParameter(1));
+  resolutionPlot[1]->Fit("fnotsqi","R");
+  resolutionPlot[1]->Fit("fnotsqi","R");
+  resolutionPlot[1]->Fit("fnotsqi","R");
   resolutionPlot[1]->Fit("fnotsqi","R");
 
   fnotsqi->Draw("same");
@@ -201,6 +209,12 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   ostringstream strfit_err4i[2];
   TString ss_fit_err4i[2];
 
+  TF1 *fiti = resolutionPlot[1]->GetFunction("fnotsqi");
+  Double_t chi2i = fiti->GetChisquare();
+  Double_t ndofi = fiti->GetNDF();
+  cout << " chi2 "<< chi2i << " / " << " ndof "<< ndofi << " = "<< chi2i/ndofi << endl;
+
+  
 
   for(int i=0; i<2;i++)
     {
