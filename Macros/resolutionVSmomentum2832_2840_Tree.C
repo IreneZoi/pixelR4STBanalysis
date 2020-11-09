@@ -54,7 +54,7 @@ void resolutionVSmomentum2832_2840_Tree(TString func = "RMSself")
   TString inputDir="/home/zoiirene/Output/";
   TString outputDir="/home/zoiirene/Output/Plots/";
   TString inputfile;
-  TString label = "closest2_A11C12";
+  TString label = "dycut_A11C12";//"closest2_A11C12";
   TH1F * h_res;
 
   //Int_t run[BeamEnergies]={2837,2836,2835,2834,2833,2840,2838};
@@ -80,7 +80,7 @@ void resolutionVSmomentum2832_2840_Tree(TString func = "RMSself")
       //if(i==6) BeamEnergy[i]=6.;//GeV
       BeamEnergyInverse[i]=1/BeamEnergy[i];
       BeamEnergyInverseSquare[i]=BeamEnergyInverse[i]*BeamEnergyInverse[i];
-      BeamEnergyError[i]=0.35; //GeV
+      BeamEnergyError[i]=0.158; //GeV https://www.sciencedirect.com/science/article/pii/S0168900218317868?via%3Dihub#sec7.3
       BeamEnergyInverseSquareError[i]=BeamEnergyError[i]*2*TMath::Power(BeamEnergyInverse[i],3);
       
 
@@ -486,7 +486,13 @@ void resolutionVSmomentum2832_2840_Tree(TString func = "RMSself")
   TString ss_fit4[2];
   ostringstream strfit_err4[2];
   TString ss_fit_err4[2];
+  
+  TF1 *fit = resolutionPlotMyParam->GetFunction("fnotsq");
+  Double_t chi2 = fit->GetChisquare();
+  Double_t ndof = fit->GetNDF();
+  cout << " chi2 "<< chi2 << " / " << " ndof "<< ndof << " = "<< chi2/ndof << endl;
 
+  
 
   for(int i=0; i<2;i++)
     {
