@@ -73,8 +73,8 @@ void resolutionVSangle2731_TreeEntries(TString function = "RMSself")
 
 
   //TString label = "closest_simon"; //tol0p001";
-  TString label = "thrScan_A13C14"; //"closest_A13C14_bestnonirr"; //tol0p001";
-  TString extralabel = "thrScan";
+  TString label = "dycut_A13C14"; //"thrScan_A13C14"; //"closest_A13C14_bestnonirr"; //tol0p001";
+  TString extralabel = "iso600";
   MapTH1 res_map;
   std::map<std::pair<TString, TString>, TH1F *>::iterator it;
   int i_dphcut[dphcuts] = {8, 12, 18, 23, 29, 35, 38, 48, 57}; //{12};
@@ -201,48 +201,91 @@ void resolutionVSangle2731_TreeEntries(TString function = "RMSself")
   */
 
 
+  Hist = "nrowB_clphABC90evR";
+  res_map =    GetCheckHists(&res_map, Angles, dphcuts,dphcut, Run,ss_dphcut,pitch, Hist,hdx3_clchargeABC90evR,true,label);
+  
+  for (int k = 0; k<dphcuts; k++){
+    ofstream myfile3;
+    myfile3.open ("/home/zoiirene/Output/TextFiles/Ascan_clsizeB_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+function+"_"+label+"_ABC90.txt");
+    myfile3 << "A " << detectorA << "\n";
+    myfile3 << labelA << "\n";
+    myfile3 << "B " << detectorB<< "\n";
+    myfile3 << labelB << "\n";
+    myfile3 << "C " << detectorC<< "\n";
+    myfile3 << labelC << "\n";
+    myfile3 << info << "\n";
+    myfile3 << "Angle MeanNrowB Error\n";
+  
+    Double_t NrowB[Angles];
+    Double_t NrowBerror[Angles];
+    for(int i=0; i<Angles; i++)
+      {
+	auto it2 = res_map.find(std::make_pair(Run[i]+"_"+ss_dphcut[k]+"_"+pitch,Hist));
+	//auto it2 = res_map.find(std::make_pair(Run[i]+"_"+ss_dphcut[k]+"_"+pitch,Hist));
+	if(it2  != res_map.end())
+	  {
+	    if(print)               cout << " found map " << endl;
+	    if(print)               cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
+	    cout << " Getting clusters " << endl;
+	    
+
+	    NrowB[i] = it2->second->GetMean();
+	    NrowBerror[i] = it2->second->GetMeanError();
+	    
+	    if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> nrowB: " << NrowB[i] << " and err: " << NrowBerror[i] << endl;
+	    myfile3 << " " << Angle[i] << " " << NrowB[i]<< " " << NrowBerror[i] << "\n";
+	  }
+	
+      }
+    myfile3.close();
+    
+    DrawTGraphWithErrorDouble(Angles, TanAngle, NrowB, NrowBerror, Hist,"2743", Label[0], "angleScan_dphcutB"+ss_dphcut[k]+"_nrowB_vs_tanangle_ABC90", "nrowB",-7.,29.,0.,5., "angleScan", "Tan angle"  );
+    DrawTGraphWithErrorDouble(Angles, Angle, NrowB, NrowBerror, Hist,"2743", Label[0], "angleScan_dphcutB"+ss_dphcut[k]+"_nrowB_vs_angle_ABC90", "nrowB",-7.,29.,0.,5., "angleScan", "Angle [degrees]"  );
+  }
+
+  //////  
   Hist = "nrowB";
 
-    cout << " Getting " << Hist << endl;
-
-    GetHists(&res_map,Angles, dphcuts, comparisons,dphcut, Run, i_dphcut, Label, Hist, h_res,true,label);
-  for (int k = 0; k<dphcuts; k++){
-  ofstream myfile3;
-  myfile3.open ("/home/zoiirene/Output/TextFiles/Ascan_clsizeB_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+function+"_"+label+".txt");
-  myfile3 << "A " << detectorA << "\n";
-  myfile3 << labelA << "\n";
-  myfile3 << "B " << detectorB<< "\n";
-  myfile3 << labelB << "\n";
-  myfile3 << "C " << detectorC<< "\n";
-  myfile3 << labelC << "\n";
-  myfile3 << info << "\n";
-  myfile3 << "Angle MeanNrowB Error\n";
-
-  Double_t NrowB[Angles];
-  Double_t NrowBerror[Angles];
-  for(int i=0; i<Angles; i++)
-    {
-      auto it2 = res_map.find(std::make_pair(Run[i]+"_"+ss_dphcut[k]+"_"+Label[0],Hist));
-      //auto it2 = res_map.find(std::make_pair(Run[i]+"_"+ss_dphcut[k]+"_"+pitch,Hist));
-      if(it2  != res_map.end())
-	{
-	  if(print)               cout << " found map " << endl;
-	  if(print)               cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
-	  cout << " Getting clusters " << endl;
-	  
-
-	  NrowB[i] = it2->second->GetMean();
-	  NrowBerror[i] = it2->second->GetMeanError();
-
-	  if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> nrowB: " << NrowB[i] << " and err: " << NrowBerror[i] << endl;
-	  myfile3 << " " << Angle[i] << " " << NrowB[i]<< " " << NrowBerror[i] << "\n";
-	}
-      
-    }
-  myfile3.close();
+  cout << " Getting " << Hist << endl;
   
-  DrawTGraphWithErrorDouble(Angles, TanAngle, NrowB, NrowBerror, Hist,"2743", Label[0], "angleScan_dphcutB"+ss_dphcut[k]+"_nrowB_vs_tanangle", "nrowB",-7.,29.,0.,5., "angleScan", "Tan angle"  );
-  DrawTGraphWithErrorDouble(Angles, Angle, NrowB, NrowBerror, Hist,"2743", Label[0], "angleScan_dphcutB"+ss_dphcut[k]+"_nrowB_vs_angle", "nrowB",-7.,29.,0.,5., "angleScan", "Angle [degrees]"  );
+  GetHists(&res_map,Angles, dphcuts, comparisons,dphcut, Run, i_dphcut, Label, Hist, h_res,true,label);
+  for (int k = 0; k<dphcuts; k++){
+    ofstream myfile4;
+    myfile4.open ("/home/zoiirene/Output/TextFiles/Ascan_clsizeB_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+function+"_"+label+".txt");
+    myfile4 << "A " << detectorA << "\n";
+    myfile4 << labelA << "\n";
+    myfile4 << "B " << detectorB<< "\n";
+    myfile4 << labelB << "\n";
+    myfile4 << "C " << detectorC<< "\n";
+    myfile4 << labelC << "\n";
+    myfile4 << info << "\n";
+    myfile4 << "Angle MeanNrowB Error\n";
+    
+    Double_t NrowB[Angles];
+    Double_t NrowBerror[Angles];
+    for(int i=0; i<Angles; i++)
+      {
+	auto it2 = res_map.find(std::make_pair(Run[i]+"_"+ss_dphcut[k]+"_"+Label[0],Hist));
+	//auto it2 = res_map.find(std::make_pair(Run[i]+"_"+ss_dphcut[k]+"_"+pitch,Hist));
+	if(it2  != res_map.end())
+	  {
+	    if(print)               cout << " found map " << endl;
+	    if(print)               cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
+	    cout << " Getting clusters " << endl;
+	    
+
+	    NrowB[i] = it2->second->GetMean();
+	    NrowBerror[i] = it2->second->GetMeanError();
+	    
+	    if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> nrowB: " << NrowB[i] << " and err: " << NrowBerror[i] << endl;
+	    myfile4 << " " << Angle[i] << " " << NrowB[i]<< " " << NrowBerror[i] << "\n";
+	  }
+	
+      }
+    myfile4.close();
+  
+    DrawTGraphWithErrorDouble(Angles, TanAngle, NrowB, NrowBerror, Hist,"2743", Label[0], "angleScan_dphcutB"+ss_dphcut[k]+"_nrowB_vs_tanangle", "nrowB",-7.,29.,0.,5., "angleScan", "Tan angle"  );
+    DrawTGraphWithErrorDouble(Angles, Angle, NrowB, NrowBerror, Hist,"2743", Label[0], "angleScan_dphcutB"+ss_dphcut[k]+"_nrowB_vs_angle", "nrowB",-7.,29.,0.,5., "angleScan", "Angle [degrees]"  );
   }
   /*
   Hist = "clsizeB";

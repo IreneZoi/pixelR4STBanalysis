@@ -14,7 +14,7 @@
 
 #define Angles 28
 bool print=true;
-#define dphcuts  9
+#define dphcuts 9
 #define comparisons 1
 
 using namespace std;
@@ -30,8 +30,8 @@ void resolutionVSangle2789_TreeEntries(TString function = "RMSself"){
   TString labelB="Pstop_default_FTH, 800V, thr 15 ADC";
   TString labelC="Pspray_RD53Apads_FDB, thr 12 ADC";
   TString info = "beam energy 5.6 GeV";
-  TString testname="thrScan_A12C15";//"closest_A12C15_bestproton";
-  TString testnameUnf="RMSself6sig_closest_A13C14_bestnonirr";
+  TString testname="dycut_A12C15";//"closest_A12C15_bestproton";
+  TString testnameUnf="RMSselfiso600_dycut_A13C14";//"RMSself6sig_closest_A13C14_bestnonirr";
   
   Double_t Angle[Angles];
   Double_t AngleError[Angles];
@@ -115,7 +115,7 @@ void resolutionVSangle2789_TreeEntries(TString function = "RMSself"){
   if(print) cout << "Fit:"  << endl;
   
   ofstream myfile;
-  myfile.open ("/home/zoiirene/Output/TextFiles/AscanTree_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+function+"_"+testnameUnf+".txt");
+  myfile.open ("/home/zoiirene/Output/TextFiles/AscanTree_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+function+"_"+testname+".txt");
   myfile << "A " << detectorA << "\n";
   myfile << labelA << "\n";
   myfile << "B " << detectorB<< "\n";
@@ -127,7 +127,7 @@ void resolutionVSangle2789_TreeEntries(TString function = "RMSself"){
 
 
   ofstream myentries;
-  myentries.open ("/home/zoiirene/Output/TextFiles/Ascan_Entries_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+function+"_"+testnameUnf+".txt");
+  myentries.open ("/home/zoiirene/Output/TextFiles/Ascan_Entries_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+function+"_"+testname+".txt");
   myentries << "A " << detectorA << "\n";
   myentries << labelA << "\n";
   myentries << "B " << detectorB<< "\n";
@@ -138,7 +138,7 @@ void resolutionVSangle2789_TreeEntries(TString function = "RMSself"){
   myentries << "Angle Entries\n";
 
   ofstream myperc;
-  myperc.open ("/home/zoiirene/Output/TextFiles/Ascan_Percentage_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+function+"_"+testnameUnf+".txt");
+  myperc.open ("/home/zoiirene/Output/TextFiles/Ascan_Percentage_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+function+"_"+testname+".txt");
   myperc << "A " << detectorA << "\n";
   myperc << labelA << "\n";
   myperc << "B " << detectorB<< "\n";
@@ -253,7 +253,7 @@ void resolutionVSangle2789_TreeEntries(TString function = "RMSself"){
  
   
    ofstream myfile2c;
-   TString filenameR = "/home/zoiirene/Output/TextFiles/Ascan_resTreeCorr_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+function+"_"+testnameUnf+".txt";
+   TString filenameR = "/home/zoiirene/Output/TextFiles/Ascan_resTreeCorr_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+function+"_"+testname+"_"+testnameUnf+".txt";
    cout << filenameR << endl;
    myfile2c.open (filenameR);
    myfile2c << "A " << detectorA << "\n";
@@ -295,20 +295,71 @@ void resolutionVSangle2789_TreeEntries(TString function = "RMSself"){
   hnrowB_clphABC90evR =    GetCheckHists(&res_map, Angles, dphcuts,dphcut, Run,ss_dphcut,pitch, Hist,hnrowB_clphABC90evR,true,"testEntries");
   */
 
+
+  Hist = "nrowB_clphABC90evR";
+  res_map =    GetCheckHists(&res_map, Angles, dphcuts,dphcut, Run,ss_dphcut,pitch, Hist,hdx3_clchargeABC90evR,true,testname);
+
+  for (int k = 0; k<dphcuts; k++){
+    ofstream myfile3;
+    myfile3.open ("/home/zoiirene/Output/TextFiles/Ascan_clsizeB_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+function+"_"+testname+"_ABC90.txt");
+    myfile3 << "A " << detectorA << "\n";
+    myfile3 << labelA << "\n";
+    myfile3 << "B " << detectorB<< "\n";
+    myfile3 << labelB << "\n";
+    myfile3 << "C " << detectorC<< "\n";
+    myfile3 << labelC << "\n";
+    myfile3 << info << "\n";
+    myfile3 << "Angle MeanNrowB Error\n";
+
+    Double_t NrowB[Angles];
+    Double_t NrowBerror[Angles];
+    for(int i=0; i<Angles; i++)
+      {
+	auto it2 = res_map.find(std::make_pair(Run[i]+"_"+ss_dphcut[k]+"_"+pitch,Hist));
+	//auto it2 = res_map.find(std::make_pair(Run[i]+"_"+ss_dphcut[k]+"_"+pitch,Hist));
+	if(it2  != res_map.end())
+	  {
+	    if(print)               cout << " found map " << endl;
+	    if(print)               cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
+	    cout << " Getting clusters " << endl;
+
+
+	    NrowB[i] = it2->second->GetMean();
+	    NrowBerror[i] = it2->second->GetMeanError();
+
+	    if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> nrowB: " << NrowB[i] << " and err: " << NrowBerror[i] << endl;
+	    myfile3 << " " << Angle[i] << " " << NrowB[i]<< " " << NrowBerror[i] << "\n";
+	  }
+
+      }
+    myfile3.close();
+
+    DrawTGraphWithErrorDouble(Angles, TanAngle, NrowB, NrowBerror, Hist,"2743", Label[0], "angleScan_dphcutB"+ss_dphcut[k]+"_nrowB_vs_tanangle_ABC90", "nrowB",-7.,29.,0.,5., "angleScan", "Tan angle"  );
+    DrawTGraphWithErrorDouble(Angles, Angle, NrowB, NrowBerror, Hist,"2743", Label[0], "angleScan_dphcutB"+ss_dphcut[k]+"_nrowB_vs_angle_ABC90", "nrowB",-7.,29.,0.,5., "angleScan", "Angle [degrees]"  );
+  }
+  
+
+
+  /////
+
+
+
+
+
   Hist = "nrowB";
 
   GetHists(&res_map,Angles, dphcuts, comparisons,dphcut, Run, i_dphcut, Label, Hist, h_res,true,testname);
   for(int k = 0; k<dphcuts; k ++){
-  ofstream myfile3;
-  myfile3.open ("/home/zoiirene/Output/TextFiles/Ascan_clsizeB_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+"_"+function+"_"+testname+".txt");
-  myfile3 << "A " << detectorA << "\n";
-  myfile3 << labelA << "\n";
-  myfile3 << "B " << detectorB<< "\n";
-  myfile3 << labelB << "\n";
-  myfile3 << "C " << detectorC<< "\n";
-  myfile3 << labelC << "\n";
-  myfile3 << info << "\n";
-  myfile3 << "Angle MeanNrowB Error\n";
+  ofstream myfile4;
+  myfile4.open ("/home/zoiirene/Output/TextFiles/Ascan_clsizeB_"+detectorB+"_dphcutB"+ss_dphcut[k]+"_"+"_"+function+"_"+testname+".txt");
+  myfile4 << "A " << detectorA << "\n";
+  myfile4 << labelA << "\n";
+  myfile4 << "B " << detectorB<< "\n";
+  myfile4 << labelB << "\n";
+  myfile4 << "C " << detectorC<< "\n";
+  myfile4 << labelC << "\n";
+  myfile4 << info << "\n";
+  myfile4 << "Angle MeanNrowB Error\n";
   
   Double_t NrowB[Angles];
   Double_t NrowBerror[Angles];
@@ -325,13 +376,13 @@ void resolutionVSangle2789_TreeEntries(TString function = "RMSself"){
 
 	  NrowB[i] = it2->second->GetMean();
 	  NrowBerror[i] = it2->second->GetMeanError();
-	  myfile3 << " " << Angle[i] << " " << NrowB[i]<< " " << NrowBerror[i] << "\n";
+	  myfile4 << " " << Angle[i] << " " << NrowB[i]<< " " << NrowBerror[i] << "\n";
 	  if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> nrowB: " << NrowB[i] << " and err: " << NrowBerror[i] << endl;
 
 	}
 
     }
-  myfile3.close();
+  myfile4.close();
   
   DrawTGraphWithErrorDouble(Angles, TanAngle, NrowB, NrowBerror, Hist,"2789", Label[0], "angleScan_dphcutB"+ss_dphcut[k]+"_nrowB_vs_tanangle", "nrowB",-7.,29.,0.,5., "angleScan", "Tan angle"  );
   DrawTGraphWithErrorDouble(Angles, Angle, NrowB, NrowBerror, Hist,"2789", Label[0], "angleScan_dphcutB"+ss_dphcut[k]+"_nrowB_vs_angle", "nrowB",-7.,29.,0.,5., "angleScan", "Angle [degrees]"  );
