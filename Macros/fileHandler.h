@@ -459,12 +459,12 @@ void GetHists(MapTH1 * map,int runs, int dphcuts, int comparisons,  bool dphcut,
     for(int l=0; l<dphcuts; l++){
       if(print) cout << "Run: "<< i <<" " << Run[i] << endl;
       inputfile = "drei-r"+Run[i]+"_irene.root";
+      if(extraname) inputfile = "drei-r"+Run[i]+"_irene_"+name+".root";
       if(dphcut){
 	inputfile = "drei-r"+Run[i]+"_irene_dphcutB"+ss_dphcut[l]+".root";
 	if(extraname) inputfile = "drei-r"+Run[i]+"_irene_dphcutB"+ss_dphcut[l]+"_"+name+".root";
-      }	else{
-	if(extraname) inputfile = "drei-r"+Run[i]+"_irene_"+name+".root";
-      }
+      }	
+      
       if(print) cout << "File Name: " << inputfile << endl;
       Path=inputDir+inputfile;
       file[i][l] = new TFile(Path);
