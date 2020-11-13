@@ -305,7 +305,7 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
   resolutionPlotN[0]->SetMarkerColor(kMagenta-1);
   resolutionPlotN[0]->SetLineColor(kMagenta-1);
   resolutionPlotN[0]->SetMarkerStyle(36);
-  resolutionPlotN[0]->GetXaxis()->SetLimits(0.,25.);
+  resolutionPlotN[0]->GetXaxis()->SetLimits(0.,31.);
   resolutionPlotN[0]->GetYaxis()->SetRangeUser(0.,10.);
   resolutionPlotN[0]->Draw("AEPC");
 
