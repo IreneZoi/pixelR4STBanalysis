@@ -279,7 +279,7 @@ void resVSchargePerc_forPaper(){
     //resolutionPlot[0] = new TGraphErrors(perc,charge_0[i],res_0[i],chargeerr[i],reserr_0[i]);
     //resolutionPlot[1] = new TGraphErrors(perc,charge_1[i],res_1[i],chargeerr[i],reserr_1[i]);
 
-    leg->AddEntry(resolutionPlot[0],AnglesNice[i],"");
+    leg->AddEntry(resolutionPlot[0],AnglesNice[i]+", 5.6 GeV","");
 
     for(int l =0; l < irradiations; l++)
       leg->AddEntry(fLandau[l][i],irr[l],"lp");
