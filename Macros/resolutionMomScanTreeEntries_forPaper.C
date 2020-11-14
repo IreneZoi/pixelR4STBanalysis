@@ -155,7 +155,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   cout << "fit non irr " << endl;
   TF1 *fnotsq = new TF1("fnotsq","TMath::Sqrt([0]+[1]/(x*x))", 0.2, 7.);
   fnotsq->SetLineColor(kGray);
-  fnotsq->SetParName(0,"#sigma_{hit}^{2}");
+  fnotsq->SetParName(0,"#sigma_{extr}^{2}");
   fnotsq->SetParName(1,"#sigma_{MS}^{2}");
   fnotsq->SetParLimits(0,0,20);
   fnotsq->SetParLimits(1,0,200);
@@ -192,7 +192,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   cout << "fit prot irr " << endl;
   TF1 *fnotsqi = new TF1("fnotsqi","TMath::Sqrt([0]+[1]/(x*x))", 0., 7.);
   fnotsqi->SetLineColor(kOrange);
-  fnotsqi->SetParName(0,"#sigma_{hit}^{2}");
+  fnotsqi->SetParName(0,"#sigma_{extr}^{2}");
   fnotsqi->SetParName(1,"#sigma_{MS}^{2}");
   fnotsqi->SetParLimits(0,0,30);
   fnotsqi->SetParLimits(1,100,1000);
@@ -228,14 +228,14 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   TLegend* legFDB2 = new TLegend(0.4,0.48,0.85,0.87);
   legFDB2->SetLineColor(0);
   //legFDB2->SetTextSize(0.035);
-  legFDB2->AddEntry(resolutionPlot[0],"Optimal incident angle","");
+  legFDB2->AddEntry(resolutionPlot[0],"Optimal incidence angle","");
   legFDB2->AddEntry(resolutionPlot[0],"Non-irradiated, 120 V","lp");
-  legFDB2->AddEntry(fnotsq,"#sqrt{#sigma_{intr}^{2}+(#sigma_{MS}/p_{beam})^{2}}","l");
-  legFDB2->AddEntry(fnotsq,"#sigma_{intr} = ("+ss_fit4[0]+" #pm "+ss_fit_err4[0]+") #mum","");
+  legFDB2->AddEntry(fnotsq,"#sqrt{#sigma_{extr}^{2}+(#sigma_{MS}/p_{beam})^{2}}","l");
+  legFDB2->AddEntry(fnotsq,"#sigma_{extr} = ("+ss_fit4[0]+" #pm "+ss_fit_err4[0]+") #mum","");
   legFDB2->AddEntry(resolutionPlot[1],"#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton, 600 V","lp");
   //  legFDB2->AddEntry(resolutionPlot[1],"600V, optimal angle","");
-  legFDB2->AddEntry(fnotsqi,"#sqrt{#sigma_{intr}^{2}+(#sigma_{MS}/p_{beam})^{2}}","l");
-  legFDB2->AddEntry(fnotsqi,"#sigma_{intr} = ("+ss_fit4i[0]+" #pm "+ss_fit_err4i[0]+") #mum","");
+  legFDB2->AddEntry(fnotsqi,"#sqrt{#sigma_{extr}^{2}+(#sigma_{MS}/p_{beam})^{2}}","l");
+  legFDB2->AddEntry(fnotsqi,"#sigma_{extr} = ("+ss_fit4i[0]+" #pm "+ss_fit_err4i[0]+") #mum","");
 
   legFDB2->Draw();
 
