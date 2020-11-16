@@ -57,6 +57,39 @@ void resolutionLiteratureSummary()
     "Mimosa18 sensors, 14 #mum, fit Gauss",
     "FPIX SOI 0.2 #mum, 400 #mum, (?)"
   };
+  bool draw[measurements] ={
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    false,
+    true,
+    true,
+    false,
+    false,
+    true,
+    true,
+    true,
+    true,
+    true,
+    false,
+    true,
+    false,
+    false,
+    true,
+    true,
+    true,
+    false};
 
 
     
@@ -111,6 +144,8 @@ void resolutionLiteratureSummary()
   
   TLegend* legFDB2 = new TLegend(0.13,0.37,0.5,0.88);
   legFDB2->SetLineColor(0);
+  legFDB2->SetBorderSize(0);
+  legFDB2->SetFillStyle(0);
   legFDB2->SetTextSize(10);
   //legFDB2->SetNColumns(2);
 
@@ -182,12 +217,14 @@ void resolutionLiteratureSummary()
 
   }
 
+  TF1* pi12 = new TF1("pi12","x/TMath::Sqrt(12)",0,160);
+  pi12->Draw("lsame");
+
+  legFDB3->AddEntry(pi12,"pitch/#sqrt{12}","l");
   //cFDB2->SetLogy();
   legFDB2->Draw();
   legFDB4->Draw();
   legFDB3->Draw();
-  TF1* pi12 = new TF1("pi12","x/TMath::Sqrt(12)",0,160);
-  pi12->Draw("lsame");
   
   TString  outname = outputDir+"ResolutionLiterature"; //+name;
   cFDB2->SaveAs(outname+".eps");
@@ -196,6 +233,8 @@ void resolutionLiteratureSummary()
   cFDB2->SaveAs(outname+".root");
 
 
+
+  
   /////// now log version! 
   TCanvas *cLog = new TCanvas("cLog", "FDB resolution", 600, 600);
   gPad->SetTicks(1,1);
@@ -235,6 +274,109 @@ void resolutionLiteratureSummary()
 
 
   
+
+
+  //remove measurement with not enough info
+  TCanvas *cFDB2sel = new TCanvas("cFDB2sel", "FDB resolution", 600, 600);
+  gPad->SetTicks(1,1);
+  gROOT->SetStyle("Plain");
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(0);
+  gStyle->SetOptTitle(0);
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(15);
+  
+  TLegend* legFDB2sel = new TLegend(0.13,0.37,0.5,0.88);
+  legFDB2sel->SetLineColor(0);
+  legFDB2sel->SetBorderSize(0);
+  legFDB2sel->SetFillStyle(0);
+  legFDB2sel->SetTextSize(10);
+  //legFDB2sel->SetNColumns(2);
+
+  TLegend* legFDB4sel = new TLegend(0.5,0.7,0.8,0.88);
+  legFDB4sel->SetLineColor(0);
+  legFDB4sel->SetTextSize(10);
+  //legFDB2sel->SetNColumns(2);
+
+  TLegend* legFDB3sel = new TLegend(0.55,0.12,0.88,0.35);
+  legFDB3sel->SetLineColor(0);
+  legFDB3sel->SetTextSize(10);
+  //  legFDB3sel->SetNColumns(2);
+
+  //  TGraphErrors* resolutionPlot[measurements];
+  for (int i = 0 ; i< measurements ; i++){
+    Double_t pitch[]={Pitch[i]};
+    Double_t pitchE[]={0.};
+    Double_t res[]={Resolution[i]};
+    Double_t resE[]={ResolutionError[i]};
+    
+    resolutionPlot[i] = new TGraphErrors(1,pitch,res,pitchE,resE);
+
+    resolutionPlot[i]->SetMarkerSize(1.5);
+    resolutionPlot[i]->SetMarkerColor(colors[i]);
+    resolutionPlot[i]->SetMarkerStyle(markers[i]);
+
+
+    if(i==0){
+      resolutionPlot[i]->SetTitle(" ");
+      resolutionPlot[i]->GetYaxis()->SetTitle("Resolution [#mum]");
+      resolutionPlot[i]->GetXaxis()->SetTitle("Pitch [#mum]");
+      resolutionPlot[0]->GetXaxis()->SetTitleFont(43);
+      resolutionPlot[0]->GetXaxis()->SetTitleOffset(1.5);
+      resolutionPlot[0]->GetXaxis()->SetTitleSize(15); // labels will be 14 pixels
+
+      resolutionPlot[0]->GetYaxis()->SetTitleFont(43);
+      resolutionPlot[0]->GetYaxis()->SetTitleSize(15); // labels will be 14 pixels
+      resolutionPlot[0]->GetYaxis()->SetTitleOffset(1.8);
+
+
+      resolutionPlot[0]->GetXaxis()->SetLabelFont(43);
+      resolutionPlot[0]->GetXaxis()->SetLabelSize(15); // labels will be 14 pixels
+      resolutionPlot[0]->GetYaxis()->SetLabelFont(43);
+      resolutionPlot[0]->GetYaxis()->SetLabelSize(15); // labels will be 14 pixels
+      
+      
+      resolutionPlot[i]->GetXaxis()->SetLimits(0.,160.);
+      resolutionPlot[i]->GetYaxis()->SetRangeUser(0.,55.);
+
+      resolutionPlot[i]->Draw("AEP");
+    }
+    else {
+      if (draw[i] == true) resolutionPlot[i]->Draw("EPsame");      
+    }
+    if (i <= 17 && draw[i] == true) 
+      legFDB2sel->AddEntry(resolutionPlot[i],Label[i],"p");
+    else if(i > 17 && i < 25 && draw[i] == true)
+      legFDB4sel->AddEntry(resolutionPlot[i],Label[i],"p");
+    else 
+      if(draw[i] == true)  legFDB3sel->AddEntry(resolutionPlot[i],Label[i],"p");
+
+      //legFDB2sel->AddEntry(resolutionPlot[i],Legend[i],"p"); 
+
+  }
+
+  //  TF1* pi12 = new TF1("pi12","x/TMath::Sqrt(12)",0,160);
+  pi12->Draw("lsame");
+
+  legFDB3sel->AddEntry(pi12,"pitch/#sqrt{12}","l");
+  //cFDB2sel->SetLogy();
+  legFDB2sel->Draw();
+  legFDB4sel->Draw();
+  legFDB3sel->Draw();
+  
+  outname = outputDir+"ResolutionLiteratureSelected"; //+name;
+  cFDB2sel->SaveAs(outname+".eps");
+  cFDB2sel->SaveAs(outname+".png");
+  cFDB2sel->SaveAs(outname+".pdf");
+  cFDB2sel->SaveAs(outname+".root");
+
+
+
+
   
 }//resolution 
 
