@@ -13,7 +13,7 @@
 
 bool print=true;
 using namespace std;
-#define measurements 36
+#define measurements 45
 
 
 void resolutionLiteratureSummary()
@@ -26,21 +26,29 @@ void resolutionLiteratureSummary()
   TString Label[measurements] ={
     "n-in-n, 285 #mum, psi46dig, fit Gen. Err.",
     "n-in-n, 285 #mum, psi46dig, fit Gen. Err.",
+    "n-in-p, 100 #mum, RD53A (ATLAS), RMS",
+    "n-in-n, 285 #mum, psi46dig, fit Gauss",
     "n-in-n, 285 #mum, psi46dig, RMS #pm pitch/2",
+    "DEPFET, 50 #mum, Recursive RMS",
+    "DEPFET, 50 #mum, Recursive RMS",
     "3D, 285 #mum, timepix3, fit Gauss",
     "n-in-p, 200 #mum, timepix3, fit Gauss",
     "p-in-n, 300 #mum, timepix3, fit Gauss",
     "p-in-n, 300 #mum, timepix3, fit Gauss",
     "n-in-p, 150 #mum, RD53A (CMS), fit Gen. Err.",
-    "n-in-n, 280 #mum, FE-A/FE-B, fit Gauss",
-    "3D, n-in-p, 130 #mum, RD53A (CMS), Student's t", //Student-t",
-    "n-in-n, 280 #mum, FE-A/FE-B, fit Gauss",
+    "n-in-n, 200 #mum, FE-A/FE-B, RMS",
+    "DEPFET, 50 #mum, Recursive RMS",
+    //"3D, n-in-p, 130 #mum, RD53A (CMS), Student's t", //Student-t",
+    "n-in-n, 200 #mum, FE-A/FE-B, fit Gauss",
     "n-in-n, 280 #mum, FE-A/FE-B, fit Gauss",
     "n-in-n, 280 #mum, FE-A/FE-B, fit Gauss",
     "n-in-n, 280 #mum, FE-A/FE-B, fit Gauss",
     "n-in-p, 100 #mum, RD53A (ATLAS), RMS",
     "n-in-p, 150 #mum, R4S, Recursive RMS",
     "n-in-n, 285 #mum, psi46dig, fit Gauss",
+    "n-in-n, 285 #mum, psi46dig, fit Gauss",
+    "DEPFET, 50 #mum, Recursive RMS",
+    "Mimosa18 sensors, 14 #mum, fit Gauss",
     "ATLASpix Simple, 50 #mum", //, (?)",
     "DEPFET, 450 #mum, RMS",
     "SOI, 500 #mum, fit Gauss",
@@ -49,10 +57,12 @@ void resolutionLiteratureSummary()
     "n-in-n, 285 #mum, psi46dig, fit Gauss",
     "n-in-p, 100 #mum, RD53A (ATLAS), RMS",
     "3D, n-in-p, 130 #mum, RD53A (CMS), Student's t",// Student-t",
+    "n-in-n, 285 #mum, psi46dig, fit Gauss",
     "n-in-p, 150 #mum, RD53A (CMS), fit Gen. Err.",
     "n-in-p, 150 #mum, R4S, Recursive RMS",
     "CLICpix2 prototype, 130 #mum", //, (?)",
     "DEPFET, 450 #mum, RMS",
+    "DEPFET, 450 #mum",
     "n in p, High Voltage CMOS, 15 #mum", //, (?)",
     "SOI 0.2 #mum, 200 #mum", //, (?)",
     "DEPFET, 450 #mum, RMS",
@@ -71,7 +81,7 @@ void resolutionLiteratureSummary()
     true,
     true,
     true,
-    true,
+    //true,
     true,
     true,
     true,
@@ -253,7 +263,7 @@ void resolutionLiteratureSummary()
   gStyle->SetLegendFont(43);
   gStyle->SetLegendTextSize(15);
 
-  TLegend* legFDB2log = new TLegend(0.11,0.37,0.47,0.88);
+  TLegend* legFDB2log = new TLegend(0.1,0.36,0.46,0.89);
   legFDB2log->SetLineColor(0);
   legFDB2log->SetBorderSize(0);
   legFDB2log->SetFillStyle(0);
@@ -265,7 +275,7 @@ void resolutionLiteratureSummary()
   legFDB4log->SetTextSize(10);
   //legFDB2->SetNColumns(2);
 
-  TLegend* legFDB3log = new TLegend(0.11,0.12,0.88,0.23);
+  TLegend* legFDB3log = new TLegend(0.11,0.12,0.88,0.3);
   legFDB3log->SetLineColor(0);
   legFDB3log->SetTextSize(10);
   legFDB3log->SetNColumns(2);
@@ -276,15 +286,15 @@ void resolutionLiteratureSummary()
     if(i==0){
       resolutionPlot[i]->Draw("AEP");
       resolutionPlot[i]->GetXaxis()->SetLimits(1.,200.);
-      resolutionPlot[i]->GetYaxis()->SetRangeUser(0.1,1000.);
+      resolutionPlot[i]->GetYaxis()->SetRangeUser(0.01,10000.);
 
     }
     else {
       resolutionPlot[i]->Draw("EPsame");      
     }
-    if (i <= 19)
+    if (i <= 20)
       legFDB2log->AddEntry(resolutionPlot[i],Label[i],"p");
-    else if(i > 19 && i < 28)
+    else if(i > 20 && i < 32)
       legFDB4log->AddEntry(resolutionPlot[i],Label[i],"p");
     else
       legFDB3log->AddEntry(resolutionPlot[i],Label[i],"p");
