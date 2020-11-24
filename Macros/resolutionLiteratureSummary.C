@@ -263,7 +263,7 @@ void resolutionLiteratureSummary()
   gStyle->SetLegendFont(43);
   gStyle->SetLegendTextSize(15);
 
-  TLegend* legFDB2log = new TLegend(0.1,0.36,0.46,0.89);
+  TLegend* legFDB2log = new TLegend(0.1,0.5,0.46,0.89);
   legFDB2log->SetLineColor(0);
   legFDB2log->SetBorderSize(0);
   legFDB2log->SetFillStyle(0);
@@ -275,30 +275,35 @@ void resolutionLiteratureSummary()
   legFDB4log->SetTextSize(10);
   //legFDB2->SetNColumns(2);
 
-  TLegend* legFDB3log = new TLegend(0.11,0.12,0.88,0.3);
+  TLegend* legFDB3log = new TLegend(0.11,0.12,0.78,0.4);
   legFDB3log->SetLineColor(0);
   legFDB3log->SetTextSize(10);
   legFDB3log->SetNColumns(2);
   
+  //TLegend* legFDB5log = new TLegend(0.48,0.12,0.78,0.4);
+  //legFDB5log->SetLineColor(0);
+  //legFDB5log->SetTextSize(10);
 
   
   for (int i = 0 ; i< measurements ; i++){
     if(i==0){
       resolutionPlot[i]->Draw("AEP");
       resolutionPlot[i]->GetXaxis()->SetLimits(1.,200.);
-      resolutionPlot[i]->GetYaxis()->SetRangeUser(0.01,10000.);
+      resolutionPlot[i]->GetYaxis()->SetRangeUser(0.0001,100000.);
 
     }
     else {
       resolutionPlot[i]->Draw("EPsame");      
     }
-    if (i <= 20)
+    if (i <= 12)
       legFDB2log->AddEntry(resolutionPlot[i],Label[i],"p");
-    else if(i > 20 && i < 32)
+    else if(i > 12 && i < 22)
       legFDB4log->AddEntry(resolutionPlot[i],Label[i],"p");
-    else
+    else //if ( i >= 25 && i < 33)
       legFDB3log->AddEntry(resolutionPlot[i],Label[i],"p");
-    
+    //    else
+    //legFDB5log->AddEntry(resolutionPlot[i],Label[i],"p");
+      
   }
 
   pi12->Draw("lsame");
@@ -309,6 +314,7 @@ void resolutionLiteratureSummary()
   legFDB2log->Draw();
   legFDB4log->Draw();
   legFDB3log->Draw();
+  //  legFDB5log->Draw();
     
   outname = outputDir+"ResolutionLiteratureLog"; //+name;
   cLog->SaveAs(outname+".eps");
