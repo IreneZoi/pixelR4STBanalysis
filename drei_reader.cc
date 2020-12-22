@@ -93,7 +93,7 @@ int main( int argc, char* argv[] )
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   //ALIGN
   //read from ALIGN file, now containing also calibration, pitch, beam energy, etc.
-  
+
   string alignpath = "align/";
   int aligniteration = 0;
 
@@ -110,7 +110,7 @@ int main( int argc, char* argv[] )
   double keA = 0.0;
   double keB = 0.0;
   double keC = 0.0;
-  int pitch = 0; 
+  int pitch = 0;
   double ptchc = 0.0;// 0.100; // [mm] col size
   double ptchr = 0.0;//0.025; // [mm] row size
   double beamEnergy = -1.0; // [GeV]
@@ -121,13 +121,13 @@ int main( int argc, char* argv[] )
   double Tsunami[DreiMasterPlanes];
   double dphcut[DreiMasterPlanes];
   double dx3corr;
-  
+
   string alignFileName = "0";
-  if(alignversion == 1)  
+  if(alignversion == 1)
     alignFileName = alignpath+"align_" + runnum + ".dat";
-  if(alignversion == 2)  
+  if(alignversion == 2)
     alignFileName = alignpath+"align_v2_" + runnum + ".dat";
-  if(alignversion == 3)  
+  if(alignversion == 3)
     alignFileName = alignpath+"align_v3_" + runnum + ".dat";
 
   ifstream alignFile( alignFileName );
@@ -161,14 +161,14 @@ int main( int argc, char* argv[] )
     string QR( "qR" );
     string QLB( "qLB" );
     string QRB( "qRB" );
-    string TSUNAMIA( "TsunamiA" );    
-    string TSUNAMIB( "TsunamiB" );    
+    string TSUNAMIA( "TsunamiA" );
+    string TSUNAMIB( "TsunamiB" );
     string TSUNAMIC( "TsunamiC" );
-    string DPHCUTA( "dphcutA" );    
-    string DPHCUTB( "dphcutB" );    
+    string DPHCUTA( "dphcutA" );
+    string DPHCUTB( "dphcutB" );
     string DPHCUTC( "dphcutC" );
     string DX3C( "dx3c" );
-    
+
     while( ! alignFile.eof() ) {
 
       string line;
@@ -187,7 +187,7 @@ int main( int argc, char* argv[] )
 	tokenizer >> aligniteration;
 
       if( tag == ALXA )
-	tokenizer >>	alignxA; 
+	tokenizer >>	alignxA;
       else if( tag == ALYA )
 	tokenizer >> 	alignyA;
       else if( tag == ALFA )
@@ -252,7 +252,7 @@ int main( int argc, char* argv[] )
 
   if(PRINT)  cout << "Gains " <<  gainA << " " << gainB << " " << gainC << endl;
   if(PRINT)  cout << " alignfA " << alignfA << endl;
-  
+
 
   ke[A] = keA; // Landau peak at 11 ke
   ke[B] = keB; // Landau peak at 11 ke
@@ -276,8 +276,8 @@ int main( int argc, char* argv[] )
     }
 
   double beamDivergenceScaled = 5/beamEnergy; // 5sigma/energy
-  //---------------------------------------------------------------------------------- 
-  
+  //----------------------------------------------------------------------------------
+
   // (re-)create root file:
   TString fileName;
   fileName.Form( "/home/zoiirene/Output/drei-r%i_irene.root", run );
@@ -298,6 +298,7 @@ int main( int argc, char* argv[] )
 
   histoMap raw =  bookControlHists("raw",histoFile);
   histoMap dxCAcut =  bookControlHists("dxCAcut",histoFile);
+  histoMap dyCAcut =  bookControlHists("dyCAcut",histoFile);
   histoMap beforeCorrections =   bookControlHists("beforeCorrections",histoFile);
 
   if(PRINT) cout << "hists booking whit new method"<<endl;
@@ -316,7 +317,7 @@ int main( int argc, char* argv[] )
 	  std::cout<<it->first<<" :: "<<it->second->GetEntries()<<std::endl;
 	  it++;
 	}
-      
+
       cout << "hists cuts " << found << endl;
     }
 
@@ -361,25 +362,25 @@ int main( int argc, char* argv[] )
   list < vector < cluster > > evlistC;
 
   //#pragma omp sections // test, not parallel
-  /* oneplane function: for each plane                                                                                                                                                                                                                                        
-- Read data file & assemble pixel hits                                                                                                                                                                                                                                        
-- Skip noisy events with more than 400 hits                                                                                                                                                                                                                                    
-- Tsunami correction                                                                                                                                                                                                                                                           
-- Common mode correction (column-wise)                                                                                                                                                                                                                                         
-  - in roc coordinates                                                                                                                                                                                                                                                         
-  - we read along one column                                                                                                                                                                                                                                                   
-  - a roi is 7 pixels long                                                                                                                                                                                                                                                    
-  - we find the pixel with the highest and lowest row index in one column                                                                                                                                                                                                     
-  - we assume there is no significant charge in these pixels                                                                                                                                                                                                                   
-  - we take the average pulse height of these two pixels and subtract it from those in between  dph_i = ph_i - (ph_up + ph_low)/2                                                                                                                                              
-- Continue analysis if dph> dphcut                                                                                                                                                                                                                                             
-  - for each sample we use the cut yielding the best resolution                                                                                                                                                                                                                
-  - 25 vs 50                                                                                                                                                                                                                                                                   
-  - Conversion from ADC to ke (updated for Vcal offset correction - as Finn)                                                                                                                                                                                                   
-- Clustering for events with less than 50 hits (speeding)                                                                                                                                                                                                                      
-  - From a seed pixel add to it all adjacent pixels with a hit                                                                                                                                                                                                                 
-  - Evaluating the cluster isolation                                                                                                                                                                                                                                           
-  */
+  /* oneplane function: for each plane
+- Read data file & assemble pixel hits
+- Skip noisy events with more than 400 hits
+- Tsunami correction
+- Common mode correction (column-wise)
+- in roc coordinates
+- we read along one column
+- a roi is 7 pixels long
+- we find the pixel with the highest and lowest row index in one column
+- we assume there is no significant charge in these pixels
+- we take the average pulse height of these two pixels and subtract it from those in between  dph_i = ph_i - (ph_up + ph_low)/2
+- Continue analysis if dph> dphcut
+- for each sample we use the cut yielding the best resolution
+- 25 vs 50
+- Conversion from ADC to ke (updated for Vcal offset correction - as Finn)
+- Clustering for events with less than 50 hits (speeding)
+- From a seed pixel add to it all adjacent pixels with a hit
+- Evaluating the cluster isolation
+*/
 #pragma omp parallel sections
   {
 #pragma omp section
@@ -465,11 +466,11 @@ int main( int argc, char* argv[] )
       vector<closest> BMatchA ( evlistB.size(), closest() );
       vector<closest> CMatchB ( evlistC.size(), closest() );
       vector<closest> BMatchC ( evlistB.size(), closest() );
-      
-      
+
+
       ++iev;
       if(DEBUG)      cout << " event " << iev << " cl A " << vclA.size() << " B " << vclB.size() << " C " << vclC.size() << endl;
-     
+
 
       if(DO1CL){
 	cout << "########################## 1 cluster per plane!!! ################# "<< endl;
@@ -560,10 +561,6 @@ int main( int argc, char* argv[] )
 		CMatchA.at(cC).distance = dxyCA;
 		if(DEBUG) cout << "index cA " << cA << " index vlcC[cC] " << cC << " distance CA " << CMatchA.at(cC).distance << " dxyCA " << dxyCA << endl;
 	      }
-
-
-
-	      
    
 	      double xavg = 0.5 * ( xAr + xCr );
 	      double yavg = 0.5 * ( yAr + yCr );
@@ -662,169 +659,9 @@ int main( int argc, char* argv[] )
       }
 
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-      ////////////////                A-B cluster correlations:    //////////////////////////
-      if(PRINT) cout << "entering AB correlation loop " << endl;
-      int nm = 0;
-
-      //      for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )
-      for( int cA=0; cA < vclA.size(); ++cA ){
-	
-	  double xA = xcoordinate2(0, vclA[cA], alignxA, ptchc, ptchr);
-	  double yA = ycoordinate2(0, vclA[cA], alignyA, ptchc, ptchr);
-
-	  double xAr = xA*cfA - yA*sfA;
-	  double yAr = xA*sfA + yA*cfA;
-
-	  hxA->Fill( xAr );
-	  hyA->Fill( yAr );
-	  if( vclA[cA].iso )
-	    {
-	      hxAi->Fill( xAr );
-	      hyAi->Fill( yAr );
-	      hclqAi->Fill( vclA[cA].q );
-	    }
-	  
-	  for( int cB=0; cB < vclB.size(); ++cB ){
-	    
-	    //	  for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
-	      double xB = xcoordinate2(1, vclB[cB], 0, ptchc, ptchr);
-	      double yB = ycoordinate2(1, vclB[cB], 0, ptchc, ptchr);
-
-	      hxxAB->Fill( xAr, xB );
-	      hyyAB->Fill( yAr, yB );
-	      
-	      double dx = xAr - xB;
-	      double dy = yAr - yB;
-
-
-	      double dxy = sqrt( dx*dx + dy*dy );
-	      /*
-	      //finn  closest:  update if closer
-	      if( dxy < AMatchB.at(cA).distance ){
-		AMatchB.at(icA).index = icB;
-		AMatchB.at(icA).distance = dxy;
-		cout << "index cA " << icA << " index cB " << icB << " distance A-B " << AMatchB.at(icA).distance << " dxy " << dxy << endl;
-	      }
-
-	      if( dxy < BMatchA.at(icB).distance ){
-		BMatchA.at(icB).index = icA;
-		BMatchA.at(icB).distance = dxy;
-		cout << "index cA " << icA << " index cB " << icB << " distance B-A " << BMatchA.at(icB).distance << " dxy " << dxy << endl;
-	      }
-	      cout << " index A " << icA << " index cB " << icB <<  " distance dxy " << dxy << endl;
-
-	      */
-	      if( vclA[cA].q > qL  && vclA[cA].q < qR && vclB[cB].q > qLB && vclB[cB].q < qRB && vclA[cA].iso && vclB[cB].iso )
-		{
-		  
-		  hdxAB->Fill( dx );
-		  if(PRINT)   cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
-		  
-		  hdyAB->Fill( dy );
-		  dxvsxAB->Fill( xB, dx );
-		  dxvsyAB->Fill( yB, dx );
-		
-		}
-	  
-	      hdxvsev->Fill( iev, dx );
-	    
-	      if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 && fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
-		++nm;
-	      //icB++;
-	    } // clusters
-	  //icA++;
-	} // cl
-      
-      nmvsevAB->Fill( iev, nm );
-      
-      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      // B-C cluster correlations:
-      if(PRINT) cout << "entering BC correlation loop " << endl;
-      nm = 0;
-      for( int cB=0; cB < vclB.size(); ++cB ){
-	
-	//for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )	{
-	
-	  double xB = xcoordinate2(1, vclB[cB], 0, ptchc, ptchr);
-	  double yB = ycoordinate2(1, vclB[cB], 0, ptchc, ptchr);
-	  
-	  hxB->Fill( xB );
-	  hyB->Fill( yB );
-	  if( vclB[cB].iso )
-	    {
-	      hxBi->Fill( xB );
-	      hyBi->Fill( yB );
-	      hclqBi->Fill( vclB[cB].q );
-	    }
-
-	  //	  for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ) {
-	  for( int cC=0; cC < vclC.size(); ++cC ){
-	    
-	      double xC = xcoordinate2(2, vclC[cC], alignxC, ptchc, ptchr);
-	      double yC = ycoordinate2(2, vclC[cC], alignyC, ptchc, ptchr);
-
-	      double xCr = xC*cfC - yC*sfC;
-	      double yCr = xC*sfC + yC*cfC;
-	      
-	      hxC->Fill( xCr );
-	      hyC->Fill( yCr );
-	      if( vclC[cC].iso )
-		{
-		  hxCi->Fill( xCr );
-		  hyCi->Fill( yCr );
-		  hclqCi->Fill( vclC[cC].q );
-		}
-
-	      hxxCB->Fill( xB, xCr );
-	      hyyCB->Fill( yB, yCr );
-	      
-	      double dx = xCr - xB;
-	      double dy = yCr - yB;
-
-	      double dxy = sqrt( dx*dx + dy*dy );
-	      /*
-	      //finn  closest:  update if closer
-	      if( dxy < CMatchB.at(icC).distance ){
-		CMatchB.at(icC).index = icB2;
-		CMatchB.at(icC).distance = dxy;
-		cout << "index cC " << icC << " index cB2 " << icB2 << " distance C-B " << CMatchB.at(icC).distance << " dxy " << dxy << endl;
-	      }
-
-	      if( dxy < BMatchC.at(icB2).distance ){
-		BMatchC.at(icB2).index = icC;
-		BMatchC.at(icB2).distance = dxy;
-		cout << "index cC " << icC << " index cB2 " << icB2 << " distance B-C " << BMatchC.at(icB2).distance << " dxy " << dxy << endl;
-	      }
-	      cout << " index cC " << icC << " index cB2 " << icB2 <<  " distance dxy " << dxy << endl;
-	      */
-	      
-	      
-	  if( vclC[cC].q > qL  && vclC[cC].q < qR && vclB[cB].q > qLB && vclB[cB].q < qRB && vclC[cC].iso && vclB[cB].iso )
-	    {
-	    
-	      hdxCB->Fill( dx );
-	      hdyCB->Fill( dy );
-	      dxvsxCB->Fill( xB, dx );
-	      dxvsyCB->Fill( yB, dx );
-	      
-	    }
-	  
-	  if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 && fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
-	    ++nm;
-	  //	  icC++;
-	    } // clusters C
-	  //icB2++;
-	} // cl B
-      
-      nmvsevCB->Fill( iev, nm );
-      
-      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-      // ---------------------------------------
       ///////        A-C cluster correlations: ///////////
       if(PRINT) cout << "entering AC correlation loop " << endl;
-      nm = 0;
+      int nm = 0;
       //      int iC =0;
       for( int cC=0; cC < vclC.size(); ++cC ){
 	
@@ -883,7 +720,7 @@ int main( int argc, char* argv[] )
 
 	      if(PRINT) cout << " tracks condition " << fabs( dxCA ) << " vs "  << straightTracks * beamDivergenceScaled + 0.02 << endl;
 
-	      if( fabs( dxCA ) > straightTracks * beamDivergenceScaled + 0.02 ) continue; // includes beam divergence: +-5 sigma
+	      if( fabs( dxCA ) > straightTracks * beamDivergenceScaled ) continue; //+ 0.02 ) continue; // includes beam divergence: +-5 sigma
 
 	      fillControlHists2(dxCAcut,"dxCAcut",0,0,vclA[cA],vclA[cA],vclC[cC],0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
@@ -891,9 +728,11 @@ int main( int argc, char* argv[] )
 	      if(PRINT) cout << " dyCA " << dyCA << endl;
 	      hdyCAc->Fill( dyCA );
 	      dyvsyCA->Fill( yAr, dyCA );
-	      
-	      if( fabs( dyCA ) > straightTracks * beamDivergenceScaled + 0.1 ) continue; // [mm]
-	      
+
+	      if( fabs( dyCA ) > straightTracks * beamDivergenceScaled ) continue; //+ 0.1 ) continue; // [mm]
+
+	      fillControlHists2(dyCAcut,"dyCAcut",0,0,vclA[cA],vclA[cA],vclC[cC],0,0,0,iev,0,0,xAr,yAr,xCr,yCr,dxCA,0,0,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
+
 	      ++nm;
 	  
 	      dxvsyCA->Fill( yAr, dxCA );
@@ -2452,11 +2291,11 @@ list < vector < cluster > > oneplane( int plane, string runnum, unsigned Nev, bo
 	    
 	      }//while 
 	  } // size (less than 400 hits!)
-      else
-	{
-	  evinf.skip = 1;
-	  cout << " (" << iev << ": B ROI " << ng/3 << " skip)";
-	}
+	else
+	  {
+	    evinf.skip = 1;
+	    cout << " (" << iev << ": B ROI " << ng/3 << " skip)";
+	  }
 	
 	// column-wise common mode correction:
 	// 4 = central pixel, 1 lower rows, 7 upper rows
@@ -2754,20 +2593,20 @@ double ycoordinate2(int plane, cluster c, double align, double pitchc, double pi
 
   return variable;
 }
-//****************
+// ****************
 
 histoMap  bookControlHists(TString selection, TFile * histofile)
 {
   if(PRINT) cout << " boking my hists " << selection << endl;
   TDirectory *cdtof = histofile->mkdir(selection);
-  cdtof->cd(); 
+  cdtof->cd();
   int nbx =  80; //number of bins x
   int nby = 320; //number of bins y
   if( fifty ) {
     nbx = 160;
     nby = 160;
   }
-  
+
 
   histoMap mapOfHists;
 
@@ -2777,13 +2616,14 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   TH1I * hyB = new TH1I("yB","y Br;y [mm];clusters B", 100, -5, 5 ); 
   TH1I * hxC = new TH1I("xC","x Cr;x [mm];clusters C", 100, -5, 5 );
   TH1I * hyC = new TH1I("yC","y Cr;y [mm];clusters C", 100, -5, 5 ); 
-  
+
   TH1I * hdx3 = new TH1I("dx3", "triplet dx; dx [mm];triplets", 500, -0.5, 0.5 );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
   TH1I * hdy3 = new TH1I("dy3", "triplet dy; dy [mm];triplets", 200, -1., 1. );// "dx", "x A " +selection+ " ;x [mm];clusters A", 100, -5, 5 );
 
- 
+  TH1I * hdxCA = new TH1I( "dxCA", "Cx-Ax;x-x [mm];cluster pairs", 400, -1, 1 );
+  TH1I * hdyCA = new TH1I( "dyCA", "Cy-Ay;y-y [mm];cluster pairs", 400, -1, 1 );
 
-  
+
   TH1I * hclsizeA = new TH1I("clsizeA", "A cluster size "+selection+";cluster size [pixels];A clusters on tracks", 40, 0.5, 40.5 ); 
   TH1I * hclsizeB = new TH1I("clsizeB", "B cluster size "+selection+";cluster size [pixels];B clusters on tracks", 40, 0.5, 40.5 ); 
   TH1I * hclsizeC = new TH1I("clsizeC", "C cluster size "+selection+";cluster size [pixels];C clusters on tracks", 40, 0.5, 40.5 ); 
@@ -2928,7 +2768,9 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
   mapOfHists.insert(std::make_pair("yB",hyB));
   mapOfHists.insert(std::make_pair("xC",hxC));
   mapOfHists.insert(std::make_pair("yC",hyC));
-  
+  mapOfHists.insert(std::make_pair("dxCA",hdxCA));
+  mapOfHists.insert(std::make_pair("dyCA",hdyCA));
+
   mapOfHists.insert(std::make_pair("dx3",hdx3));
   mapOfHists.insert(std::make_pair("dy3",hdy3));
 
@@ -2964,7 +2806,7 @@ histoMap  bookControlHists(TString selection, TFile * histofile)
 
   mapOfHists.insert(std::make_pair("pxchargeB1st",hpxchargeB1st));
   mapOfHists.insert(std::make_pair("pxchargeB2nd",hpxchargeB2nd));
-  
+
   mapOfHists.insert(std::make_pair("nrowvsxmB3",hnrowvsxmB3));
 
   mapOfHists.insert(std::make_pair("clqvsxmB3",clqvsxmB3));
@@ -3085,7 +2927,7 @@ void  fillControlHists2(histoMap mapOfHists, TString selection, double dx3, doub
   hclph[2]=hclphC;
 
 
-  
+
   double dyCA = yCr - yAr;
   double dxyCA = sqrt( dxCA*dxCA + dyCA*dyCA );
 
@@ -3098,7 +2940,25 @@ void  fillControlHists2(histoMap mapOfHists, TString selection, double dx3, doub
     if(PRINT) std::cout << "Not found "<< "dxyCA" << endl;
   }
 
-  
+  search =  mapOfHists.find("dxCA");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(dxCA);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dxCA" << endl;
+  }
+
+  search =  mapOfHists.find("dyCA");
+  if(DEBUG) cout << "search" << endl;
+  if (search !=  mapOfHists.end()) {
+    if(DEBUG) std::cout << "Found " << search->first  << '\n';
+    search->second->Fill(dyCA);
+  } else {
+    if(PRINT) std::cout << "Not found "<< "dyCA" << endl;
+  }
+
+
   double dxy = sqrt( dx3*dx3 + dy3*dy3 );
 
   search =  mapOfHists.find("dxy");
@@ -3111,7 +2971,7 @@ void  fillControlHists2(histoMap mapOfHists, TString selection, double dx3, doub
   }
 
 
-  
+
   search =  mapOfHists.find("xA");
   if(DEBUG) cout << "search" << endl;
   if (search !=  mapOfHists.end()) {
@@ -4948,7 +4808,7 @@ void bookHists()
  hclB_q5_85 = new TH1I("hclB_q5_85 ", "triplet dx_clchargeABC90evR RMS out 5; dx [mm];triplets", 100, 0, 50 );;
  */
 
- 
+
  hdx3tree2 = new TH1I("hdx3tree2", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
 
  charge_res = new TTree("charge_res","landau and residuals");
