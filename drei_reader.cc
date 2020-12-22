@@ -865,7 +865,6 @@ int main( int argc, char* argv[] )
 					if(PRINT) cout << "done  filling hists for resolution studies! " << endl;		  
 					
 					dx3tree = dx3;
-				  
 					clqAiii = vclA[cA].q;
 					clqBiii = vclB[cB].q;
 					clqCiii = vclC[cC].q;
@@ -876,9 +875,14 @@ int main( int argc, char* argv[] )
 					evt = iev;
 					dxyCAtree=dxyCA;
 					dxytree=dxy;
+					pxphBtree.clear();
+					for(int ipx = 0; ipx < vclB[cB].size; ++ipx){
+					  pxphBtree.emplace_back(vclB[cB].vpix[ipx].ph);
+					}
 					charge_res->Fill();
 					if(PRINT) cout << "done  filling the tree " << endl;
-				
+
+
 				  }//fabs( dxCA ) < straightTracks * beamDivergenceScaled 
 				
 			      }//iso B
@@ -1062,18 +1066,18 @@ int main( int argc, char* argv[] )
 
   cout << " Evaluating cut for 90 % of charge distribution " << endl;
   for(int j =0; j < DreiMasterPlanes; j++)   {
-    cout << " plane " << j << endl;
+    if(PRINT) cout << " plane " << j << endl;
     integral[j] = hclq[j]->Integral(0,hclq[j]->GetNbinsX()+1);
-    cout << " integralQ " << integral[j] << " entries " << hclq[j]->GetEntries()<<  endl;
+    if(DEBUG) cout << " integralQ " << integral[j] << " entries " << hclq[j]->GetEntries()<<  endl;
     
     integralPH[j] = hclph[j]->Integral(0,hclph[j]->GetNbinsX()+1);
-    cout << " integralPH " << integralPH[j] << endl;
+    if(DEBUG) cout << " integralPH " << integralPH[j] << endl;
     
     integral90[j] = 0.9*integral[j]; //careful!! you should take into account the peak at low value! Hist is now filled only for isolated clusters and the effect is reduced
-    cout << " integralQ 90% " << integral90[j] << endl;
+    if(DEBUG) cout << " integralQ 90% " << integral90[j] << endl;
 
     integralPH90[j] = 0.9*integralPH[j];
-    cout << " integralPH 90% " << integralPH90[j] << endl;
+    if(DEBUG) cout << " integralPH 90% " << integralPH90[j] << endl;
 
     high90[j] = 0;
     highPH90[j] = 0;
@@ -1086,14 +1090,14 @@ int main( int argc, char* argv[] )
       if(DEBUG) cout << " integral " << integral[j] << " high " << high90[j] << endl;
       i++;
     }
-    cout << "final  integral Q 90 " << integral[j] << " = " << 100*integral[j]/ hclq[j]->Integral(0,hclq[j]->GetNbinsX()+1) << endl;
+    if(DEBUG) cout << "final  integral Q 90 " << integral[j] << " = " << 100*integral[j]/ hclq[j]->Integral(0,hclq[j]->GetNbinsX()+1) << endl;
     i=0;
     while(integralPH[j]>integralPH90[j])  {
       integralPH[j] = hclph[j]->Integral(1,hclph[j]->GetNbinsX()-i);
       highPH90[j] = hclph[j]->GetBinCenter(hclph[j]->GetNbinsX()-i);
       i++;
     }
-    cout << "final  integral PH 90 " << integralPH[j] << " = " << 100*integralPH[j]/hclph[j]->Integral(0,hclph[j]->GetNbinsX()+1) << endl; 
+    if(DEBUG) cout << "final  integral PH 90 " << integralPH[j] << " = " << 100*integralPH[j]/hclph[j]->Integral(0,hclph[j]->GetNbinsX()+1) << endl; 
   }
 
   
@@ -1127,8 +1131,12 @@ int main( int argc, char* argv[] )
   phB.Form("%d",highPH90[1]);
   TString phC;
   phC.Form("%d",highPH90[2]);
-  
-  
+
+  cout << " *************************************** ph cut for 90 % events **************************" << endl;
+  cout << " A " << phA  << endl;
+  cout << " B " << phB  << endl;
+  cout << " C " << phC  << endl;
+  cout << "clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC << endl;
   TH1I * hdx3treeph = new TH1I("hdx3treeph", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
   charge_res->Draw("dx3tree>>hdx3treeph","clphAiiitree<"+phA+"&&clphBiiitree<"+phB+"&&clphCiiitree<"+phC,"goff");
   hdx3treeph = (TH1I*)gDirectory->Get("hdx3treeph");
@@ -1756,28 +1764,28 @@ int main( int argc, char* argv[] )
 //------------------------------------------------------------------------------
 
 void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TString method="mine"){
-  cout << " initial entries " << h->GetEntries() << endl;
-  cout << " percent "<< percent << " -> " <<  percent*h->GetEntries() << endl;
+  if(DEBUG) cout << " initial entries " << h->GetEntries() << endl;
+  if(DEBUG) cout << " percent "<< percent << " -> " <<  percent*h->GetEntries() << endl;
   int low = 0;
   int high = 0;
 
 
   if(method =="mine"){
     double tolerance = (h->GetBinContent(0)+h->GetBinContent(h->GetNbinsX()+1))/h->GetEntries(); // since we are not working with continuous quantities but with binned hists, the difference between the integral and the 95% it may not be zero, so we ask it to be lower than 15% (before I was using 1.1% but since I changed to use the full range of hists, the overflow bin plays a too bigger role when stats is low and the 1.1% is not reached. 
-    cout << " bin 0 " << h->GetBinContent(0) << " overflow " << h->GetBinContent(h->GetNbinsX()+1) << " entries " << h->GetEntries() << endl;
-    cout << " RMS method charge based with tolerance " << tolerance << " with over/under flow would be " << (h->GetBinContent(0)+h->GetBinContent(h->GetNbinsX()+1))/h->GetEntries() << endl;
+    if(DEBUG) cout << " bin 0 " << h->GetBinContent(0) << " overflow " << h->GetBinContent(h->GetNbinsX()+1) << " entries " << h->GetEntries() << endl;
+    if(DEBUG) cout << " RMS method charge based with tolerance " << tolerance << " with over/under flow would be " << (h->GetBinContent(0)+h->GetBinContent(h->GetNbinsX()+1))/h->GetEntries() << endl;
     if(tolerance == 0){
       tolerance = 0.0001;
-      cout << " tolerance set to "<< tolerance << endl;
+      if(DEBUG) cout << " tolerance set to "<< tolerance << endl;
     }
     double maximum = h->GetMaximum();
     int maxbin = h->GetMaximumBin();
     if(PRINT) cout <<  " maxbin " << maxbin << " at " << h->GetBinCenter(maxbin)<<endl;
-    cout << "intital sigma = " << h->GetRMS() * 1000 << " sigmaerr = " << h->GetRMSError() * 1000 << endl;
+    if(DEBUG) cout << "intital sigma = " << h->GetRMS() * 1000 << " sigmaerr = " << h->GetRMSError() * 1000 << endl;
     double Integral = h->Integral(0,h->GetNbinsX()+1);
-    cout << " integral " << Integral << " entries " << h->GetEntries() << endl;
+    if(DEBUG) cout << " integral " << Integral << " entries " << h->GetEntries() << endl;
     double integral95 = percent*Integral;
-    cout << " integral "<< percent << " " << integral95 << endl;
+    if(DEBUG) cout << " integral "<< percent << " " << integral95 << endl;
     int i = 0;
     
     for(int i =0; i<h->GetNbinsX()/2; i++)
@@ -1786,8 +1794,8 @@ void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TStr
 	high = maxbin+i;
       
 	Integral = h->Integral(low,high);
-	cout << " integral " << Integral << "low " <<low << " high " << high << endl;
-	cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
+	if(DEBUG) cout << " integral " << Integral << "low " <<low << " high " << high << endl;
+	if(DEBUG) cout << " while "<< i << " fabs(integral-integral95)/integral95 " << fabs(Integral-integral95)/integral95 << endl;
 	
 	//      if(fabs(Integral-integral95)/integral95 < 0.011 || Integral>integral95)//integral>integral95)
 	if(fabs(Integral-integral95)/integral95 < tolerance || Integral>integral95)//integral>integral95)
@@ -1796,13 +1804,13 @@ void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TStr
 
 	
       }
-    cout << "final integral " << Integral << " = " << 100*Integral/h->Integral(0,h->GetNbinsX()+1) << " %" << endl;
+    if(DEBUG) cout << "final integral " << Integral << " = " << 100*Integral/h->Integral(0,h->GetNbinsX()+1) << " %" << endl;
   }
   if(method == "simon")
     {
       double integral = h->GetEntries();
       int maxbin = h->GetMaximumBin();
-      cout << "entries=" << integral << " maxbin=" << maxbin << endl;
+      if(DEBUG) cout << "entries=" << integral << " maxbin=" << maxbin << endl;
 
       double subrange_integral = h->GetBinContent(maxbin);
       int bin = 0;
@@ -1812,7 +1820,7 @@ void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TStr
 	subrange_integral += h->GetBinContent(maxbin-bin);
 	// Add one bin to the right:
 	subrange_integral += h->GetBinContent(maxbin+bin);
-	cout << "subrange " << (maxbin-bin) << "-" << (maxbin+bin) << ": entries=" << subrange_integral << endl;
+	if(DEBUG) cout << "subrange " << (maxbin-bin) << "-" << (maxbin+bin) << ": entries=" << subrange_integral << endl;
       }
       cout << "subrange " << (maxbin-bin) << "-" << (maxbin+bin) << " now has " << subrange_integral << " entries, this is " << (100.0*subrange_integral)/integral << "%" << endl;
 
@@ -1823,7 +1831,7 @@ void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TStr
 
       low = maxbin-bin;
       high = maxbin+bin;
-      cout << "subrange " << (maxbin-bin) << "-" << (maxbin+bin) << " now has " << subrange_integral << " entries, this is " << (100.0*subrange_integral)/integral << "%" << endl;
+      if(DEBUG) cout << "subrange " << (maxbin-bin) << "-" << (maxbin+bin) << " now has " << subrange_integral << " entries, this is " << (100.0*subrange_integral)/integral << "%" << endl;
 
 
     }
@@ -4826,7 +4834,8 @@ void bookHists()
  charge_res->Branch("nclustA",&nclustA);
  charge_res->Branch("nclustB",&nclustB);
  charge_res->Branch("nclustC",&nclustC);
-  
+ //gROOT->ProcessLine("#include <vector>");
+ charge_res->Branch("pxphBtree",&pxphBtree);
   for( unsigned ipl = 0; ipl < DreiMasterPlanes; ++ipl ) {
 
     phvsprev[ipl] = TProfile( Form( "phvsprev%s", PN[ipl].c_str() ),
