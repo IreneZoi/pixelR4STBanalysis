@@ -28,7 +28,7 @@ void TDR2(TCanvas * c_all, int period=0, int pos= 11);
 Double_t ScaleX(Double_t x);
 void ScaleAxis(TAxis *a, Double_t (*Scale)(Double_t));
 
-void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
+void controlPlots_forPaper(TString name = "preliminary_beamdiv")
 {
 
   TString inputDir="/home/zoiirene/Output/";
@@ -54,7 +54,7 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   int i_dphcut[1] = {12}; 
   Double_t d_dphcut[1] = {12};
   TString ss_dphcut[1] = {"12"};
-  TString inputfileNONirr= "dycut_A13C14";
+  TString inputfileNONirr= "beamdiv_A13C14";
   GetHists(&landau_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res,true,inputfileNONirr);
   
   //proton
@@ -62,7 +62,7 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   i_dphcut[0] = 15; 
   d_dphcut[0] = 15;
   ss_dphcut[0] = "15";
-  TString  inputfilePirr2="dycut_A12C15";
+  TString  inputfilePirr2="beamdiv_A12C15";
   GetHists(&landau_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res,true,inputfilePirr2);
 
   //neutron
@@ -70,7 +70,7 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   i_dphcut[0] = 15; 
   d_dphcut[0] = 15;
   ss_dphcut[0] = "15";
-  TString inputfileNirr4="dycut_A12C13";
+  TString inputfileNirr4="beamdiv_A12C13";
   GetHists(&landau_map,1, 1, 1,dphcut, Run, i_dphcut, Label, Hist, h_res,true,inputfileNirr4);
 
   TH1F  h_landau[irradiations];
@@ -136,6 +136,7 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   h_landau_orig[0].SetLineStyle(1);
   h_landau_orig[0].SetLineWidth(2);
   h_landau_orig[0].Rebin(2);
+  h_landau_orig[0].Scale(0.5);
   h_landau_orig[0].GetXaxis()->SetLimits(0,1000.);
   h_landau_orig[0].GetXaxis()->SetMaxDigits(3); //SetNoExponent(true);
   h_landau_orig[0].GetYaxis()->SetRangeUser(0.0001,1.);
@@ -146,10 +147,11 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   h_landau_orig[1].GetXaxis()->SetLimits(0,1000.);
   //h_landau_orig[1].GetYaxis()->SetRangeUser(0.,0.08);
   h_landau_orig[1].Rebin(2);
+  h_landau_orig[1].Scale(0.5);
   h_landau_orig[1].GetYaxis()->SetRangeUser(0.0001,1.);
   h_landau_orig[1].SetLineColor(kGreen+1);
   h_landau_orig[1].SetMarkerColor(kGreen+1);
-  h_landau_orig[1].SetLineStyle(2);
+  h_landau_orig[1].SetLineStyle(1);
   h_landau_orig[1].SetLineWidth(2);
   h_landau_orig[1].GetXaxis()->SetRange(0.,h_landau_orig[1].GetNbinsX()+1);
   //  h_landau_orig[1].GetXaxis()->SetNoExponent(true);
@@ -163,8 +165,9 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   h_landau_orig[2].SetLineColor(kMagenta);
   h_landau_orig[2].SetMarkerColor(kMagenta);
   h_landau_orig[2].Rebin(2);
+  h_landau_orig[2].Scale(0.5);
   h_landau_orig[2].SetLineWidth(2);
-  h_landau_orig[2].SetLineStyle(3);
+  h_landau_orig[2].SetLineStyle(1);
   //  h_landau_orig[2].GetXaxis()->SetNoExponent(true);
   h_landau_orig[2].Draw("histesame");
 
@@ -243,7 +246,8 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
 
 
 
-  TH1F  h_resq[irradiations];   
+  TH1F  h_resq[irradiations];
+  TH1F  h_resq_orig[irradiations];
   //  TH1F  h_resq[irradiations];
   for(int i=0; i<irradiations; i++)
     {
@@ -254,6 +258,7 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
 	  if(print)               cout << " found map " << endl;
 	  if(print)               cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
 	  h_resq[i] = *it2->second;
+	  h_resq_orig[i] = *it2->second;
 	  cout << "integral " << h_resq[i].Integral() << endl;
 	  //	  landau90[i]= 0.9*h_resq[i].Integral();
 	  h_resq[i].Scale(1./h_resq[i].Integral());
@@ -401,6 +406,12 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
 
 
     /////// non log version
+  Double_t perc[irradiations];
+  Double_t rmserr[irradiations];
+  Double_t minX[irradiations];
+  Double_t maxX[irradiations];
+  Double_t RMS[irradiations];
+  for( int i = 0 ; i < irradiations; i ++)  FitTH1(&(h_resq_orig[i]), &(RMS[i]), &(rmserr[i]),runs[i]+"_", "A", "B", "C", "RMSself", &(perc[i]),&(minX[i]),&(maxX[i]));
 
   
   TCanvas *cresph2 = new TCanvas("cresph2", "FDB resolution", 600, 600);
@@ -416,14 +427,9 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
   int colors[irradiations]={1,417,616};
-  Double_t minrange[irradiations]={-0.0233376*1000.,-0.0466377*1000, -0.0342384*1000};
-  Double_t maxrange[irradiations]={0.024754*1000.,0.0439273*1000,0.0345828*1000};
     
   Float_t Mean[irradiations];
-  Float_t RMS[irradiations];
 
-  TString Mean_ss[irradiations];
-  TString RMS_ss[irradiations];
 
   TLegend* legB = new TLegend(0.25,0.85,0.4,0.88);
   legB->SetLineColor(0);
@@ -444,14 +450,13 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
     h_resq[i].SetLineColor(color[i]);
     h_resq[i].SetLineStyle(1+i);
     h_resq[i].SetLineWidth(2);
-    h_resq[i].GetXaxis()->SetRangeUser(minrange[i],maxrange[i]);
+    h_resq[i].GetXaxis()->SetRangeUser(minX[i],maxX[i]);
     h_resq[i].GetYaxis()->SetRangeUser(0.,0.35);
     
     h_resq[i].Draw("histesames");
     cresph->Update();
     cout << " changed range " <<endl;
     Mean[i]=h_resq[i].GetMean();
-    RMS[i]=h_resq[i].GetRMS();
     cout << " mean " << Mean[i] << endl;
     cout << " rms "<< RMS[i] << endl;
 
@@ -462,15 +467,18 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
     std::stringstream stream_r;
     stream_r << std::fixed << std::setprecision(2) << RMS[i];
     std::string s_r = stream_r.str();
-
-    //Mean_ss[i].Form("%f",Mean[i]);
-    //    RMS_ss[i].Form("%f",RMS[i]);
+    std::stringstream stream_p;
+    stream_p << std::fixed << std::setprecision(1) << perc[i]*100;
+    std::string s_p = stream_p.str();
+    
     if(i!=0)  gPad->Modified();
     irr[0] = "Non-irradiated";//, 120 V"; // "no irr, 5.6 GeV";
     irr[1] = "#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton";//, 800 V";
     irr[2] = "#phi_{eq} = 3.6 #times 10^{15} cm^{-2}, neutron";//, 800 V";
 
-    legresq2->AddEntry(&(h_resq[i]),irr[i]+", #mu = "+s_m+" #mum, RMS = "+s_r+" #mum","le");
+    legresq2->AddEntry(&(h_resq[i]),irr[i],"le"); // +", #mu = "+s_m+" #mum, RMS = "+s_r+" #mum, tracks: "+s_p+" %","le");
+    irr[i] = "";
+    legresq2->AddEntry(&(h_resq[i]),irr[i]+"#mu = "+s_m+" #mum, RMS = "+s_r+" #mum, tracks: "+s_p+" %","");
     h_resq[i].GetXaxis()->SetRangeUser(-50.,50.);
 
   }
@@ -482,25 +490,25 @@ void controlPlots_forPaper(TString name = "preliminary_TreeCorr")
 
 
   for (int i = 0 ; i < irradiations; i ++){
-    TLine *  linemin = new TLine( minrange[i],0.,minrange[i],0.2);
+    TLine *  linemin = new TLine( minX[i],0.,minX[i],0.2);
     linemin->SetLineColor(color[i]);
     linemin->SetLineWidth(2);
     linemin->SetLineStyle(1+i);
     linemin->Draw("same");
 
-    TArrow *armin = new TArrow(minrange[i],0.1,minrange[i]+6,0.1,0.03,"|>"); //,"<|");
+    TArrow *armin = new TArrow(minX[i],0.1,minX[i]+6,0.1,0.03,"|>"); //,"<|");
     armin->SetLineColor(color[i]);
     armin->SetFillColor(color[i]);
     armin->SetAngle(30);
     armin->Draw();
 
-    TLine *  linemax = new TLine( maxrange[i],0.,maxrange[i],0.2);
+    TLine *  linemax = new TLine( maxX[i],0.,maxX[i],0.2);
     linemax->SetLineColor(color[i]);
     linemax->SetLineWidth(2);
     linemax->SetLineStyle(1+i);
     linemax->Draw("same");
 
-    TArrow *armax = new TArrow(maxrange[i],0.1,maxrange[i]-6,0.1,0.03,"|>"); //,"<|");
+    TArrow *armax = new TArrow(maxX[i],0.1,maxX[i]-6,0.1,0.03,"|>"); //,"<|");
     armax->SetLineColor(color[i]);
     armax->SetFillColor(color[i]);
     armax->SetAngle(30);
