@@ -117,7 +117,7 @@ void ExtractRes(Double_t *  sigma, Double_t *  sigmaerr, bool isIRR = false, Dou
 
 }
 
-void FitTH1(TH1* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TString detectorA, TString detectorB, TString detectorC, TString func, Double_t * percentage, Double_t nsigma = 6)
+void FitTH1(TH1* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TString detectorA, TString detectorB, TString detectorC, TString func, Double_t * percentage, Double_t *min, Double_t * max, Double_t nsigma = 6)
 {
   cout << " evaluating resolution with method " << func << endl;
   gROOT->SetStyle("Plain");
@@ -340,6 +340,9 @@ void FitTH1(TH1* h1, Double_t *  sigma, Double_t *  sigmaerr, TString name, TStr
     // Self consistent RMS in n RMS
     ///////////////////////////////
     h1->GetXaxis()->SetRangeUser(x1,x2);
+    *min = x1*1000;
+    *max = x2*1000;
+    cout << " min " << *min << " max " << *max << endl;
     cout << "Getting RMS " << endl;
     *sigma = h1->GetRMS() * 1000;
     *sigmaerr = h1->GetRMSError() * 1000;
