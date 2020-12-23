@@ -105,7 +105,7 @@ Int_t evt;
 Int_t nclustA;
 Int_t nclustB;
 Int_t nclustC;
-
+std::vector<double> pxphBtree;
 
 
 TH1I * hdx3_clchargeABC90evR; // = new TH1I("dx3_clchargeABC90evR ", "triplet dx_clchargeABC90evR ; dx [mm];triplets", 500, -0.5, 0.5 ); //Cut at 90% events in Landau (only high tail)
