@@ -38,7 +38,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
 
   TString filenames[irradiations];
   filenames[0] = "Mscan_163_RMSself_resTree.txt";
-  filenames[1] = "Mscan_130i_RMSself_resTree_dycut_A32C42.txt"; 
+  filenames[1] = "Mscan_130i_RMSself_resTree_beamdiv_A32C42.txt"; 
 
   double mom_0[momsNONirr];
   double mom_1[momsPirr2];
@@ -247,7 +247,178 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   cFDB2->SaveAs(outname+".root");
   cFDB2->SaveAs(outname+".C");
 
+  // -----------------------------------------------------------------------
+  double mom1_0[momsNONirr];
+  double mom1_1[momsPirr2];
+  double mom2_0[momsNONirr];
+  double mom2_1[momsPirr2];
+  double momerr2_0[momsNONirr];
+  double momerr2_1[momsPirr2];
 
+  double res2_0[momsNONirr];
+  double res2_1[momsPirr2];
+
+  double reserr2_0[momsNONirr];
+  double reserr2_1[momsPirr2];
+  
+  cout << " non irr " << endl;
+  for(int i=0; i<momsNONirr; i++){
+      mom1_0[i]=1./mom_0[i];
+      mom2_0[i]=mom1_0[i]*mom1_0[i];
+      momerr2_0[i]=momerr_0[i]*2*TMath::Power(mom1_0[i],3);
+      res2_0[i]=res_0[i]*res_0[i];
+      reserr2_0[i]=2*reserr_0[i]*res_0[i];
+      if(print) cout << "Energy^2 " << mom_0[i] << ": " << mom2_0[i] << " GeV^2 -> Resolution: " << res2_0[i] << " and res err: " << reserr2_0[i] << endl;
+  }
+
+  cout << " prot irr " << endl;
+  for(int i=0; i<momsPirr2; i++){
+      mom1_1[i]=1./mom_1[i];
+      mom2_1[i]=mom1_1[i]*mom1_1[i];
+      momerr2_1[i]=momerr_1[i]*2*TMath::Power(mom1_1[i],3);
+      res2_1[i]=res_1[i]*res_1[i];
+      reserr2_1[i]=2*reserr_1[i]*res_1[i];
+      if(print) cout << "Energy^2 " << mom_1[i] << ": " << mom2_1[i] << " GeV^2 -> Resolution: " << res2_1[i] << " and res err: " << reserr2_1[i] << endl;
+  }
+
+  
+
+  TCanvas *c42 = new TCanvas("c42", "resolution vs inverse beam energy squared", 1000, 700); //1500,900                                                                                                                                       
+  c42->SetLeftMargin(0.1);
+  c42->SetRightMargin(0.05);
+  c42->SetTopMargin(0.05);
+  c42->SetBottomMargin(0.2);
+
+  gPad->SetTicks(1,1);
+  gStyle->SetOptStat(0);
+  gStyle->SetOptFit(0);
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(18);
+
+
+  TGraphErrors* resolutionPlotInvSquare[irradiations];
+
+  resolutionPlotInvSquare[0] = new TGraphErrors(momsNONirr,mom2_0,res2_0,momerr2_0,reserr2_0);
+  resolutionPlotInvSquare[1] = new TGraphErrors(momsPirr2,mom2_1,res2_1,momerr2_1,reserr2_1);
+
+  resolutionPlotInvSquare[0]->SetTitle(" ");
+  resolutionPlotInvSquare[0]->GetYaxis()->SetTitle("#sigma_{x}^{2} [#mum^{2}]");
+  resolutionPlotInvSquare[0]->GetXaxis()->SetTitle("p_{beam}^{2} [GeV^{2}]");
+
+  resolutionPlotInvSquare[0]->GetYaxis()->SetTitleFont(43);
+  resolutionPlotInvSquare[0]->GetYaxis()->SetTitleSize(20); // labels will be 14 pixels                                                                                                                                  
+  resolutionPlotInvSquare[0]->GetYaxis()->SetTitleOffset(1.2); // labels will be 14 pixels                                                                                                                               
+
+  resolutionPlotInvSquare[0]->GetYaxis()->SetLabelFont(43);
+  resolutionPlotInvSquare[0]->GetYaxis()->SetLabelSize(20); // labels will be 14 pixels                                                                                                                                  
+
+  resolutionPlotInvSquare[0]->GetXaxis()->SetLabelFont(43);
+  resolutionPlotInvSquare[0]->GetXaxis()->SetLabelSize(20); // labels will be 14 pixels                                                                                                                                  
+  resolutionPlotInvSquare[0]->GetXaxis()->SetTitleOffset(1.2); // labels will be 14 pixels                                                                                                                               
+
+  resolutionPlotInvSquare[0]->GetXaxis()->SetTitleFont(43);
+  resolutionPlotInvSquare[0]->GetXaxis()->SetTitleSize(20); // labels will be 14 pixels                                                                                                                                  
+
+  resolutionPlotInvSquare[0]->SetMarkerSize(1.);
+  resolutionPlotInvSquare[0]->SetMarkerColor(kBlack);
+  resolutionPlotInvSquare[0]->SetLineColor(kBlack);
+  resolutionPlotInvSquare[0]->SetMarkerStyle(20);
+  resolutionPlotInvSquare[0]->GetXaxis()->SetLimits(0.,7.);
+  resolutionPlotInvSquare[0]->GetYaxis()->SetRangeUser(0.,25.);
+  resolutionPlotInvSquare[0]->Draw("AEP");
+  resolutionPlotInvSquare[1]->GetYaxis()->SetRangeUser(0.,20.);
+  resolutionPlotInvSquare[1]->SetMarkerSize(1.);
+  resolutionPlotInvSquare[1]->SetMarkerColor(kGreen+1);
+  resolutionPlotInvSquare[1]->SetLineColor(kGreen+1);
+  resolutionPlotInvSquare[1]->SetMarkerStyle(21);
+  resolutionPlotInvSquare[1]->Draw("EPsame");
+
+
+  
+  resolutionPlotInvSquare[0]->GetYaxis()->SetRangeUser(0.,200.);
+  resolutionPlotInvSquare[0]->GetXaxis()->SetLimits(0.,0.6);
+
+  TF1 *fit32 = new TF1("fit32","pol1", 0., 0.45);
+  fit32->SetLineColor(kGray);
+  fit32->SetParName(0,"#sigma_{intr}^{2}");
+  fit32->SetParName(1,"#sigma_{MS}^{2}");
+
+  resolutionPlotInvSquare[0]->Fit("fit32","R");
+  ostringstream strfit2[2];
+  TString ss_fit2[2];
+  ostringstream strfit_err2[2];
+  TString ss_fit_err2[2];
+
+
+  TF1 *fitI = new TF1("fitI","pol1", 0., 0.5);
+  fitI->SetLineColor(kOrange);
+  fitI->SetParName(0,"#sigma_{intr}^{2}");
+  fitI->SetParName(1,"#sigma_{MS}^{2}");
+
+  resolutionPlotInvSquare[1]->Fit("fitI","R");
+  ostringstream strfitI[2];
+  TString ss_fitI[2];
+  ostringstream strfit_errI[2];
+  TString ss_fit_errI[2];
+
+
+  for(int i=0; i<2;i++)
+    {
+      strfit2[i] << fixed <<setprecision(1) << sqrt(fit32->GetParameter(i));
+      ss_fit2[i]=strfit2[i].str();
+      strfit_err2[i] << setprecision(1) << 0.5*fit32->GetParError(i)/sqrt(fit32->GetParameter(i));
+      ss_fit_err2[i]=strfit_err2[i].str();
+
+      strfitI[i] << fixed <<setprecision(1) << sqrt(fitI->GetParameter(i));
+      ss_fitI[i]=strfitI[i].str();
+      strfit_errI[i] << setprecision(1) << 0.5*fitI->GetParError(i)/sqrt(fitI->GetParameter(i));
+      ss_fit_errI[i]=strfit_errI[i].str();
+
+    }
+
+
+
+  TLegend* lgI2 = new TLegend(0.58,0.5,0.88,0.8);
+  lgI2->SetLineColor(0);
+  lgI2->AddEntry(resolutionPlotInvSquare[0],"Optimal incidence angle","");
+  lgI2->AddEntry(resolutionPlotInvSquare[0],"Non-irradiated, 120 V","lp");
+  lgI2->AddEntry(fit32,"#sigma_{intr}^{2}+(#sigma_{MS}/momentum)^{2}","l");
+  lgI2->AddEntry(fnotsq,"#sigma_{extr} = ("+ss_fit2[0]+" #pm "+ss_fit_err2[0]+") #mum","");
+  lgI2->AddEntry(resolutionPlotInvSquare[1],"#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton, 600 V","lp");
+  //  lgI2->AddEntry(resolutionPlot[1],"600V, optimal angle","");                                                                                                                                            
+  lgI2->AddEntry(fitI,"#sigma_{intr}^{2}+(#sigma_{MS}/momentum)^{2}","l");
+  lgI2->AddEntry(fnotsqi,"#sigma_{extr} = ("+ss_fitI[0]+" #pm "+ss_fit_errI[0]+") #mum","");
+
+  lgI2->Draw();
+
+  /*
+  TLatex Tl_22;
+  Tl_22.SetTextAlign(12);
+  Tl_22.SetTextSize(0.05);
+  Tl_22.DrawLatexNDC(0.2,0.85,"#sigma_{intr} = ("+ss_fit2[0]+" #pm "+ss_fit_err2[0]+") #mum");
+
+  Tl_22.SetTextSize(0.05);
+  Tl_22.DrawLatexNDC(0.2,0.77,"#sigma_{MS} = ("+ss_fit2[1]+" #pm "+ss_fit_err2[1]+") #mum*GeV");
+
+
+  TLegend* leg42 = new TLegend(0.38,0.25,0.8,0.45);
+  leg42->SetLineColor(0);
+  leg42->SetTextSize(0.04);
+  leg42->SetBorderSize(0);
+                               
+  leg42->AddEntry(resolutionPlotInvSquare[0],"Non-irradiated, 120V, optimal angle" ,"ep");
+  leg42->AddEntry(fit32,"#sigma_{intr}^{2}+(#sigma_{MS}/momentum)^{2}" , "l");
+  leg42->Draw();
+  */
+  c42->Update();
+  //TDR2(c42);                                                                                                                                                                                                                                
+  name = outputDir+"ResolutionSummaryPaper_momScans25Squared_"+name;
+  c42->SaveAs(name+".eps");
+  c42->SaveAs(name+".pdf");
+  c42->SaveAs(name+".png");
+  c42->SaveAs(name+".root");
 
 
 

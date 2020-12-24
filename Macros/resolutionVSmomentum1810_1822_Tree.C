@@ -21,7 +21,7 @@ bool print=true;
 using namespace std;
 #define dphcuts  1
 #define comparisons 1
-
+bool linear=true;
 
 void TDR();
 void TDR2(TCanvas * c_all, int period=0, int pos= 11);
@@ -46,6 +46,8 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
   double BeamEnergyInverseSquareError[BeamEnergies];
   Double_t Resolution[BeamEnergies];
   Double_t Percentage[BeamEnergies];
+  Double_t Min[BeamEnergies];
+  Double_t Max[BeamEnergies];
   
   Double_t ResolutionSquare[BeamEnergies];
   Double_t ResolutionError[BeamEnergies];
@@ -57,7 +59,7 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
   TString inputfile;
   TString  name;
   TH1F * h_res;
-  TString label = "dycut_A32C42";//"closest_A32C42";
+  TString label = "beamdiv_A32C42";//"closest_A32C42";
   Int_t run[BeamEnergies]={1819,1818,1817,1816,1815,1814,1813,1812,1811,1810,1800,1820,1822};
   TString Run[BeamEnergies];
   ostringstream strs[BeamEnergies];
@@ -124,7 +126,7 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
 	  if(print)               cout << " found map " << endl;
 	  if(print)                   cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
 	  
-	  FitTH1(it2->second, &(Resolution[i]), &(ResolutionError[i]), ss_BeamEnergy[i], detectorA, detectorB, detectorC,func,&(Percentage[i]) );
+	  FitTH1(it2->second, &(Resolution[i]), &(ResolutionError[i]), ss_BeamEnergy[i], detectorA, detectorB, detectorC,func,&(Percentage[i]),&(Min[i]),&(Max[i]) );
 	  if(print) cout << "Beam energy " << i<< ": " << ss_BeamEnergy[i] << " GeV -> Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << endl;
 	  ResolutionSquare[i]=Resolution[i]*Resolution[i];
 	  ResolutionErrorSquare[i]=2*ResolutionError[i]*Resolution[i];
@@ -232,29 +234,49 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
   //double freshres_err = 0.02;
 
   //try idea of using non irr mom scan fit function //dycut version
-  double sigma_MS2 = 156.209;
-  double sigma_r2 = 6.24228;
+  double sigma_MS2 = 155.455;
+  double sigma_r2 = 6.00027;
+  TF1 *fnotsq_nonirr;
+  if(linear==true){
+    fnotsq_nonirr = new TF1("fnotsq","pol1", 0., 7.);
+    fnotsq_nonirr->SetParameter(0,sigma_r2);
+    fnotsq_nonirr->SetParameter(1,sigma_MS2);
 
-  TF1 *fnotsq_nonirr = new TF1("fnotsq","TMath::Sqrt([0]+[1]/(x*x))", 0., 7.);
-  fnotsq_nonirr->SetParameter(0,sigma_r2);
-  fnotsq_nonirr->SetParameter(1,sigma_MS2);
+  }else{
+    
+    fnotsq_nonirr = new TF1("fnotsq","TMath::Sqrt([0]+[1]/(x*x))", 0., 7.);
+    fnotsq_nonirr->SetParameter(0,sigma_r2);
+    fnotsq_nonirr->SetParameter(1,sigma_MS2);
+  }
   
-  
-  
+  double freshres,freshres_plus,freshres_minus,freshres_err;
   for(int i=0; i<BeamEnergies; i++)
     {
-
-      double freshres = fnotsq_nonirr->Eval(BeamEnergy[i]);
-      cout << " fresh "<< freshres << endl;
-      double freshres_plus=fnotsq_nonirr->Eval(BeamEnergy[i]+BeamEnergyError[i]); 
-      double freshres_minus=fnotsq_nonirr->Eval(BeamEnergy[i]-BeamEnergyError[i]);
-      cout << " plus "<< freshres_plus << endl;
-      cout << " minus "<< freshres_minus << endl;
-
-
-      double freshres_err = std::max(abs(freshres-freshres_plus),abs(freshres_minus-freshres));
-      cout << "err "<< freshres_err << endl;
+      if(linear==true){
+	freshres = fnotsq_nonirr->Eval(BeamEnergyInverseSquare[i]);
+	cout << " fresh "<< freshres << endl;
+	freshres_plus=fnotsq_nonirr->Eval(1./((BeamEnergy[i]+BeamEnergyError[i])*(BeamEnergy[i]+BeamEnergyError[i]))); 
+	freshres_minus=fnotsq_nonirr->Eval(1./((BeamEnergy[i]-BeamEnergyError[i])*(BeamEnergy[i]-BeamEnergyError[i])));
+	cout << " plus "<< freshres_plus << endl;
+	cout << " minus "<< freshres_minus << endl;
+	freshres_err = std::max(abs(freshres-freshres_plus),abs(freshres_minus-freshres));
+        cout << "err "<< freshres_err << endl;
+	freshres_err=0.5*(1./(TMath::Sqrt(TMath::Power(freshres,3))))*TMath::Sqrt(freshres);
+	freshres=TMath::Sqrt(freshres);
 	
+      }else{
+	freshres = fnotsq_nonirr->Eval(BeamEnergy[i]);
+	cout << " fresh "<< freshres << endl;
+	freshres_plus=fnotsq_nonirr->Eval(BeamEnergy[i]+BeamEnergyError[i]);
+	freshres_minus=fnotsq_nonirr->Eval(BeamEnergy[i]-BeamEnergyError[i]);
+	cout << " plus "<< freshres_plus << endl;
+	cout << " minus "<< freshres_minus << endl;
+	freshres_err = std::max(abs(freshres-freshres_plus),abs(freshres_minus-freshres));
+	cout << "err "<< freshres_err << endl;
+
+      }
+
+      
       if(print) cout << "Energy " << i<< ": " << ss_BeamEnergy[i] << " GeV -> Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << endl;
       ExtractRes(&(Resolution[i]),&(ResolutionError[i]),true, freshres, freshres_err);
       myfile2 << ss_BeamEnergy[i] << " " << Resolution[i] << " " << ResolutionError[i] << "\n";
@@ -423,7 +445,7 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
   //  TF1 *fnotsq = new TF1("fnotsq","TMath::Sqrt([0]+[1]/(x*x))", 1.3,7.); // 0., 7.);
   TF1 *fnotsq = new TF1("fnotsq","TMath::Sqrt([0]+[1]/(x*x))", 0.,7.); // 0., 7.);
   fnotsq->SetLineColor(kBlue);
-  fnotsq->SetParName(0,"#sigma_{hit}^{2}");
+  fnotsq->SetParName(0,"#sigma_{extr}^{2}");
   fnotsq->SetParName(1,"#sigma_{MS}^{2}");
   fnotsq->SetParLimits(0,0,30);
   cout << " par 0 " << endl;
@@ -455,7 +477,7 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
   TLatex Tl_44;
   Tl_44.SetTextAlign(12);
   Tl_44.SetTextSize(0.05);
-  Tl_44.DrawLatexNDC(0.15,0.35,"#sigma_{intr} = ("+ss_fit4[0]+" #pm "+ss_fit_err4[0]+") #mum");
+  Tl_44.DrawLatexNDC(0.15,0.35,"#sigma_{extr} = ("+ss_fit4[0]+" #pm "+ss_fit_err4[0]+") #mum");
 
   Tl_44.SetTextSize(0.05);
   Tl_44.DrawLatexNDC(0.15,0.27,"#sigma_{MS} = ("+ss_fit4[1]+" #pm "+ss_fit_err4[1]+") #mum*GeV");
@@ -471,7 +493,7 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
   leg42f->AddEntry(resolutionPlotInvSquare,"#phi_{eq} = 2.1 #times10^{15} cm^{-2}, proton" ,"ep");
   leg42f->AddEntry(resolutionPlotInvSquare,"600V, optimal angle" ,"");
   
-  leg42f->AddEntry(fit32,"#sqrt{#sigma_{intr}^{2}+(#sigma_{MS}/momentum)^{2}}" , "l");
+  leg42f->AddEntry(fit32,"#sqrt{#sigma_{extr}^{2}+(#sigma_{MS}/momentum)^{2}}" , "l");
   leg42f->Draw();
 
 

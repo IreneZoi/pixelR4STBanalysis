@@ -49,12 +49,14 @@ void resolutionVSmomentum2832_2840_Tree(TString func = "RMSself")
   Double_t ResolutionError[BeamEnergies];
   Double_t ResolutionErrorSquare[BeamEnergies];
   Double_t Percentage[BeamEnergies];
+  Double_t Min[BeamEnergies];
+  Double_t Max[BeamEnergies];
   TString ss_BeamEnergy[BeamEnergies];
   
   TString inputDir="/home/zoiirene/Output/";
   TString outputDir="/home/zoiirene/Output/Plots/";
   TString inputfile;
-  TString label = "dycut_A11C12";//"closest2_A11C12";
+  TString label = "beamdiv_A11C12";//"closest2_A11C12";
   TH1F * h_res;
 
   //Int_t run[BeamEnergies]={2837,2836,2835,2834,2833,2840,2838};
@@ -131,7 +133,7 @@ void resolutionVSmomentum2832_2840_Tree(TString func = "RMSself")
 	  if(print)               cout << " found map " << endl;
 	  if(print)                   cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
 	  
-	  FitTH1(it2->second, &(Resolution[i]), &(ResolutionError[i]), ss_BeamEnergy[i], detectorA, detectorB, detectorC,func,&(Percentage[i]) );
+	  FitTH1(it2->second, &(Resolution[i]), &(ResolutionError[i]), ss_BeamEnergy[i], detectorA, detectorB, detectorC,func,&(Percentage[i]),&(Min[i]),&(Max[i]) );
 	  if(print) cout << "Beam energy " << i<< ": " << ss_BeamEnergy[i] << " GeV -> Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << endl;
 	  ResolutionSquare[i]=Resolution[i]*Resolution[i];
 	  ResolutionErrorSquare[i]=2*ResolutionError[i]*Resolution[i];
@@ -306,6 +308,12 @@ void resolutionVSmomentum2832_2840_Tree(TString func = "RMSself")
   resolutionPlotInvSquare->Fit("fit32","R");
   resolutionPlotInvSquare->Draw("AEP");
 
+  cout << " ******************** linear fit results ********************" << endl;
+  cout << "#sigma_{intr}^{2} "<< fit32->GetParameter(0) << endl;
+  cout << "#sigma_{MS}^{2} "<<fit32->GetParameter(1)	<< endl;
+
+
+  
   // TPaveStats * ps = (TPaveStats *)fit1->FindObject("stats");
   // ps->SetX1NDC(0.2);
   // ps->SetX2NDC(0.2);
