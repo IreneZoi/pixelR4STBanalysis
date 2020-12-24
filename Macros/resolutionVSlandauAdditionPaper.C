@@ -36,6 +36,8 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
   Double_t TanAngleError[Angles];
   Double_t Resolution[Angles][Cuts];
   Double_t Percentage[Angles][Cuts];
+  Double_t Min[Angles][Cuts];
+  Double_t Max[Angles][Cuts];
   Double_t Ncol[Angles];
   Double_t NcolError[Angles];
   Double_t ResolutionError[Angles][Cuts];
@@ -47,7 +49,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
 
   TString inputDir="/home/zoiirene/Output/";
   TString outputDir="/home/zoiirene/Output/Plots/";
-  TString label = "dycut_A13C14";
+  TString label = "beamdiv_A13C14";
   TString ss_dphcut = "12";
   TString ss_perc[Cuts];
   double sigma[Angles][Cuts] ;
@@ -279,7 +281,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
     sigmaerr[i][k] = hdx3ph[k]->GetRMSError() * 1000;
 
     cout << " RMS " << sigma[i][k] << " ± " << sigmaerr[i][k] << endl;
-    FitTH1(hdx3ph[k], &(sigma[i][k]), &(sigmaerr[i][k]), ss_perc[k], detectorA, detectorB, detectorC, function,&(Percentage[i][k]) );
+    FitTH1(hdx3ph[k], &(sigma[i][k]), &(sigmaerr[i][k]), ss_perc[k], detectorA, detectorB, detectorC, function,&(Percentage[i][k]),&(Min[i][k]),&(Max[i][k]) );
     cout << " Fresh " << freshresA[i] << endl;
     ExtractRes(&(sigma[i][k]), &(sigmaerr[i][k]), true,freshresA[i],freshresA_err[i]);
 

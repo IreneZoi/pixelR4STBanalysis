@@ -30,11 +30,11 @@ void resolutionVSlandauAddition_Pirr(TString function = "RMSself"){
   TString labelB="Pstop_default_FTH, 800V, thr 15 ADC";
   TString labelC="Pspray_RD53Apads_FDB, thr 12 ADC";
   TString info = "beam energy 5.6 GeV";
-  TString testname="dycut_A12C15";
+  TString testname="beamdiv_A12C15";
   TString inputDir="/home/zoiirene/Output/";
   TString outputDir="/home/zoiirene/Output/Plots/";
 
-  TString testnameUnf="RMSselfiso600_dycut_A13C14"; //RMSself6sig_closest_A13C14_bestnonirr";
+  TString testnameUnf="RMSselfiso600_beamdiv_A13C14"; //RMSself6sig_closest_A13C14_bestnonirr";
   TString  filenames = "Ascan_resTree_148_dphcutB12_"+testnameUnf+".txt";
   filenames      = inputDir+"/TextFiles/"+filenames;
   cout << filenames << endl;
@@ -88,13 +88,15 @@ void resolutionVSlandauAddition_Pirr(TString function = "RMSself"){
   TString Run[Angles];
   ostringstream strs[Angles];
 
-  TString label = "dycut_A12C15";
+  TString label = "beamdiv_A12C15";
 
   TString ss_dphcut = "15";
   TString ss_perc[Cuts];
   double sigma[Angles][Cuts] ;
   double sigmaerr[Angles][Cuts] ;
   double Percentage[Angles][Cuts] ;
+  double Min[Angles][Cuts] ;
+  double Max[Angles][Cuts] ;
   
   int high[Angles][Cuts];
   TString inputfile;
@@ -295,7 +297,7 @@ void resolutionVSlandauAddition_Pirr(TString function = "RMSself"){
   sigmaerr[i][k] = hdx3ph[k]->GetRMSError() * 1000;
 
   cout << " RMS " << sigma[i][k] << " ± " << sigmaerr[i][k] << endl;
-  FitTH1(hdx3ph[k], &(sigma[i][k]), &(sigmaerr[i][k]), ss_perc[k], detectorA, detectorB, detectorC, function,&(Percentage[i][k]) );
+  FitTH1(hdx3ph[k], &(sigma[i][k]), &(sigmaerr[i][k]), ss_perc[k], detectorA, detectorB, detectorC, function,&(Percentage[i][k]),&(Min[i][k]),&(Max[i][k]) );
   ExtractRes(&(sigma[i][k]), &(sigmaerr[i][k]), true,freshresA[i],freshresA_err[i]);
   cout << " RES " << sigma[i][k] << " ± " << sigmaerr[i][k] << endl;
 
