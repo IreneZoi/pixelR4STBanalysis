@@ -45,14 +45,16 @@ void resolutionVSthr194n800_TreeEntries(TString func = "RMSself")
   
   Double_t Resolution[Angles][BiasVoltages];
   Double_t Percentage[Angles][BiasVoltages];
+  Double_t Min[Angles][BiasVoltages];
+  Double_t Max[Angles][BiasVoltages];
   Double_t ResolutionError[Angles][BiasVoltages];
   TString ss_BiasVoltage[BiasVoltages];
   
   TString inputDir="/home/zoiirene/Output/TextFiles/";
   TString outputDir="/home/zoiirene/Output/Plots/";
   TString inputfile;
-  TString testname="dycut_A12C13"; //"closest_A12C13";
-  TString testnameUnf="RMSself_dycut_A13C14";
+  TString testname="beamdiv_A12C13"; //"closest_A12C13";
+  TString testnameUnf="RMSself_beamdiv_A13C14";
   
   TH1F * h_res;
 
@@ -170,7 +172,7 @@ void resolutionVSthr194n800_TreeEntries(TString func = "RMSself")
 		if(print)               cout << " found map " << endl;
 		if(print)                   cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
 
-		FitTH1(it2->second, &(Resolution[j][3]), &(ResolutionError[j][3]), ss_Angle[j]+"_"+ss_BiasVoltage[3]+"_dphcutB"+ss_dphcut[k], detectorA, detectorB, detectorC,func,&(Percentage[3][j]) );
+		FitTH1(it2->second, &(Resolution[j][3]), &(ResolutionError[j][3]), ss_Angle[j]+"_"+ss_BiasVoltage[3]+"_dphcutB"+ss_dphcut[k], detectorA, detectorB, detectorC,func,&(Percentage[3][j]),&(Min[3][j]),&(Max[3][j]) );
 		if(print) cout << ss_BiasVoltage[3] << " GeV -> Resolution: " << Resolution[j][3] << " and res err: " << ResolutionError[j][3] << endl;
 		      }else{
 	      cout << "********************               not found map " << Run[j][3]+"_"+Label[0] << " hist " << Hist << endl;

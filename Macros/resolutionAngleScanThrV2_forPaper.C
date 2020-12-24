@@ -60,10 +60,10 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
   filenames_pt1[2] = "Ascan_194i_dphcutB"; 
   filenames_pt1[3] = "AScanTreeCorr_194i_5p6_RMSself_800_bestAngle_res_dphcut"; // 6_thrScan_A12C13.txt
   TString filenames_pt2[irradiations+1];
-  filenames_pt2[0] = "_RMSselfiso600_dycut_A13C14.txt"; //"_RMSselfthrScan_thrScan_A13C14.txt"; 
-  filenames_pt2[1] = "_RMSself_dycut_A12C15_RMSselfiso600_dycut_A13C14.txt"; //"_RMSself_RMSself6sig_closest_A13C14_bestnonirr.txt"; 
-  filenames_pt2[2] = "_RMSself_800_resTreeCorr_dycut_A12C13.txt"; // thrScan_A12C13.txt"; //5.2 GeV
-  filenames_pt2[3] = "_dycut_A12C13.txt";
+  filenames_pt2[0] = "_RMSselfiso600_beamdiv_A13C14.txt"; //"_RMSselfthrScan_thrScan_A13C14.txt"; 
+  filenames_pt2[1] = "_RMSself_beamdiv_A12C15_RMSselfiso600_beamdiv_A13C14.txt"; //"_RMSself_RMSself6sig_closest_A13C14_bestnonirr.txt"; 
+  filenames_pt2[2] = "_RMSself_800_resTreeCorr_beamdiv_A12C13.txt"; // thrScan_A12C13.txt"; //5.2 GeV
+  filenames_pt2[3] = "_beamdiv_A12C13.txt";
 
   TString filenames2_pt1[irradiations+1];
   filenames2_pt1[0] = "Ascan_clsizeB_148_dphcutB";
@@ -72,10 +72,10 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
   filenames2_pt1[3] = "ThrScan_clsizeB_194i_800_dphcuts"; 
   
   TString filenames2_pt2[irradiations+1];
-  filenames2_pt2[0] = "_RMSself_dycut_A13C14_ABC90.txt"; //"_RMSself_thrScan_A13C14.txt";
-  filenames2_pt2[1] = "_RMSself_dycut_A12C15_ABC90.txt";//"__RMSself_thrScan_A12C15.txt";
-  filenames2_pt2[2] = "_800_dycut_A12C13_ABC90.txt"; //"_800_thrScan_A12C13.txt";
-  filenames2_pt2[3] = "_bestAngle_5p6_dycut_A12C13.txt"; //thrScan_A12C13.txt";
+  filenames2_pt2[0] = "_RMSself_beamdiv_A13C14_ABC90.txt"; //"_RMSself_thrScan_A13C14.txt";
+  filenames2_pt2[1] = "_RMSself_beamdiv_A12C15_ABC90.txt";//"__RMSself_thrScan_A12C15.txt";
+  filenames2_pt2[2] = "_800_beamdiv_A12C13_ABC90.txt"; //"_800_thrScan_A12C13.txt";
+  filenames2_pt2[3] = "_bestAngle_5p6_beamdiv_A12C13.txt"; //thrScan_A12C13.txt";
   
   TString irr[irradiations+1];
   irr[0] = " Non-irradiated, 120 V, 5.6 GeV"; // "no irr, 5.6 GeV";

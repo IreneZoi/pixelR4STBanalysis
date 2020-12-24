@@ -45,20 +45,20 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
 
 
   TString filenames[irradiations];
-  filenames[0] = "Ascan_resTree_148_dphcutB12_RMSselfiso600_dycut_A13C14.txt"; //6sig_closest_A13C14_bestnonirr.txt"; 
-  filenames[1] = "Ascan_resTreeCorr_120i_dphcutB15_RMSself_dycut_A12C15_RMSselfiso600_dycut_A13C14.txt"; //RMSself6sig_closest_A13C14_bestnonirr.txt"; // Ascan_resTreeCorr_120i_dphcutB15_RMS.txt"; // Ascan_res_120i_RMS.txt";
-  filenames[2] = "Ascan_194i_dphcutB15_RMSself_800_resTreeCorr_dycut_A12C13.txt"; //_closest_A12C13.txt"; 
+  filenames[0] = "Ascan_resTree_148_dphcutB12_RMSselfiso600_beamdiv_A13C14.txt"; //6sig_closest_A13C14_bestnonirr.txt"; 
+  filenames[1] = "Ascan_resTreeCorr_120i_dphcutB15_RMSself_beamdiv_A12C15_RMSselfiso600_beamdiv_A13C14.txt"; //RMSself6sig_closest_A13C14_bestnonirr.txt"; // Ascan_resTreeCorr_120i_dphcutB15_RMS.txt"; // Ascan_res_120i_RMS.txt";
+  filenames[2] = "Ascan_194i_dphcutB15_RMSself_800_resTreeCorr_beamdiv_A12C13.txt"; //_closest_A12C13.txt"; 
 
 
   TString filenames2[irradiations];
-  filenames2[0] = "Ascan_clsizeB_148_dphcutB12_RMSself_dycut_A13C14_ABC90.txt"; //closest_A13C14_bestnonirr.txt";
-  filenames2[1] = "Ascan_clsizeB_120i_dphcutB15_RMSself_dycut_A12C15_ABC90.txt"; //_RMSself_closest_A12C15_bestproton.txt";
-  filenames2[2] = "Ascan_clsizeB_194i_dphcutB15_800_dycut_A12C13_ABC90.txt"; //closest_A12C13.txt"; //5.2 GeV
+  filenames2[0] = "Ascan_clsizeB_148_dphcutB12_RMSself_beamdiv_A13C14_ABC90.txt"; //closest_A13C14_bestnonirr.txt";
+  filenames2[1] = "Ascan_clsizeB_120i_dphcutB15_RMSself_beamdiv_A12C15_ABC90.txt"; //_RMSself_closest_A12C15_bestproton.txt";
+  filenames2[2] = "Ascan_clsizeB_194i_dphcutB15_800_beamdiv_A12C13_ABC90.txt"; //closest_A12C13.txt"; //5.2 GeV
 
   TString ss_bias[biasScan] = {"200","400","600","800"}; 
   TString filenamesNbias[biasScan];
   for (int i = 0; i< biasScan; i++){
-    filenamesNbias[i] = "Ascan_194i_dphcutB15_RMSself_"+ss_bias[i]+"_resTreeCorr_dycut_A12C13.txt"; //closest_A12C13.txt";
+    filenamesNbias[i] = "Ascan_194i_dphcutB15_RMSself_"+ss_bias[i]+"_resTreeCorr_beamdiv_A12C13.txt"; //closest_A12C13.txt";
     if(print) cout << "files for neutron bias scan " << filenamesNbias[i] << endl;
   }
   
@@ -82,7 +82,7 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
   double res_0[anglesNONirr];
   double res_1[anglesPirr2];
   double res_2[anglesNirr4];
-  double res_3[] = {4.76}; //AScanTreeCorr_194i_5p6_RMSself_800_bestAngle_res_dphcut15_dycut_A12C13.txt  //AScanTreeCorr_194i_5p6_RMSself_800_bestAngle_res_closest_A12C13.txt  (dphcut 15)
+  double res_3[] = {4.76}; //AScanTreeCorr_194i_5p6_RMSself_800_bestAngle_res_dphcut15_beamdiv_A12C13.txt  //AScanTreeCorr_194i_5p6_RMSself_800_bestAngle_res_closest_A12C13.txt  (dphcut 15)
 
   double reserr_0[anglesNONirr];
   double reserr_1[anglesPirr2];
@@ -197,7 +197,7 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
   double clsizeerr_2[anglesNONirr];
   double clsizeerr_1[anglesPirr2];
 
-  double clsize_3[] = {1.8855766}; //mean of nrowB_clphABC90evR in /home/zoiirene/Output/drei-r3839_irene_dphcutB15_dycut_A12C13.root 
+  double clsize_3[] = {1.886}; //mean of nrowB_clphABC90evR in /home/zoiirene/Output/drei-r3839_irene_dphcutB15_beamdiv_A12C13.root 
   double clsizeerr_3[] = {0.002}; //mean error
   double clsize_4[anglesNirr4]; // neutron irr 5.2 GeV
   double clsizeerr_4[anglesNirr4]; //mean error

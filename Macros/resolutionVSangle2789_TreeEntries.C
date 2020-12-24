@@ -30,8 +30,8 @@ void resolutionVSangle2789_TreeEntries(TString function = "RMSself"){
   TString labelB="Pstop_default_FTH, 800V, thr 15 ADC";
   TString labelC="Pspray_RD53Apads_FDB, thr 12 ADC";
   TString info = "beam energy 5.6 GeV";
-  TString testname="dycut_A12C15";//"closest_A12C15_bestproton";
-  TString testnameUnf="RMSselfiso600_dycut_A13C14";//"RMSself6sig_closest_A13C14_bestnonirr";
+  TString testname="beamdiv_A12C15";//"closest_A12C15_bestproton";
+  TString testnameUnf="RMSselfiso600_beamdiv_A13C14";//"RMSself6sig_closest_A13C14_bestnonirr";
   
   Double_t Angle[Angles];
   Double_t AngleError[Angles];
@@ -44,6 +44,8 @@ void resolutionVSangle2789_TreeEntries(TString function = "RMSself"){
   Double_t ResolutionError[Angles];
   Double_t RMSError[Angles];
   Double_t Percentage[Angles];
+  Double_t Max[Angles];
+  Double_t Min[Angles];
   TString ss_Angle[Angles];
   
   TH1F * h_res;//[Angles];
@@ -159,7 +161,7 @@ void resolutionVSangle2789_TreeEntries(TString function = "RMSself"){
 	  if(print)               cout << " found map " << endl;
 	  if(print)                   cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
 
-	  FitTH1(it2->second, &(RMS[i]), &(RMSError[i]), ss_Angle[i]+"_dphcutB"+ss_dphcut[k]+"_", detectorA, detectorB, detectorC, function, &(Percentage[i]));
+	  FitTH1(it2->second, &(RMS[i]), &(RMSError[i]), ss_Angle[i]+"_dphcutB"+ss_dphcut[k]+"_", detectorA, detectorB, detectorC, function, &(Percentage[i]),&(Min[i]),&(Max[i]));
 	  if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> Resolution: " << RMS[i] << " and res err: " << ResolutionError[i] << endl;
 	  myfile << Angle[i] << " "  << RMS[i] << " " << RMSError[i] << "\n";
 	  myentries << Angle[i] << " "  << it2->second->GetEntries() << "\n";

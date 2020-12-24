@@ -41,6 +41,8 @@ void resolutionVSangle2731_TreeEntries(TString function = "RMSself")
   Double_t NcolError[Angles];
   Double_t ResolutionError[Angles];
   Double_t Percentage[Angles];
+  Double_t Min[Angles];
+  Double_t Max[Angles];
   TString ss_Angle[Angles];
   
   TH1F * h_res;//[Angles];
@@ -73,7 +75,7 @@ void resolutionVSangle2731_TreeEntries(TString function = "RMSself")
 
 
   //TString label = "closest_simon"; //tol0p001";
-  TString label = "dycut_A13C14"; //"thrScan_A13C14"; //"closest_A13C14_bestnonirr"; //tol0p001";
+  TString label = "beamdiv_A13C14"; //"dycut_A13C14"; //"thrScan_A13C14"; //"closest_A13C14_bestnonirr"; //tol0p001";
   TString extralabel = "iso600";
   MapTH1 res_map;
   std::map<std::pair<TString, TString>, TH1F *>::iterator it;
@@ -146,7 +148,7 @@ void resolutionVSangle2731_TreeEntries(TString function = "RMSself")
 	  if(print)               cout << " found map " << endl;
 	  if(print)                   cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
 
-	  FitTH1(it2->second, &(Resolution[i]), &(ResolutionError[i]), ss_Angle[i], detectorA, detectorB, detectorC, function, &(Percentage[i]));
+	  FitTH1(it2->second, &(Resolution[i]), &(ResolutionError[i]), ss_Angle[i], detectorA, detectorB, detectorC, function, &(Percentage[i]),&(Min[i]),&(Max[i]));
 	  if(print) cout << "Angle " << i<< ": " << ss_Angle[i] << " degrees -> Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << " Percentage: " << Percentage[i] << endl;
 
 	  myfile << " " << Angle[i] << " " << Resolution[i] << " " << ResolutionError[i] << "\n";

@@ -40,6 +40,8 @@ void resolutionVSthr194n5p6V2(TString func = "RMSself")
   
   Double_t Resolution[Angles][dphcuts];
   Double_t Percentage[Angles][dphcuts];
+  Double_t Min[Angles][dphcuts];
+  Double_t Max[Angles][dphcuts];
   Double_t ResolutionError[Angles][dphcuts];
   TString ss_BiasVoltage[BiasVoltages] = {"800"};
   
@@ -65,7 +67,7 @@ void resolutionVSthr194n5p6V2(TString func = "RMSself")
   TString Label[comparisons] = {"straightTracksY_isoAandCandB_straightTracksX"};
   TString Hist = "dx3_clphABC90evR";
   bool dphcut = true;
-  TString label = "dycut_A12C13"; 
+  TString label = "beamdiv_A12C13"; 
   TH1F * hdx3_clchargeABC90evR[Angles];
   for(int j = 0; j < Angles; j++)
     {
@@ -97,7 +99,7 @@ void resolutionVSthr194n5p6V2(TString func = "RMSself")
 	if(print)               cout << " found map " << endl;
 	if(print)               cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
 	
-	FitTH1(it2->second, &(Resolution[0][i]), &(ResolutionError[0][i]), ss_Angle[0]+"_"+ss_BiasVoltage[0]+"_"+ss_dphcut[l], detectorA, detectorB, detectorC,func,&(Percentage[0][i]) );
+	FitTH1(it2->second, &(Resolution[0][i]), &(ResolutionError[0][i]), ss_Angle[0]+"_"+ss_BiasVoltage[0]+"_"+ss_dphcut[l], detectorA, detectorB, detectorC,func,&(Percentage[0][i]),&(Min[0][i]),&(Max[0][i]) );
 	if(print) cout << "thr " << i<< ": " << ss_dphcut[i] << " ADC -> Resolution: " << Resolution[0][i] << " and res err: " << ResolutionError[0][i] << " with percentage "<< Percentage[0][i] <<  endl;
 	myfile << ss_Angle[i] << " " << Resolution[0][i] << " " << ResolutionError[0][i] << "\n";
       }
@@ -113,7 +115,7 @@ void resolutionVSthr194n5p6V2(TString func = "RMSself")
   
     //////////////          RESOLUTION ///////////////////////
     if(print) cout << "*************    RMS: *************"  << endl;
-    double freshres = 3.86; // Ascan_resTree_148_dphcutB12_RMSself_dycut_A13C14.txt  04/11/2020 deg 12.5
+    double freshres = 3.80; // Ascan_resTree_148_dphcutB12_RMSselfiso600_beamdiv_A13C14.txt  24/12/2020 deg 12.5
     double freshres_err = 0.03;
     ofstream myfileUnf;
 	myfileUnf.open ("/home/zoiirene/Output/TextFiles/AScanTreeCorr_"+detectorB+"_5p6_"+func+"_"+ss_BiasVoltage[0]+"_bestAngle_res_dphcut"+ss_dphcut[l]+"_"+label+".txt");
