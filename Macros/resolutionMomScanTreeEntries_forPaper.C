@@ -283,11 +283,11 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
 
   
 
-  TCanvas *c42 = new TCanvas("c42", "resolution vs inverse beam energy squared", 1000, 700); //1500,900                                                                                                                                       
-  c42->SetLeftMargin(0.1);
+  TCanvas *c42 = new TCanvas("c42", "resolution vs inverse beam energy squared", 600, 600);
+  c42->SetLeftMargin(0.12);
   c42->SetRightMargin(0.05);
   c42->SetTopMargin(0.05);
-  c42->SetBottomMargin(0.2);
+  c42->SetBottomMargin(0.1);
 
   gPad->SetTicks(1,1);
   gStyle->SetOptStat(0);
@@ -295,7 +295,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
   gStyle->SetLegendFont(43);
-  gStyle->SetLegendTextSize(18);
+  gStyle->SetLegendTextSize(12);
 
 
   TGraphErrors* resolutionPlotInvSquare[irradiations];
@@ -309,7 +309,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
 
   resolutionPlotInvSquare[0]->GetYaxis()->SetTitleFont(43);
   resolutionPlotInvSquare[0]->GetYaxis()->SetTitleSize(20); // labels will be 14 pixels                                                                                                                                  
-  resolutionPlotInvSquare[0]->GetYaxis()->SetTitleOffset(1.2); // labels will be 14 pixels                                                                                                                               
+  resolutionPlotInvSquare[0]->GetYaxis()->SetTitleOffset(1.4); // labels will be 14 pixels                                                                                                                               
 
   resolutionPlotInvSquare[0]->GetYaxis()->SetLabelFont(43);
   resolutionPlotInvSquare[0]->GetYaxis()->SetLabelSize(20); // labels will be 14 pixels                                                                                                                                  
@@ -380,15 +380,16 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
 
 
 
-  TLegend* lgI2 = new TLegend(0.58,0.5,0.88,0.8);
-  lgI2->SetLineColor(0);
+  TLegend* lgI2 = new TLegend(0.58,0.51,0.88,0.81);
+  lgI2->SetLineWidth(0);
+  lgI2->SetFillStyle(0);
   lgI2->AddEntry(resolutionPlotInvSquare[0],"Optimal incidence angle","");
   lgI2->AddEntry(resolutionPlotInvSquare[0],"Non-irradiated, 120 V","lp");
-  lgI2->AddEntry(fit32,"#sigma_{intr}^{2}+(#sigma_{MS}/momentum)^{2}","l");
+  lgI2->AddEntry(fit32,"#sigma_{intr}^{2}+(#sigma_{MS}/p_{beam})^{2}","l");
   lgI2->AddEntry(fnotsq,"#sigma_{extr} = ("+ss_fit2[0]+" #pm "+ss_fit_err2[0]+") #mum","");
   lgI2->AddEntry(resolutionPlotInvSquare[1],"#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton, 600 V","lp");
   //  lgI2->AddEntry(resolutionPlot[1],"600V, optimal angle","");                                                                                                                                            
-  lgI2->AddEntry(fitI,"#sigma_{intr}^{2}+(#sigma_{MS}/momentum)^{2}","l");
+  lgI2->AddEntry(fitI,"#sigma_{intr}^{2}+(#sigma_{MS}/p_{beam})^{2}","l");
   lgI2->AddEntry(fnotsqi,"#sigma_{extr} = ("+ss_fitI[0]+" #pm "+ss_fit_errI[0]+") #mum","");
 
   lgI2->Draw();
