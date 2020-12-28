@@ -63,7 +63,7 @@ void resolutionVSlandauAdditionPaper(TString function = "RMSself"){
   TString pitch = "25";
   
   cout << "######## Angle dependent    resolution unfolding       ###########" << endl;
-  TString testnameUnf="RMSselfiso600_dycut_A13C14";
+  TString testnameUnf="RMSselfiso600_beamdiv_A13C14";
   TString  filenames = "Ascan_resTree_148_dphcutB12_"+testnameUnf+".txt";
   filenames      = inputDir+"TextFiles/"+filenames;
   cout << filenames << endl;
