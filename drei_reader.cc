@@ -659,6 +659,164 @@ int main( int argc, char* argv[] )
       }
 
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ ////////////////                A-B cluster correlations:    //////////////////////////
+       if(PRINT) cout << "entering AB correlation loop " << endl;
+       int nm = 0;
+
+       //      for( vector<cluster>::iterator cA = vclA.begin(); cA != vclA.end(); ++cA )
+       for( int cA=0; cA < vclA.size(); ++cA ){
+
+ 	  double xA = xcoordinate2(0, vclA[cA], alignxA, ptchc, ptchr);
+ 	  double yA = ycoordinate2(0, vclA[cA], alignyA, ptchc, ptchr);
+
+ 	  double xAr = xA*cfA - yA*sfA;
+ 	  double yAr = xA*sfA + yA*cfA;
+
+ 	  hxA->Fill( xAr );
+ 	  hyA->Fill( yAr );
+ 	  if( vclA[cA].iso )
+ 	    {
+ 	      hxAi->Fill( xAr );
+ 	      hyAi->Fill( yAr );
+ 	      hclqAi->Fill( vclA[cA].q );
+ 	    }
+
+ 	  for( int cB=0; cB < vclB.size(); ++cB ){
+
+ 	    //	  for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB ) {
+ 	      double xB = xcoordinate2(1, vclB[cB], 0, ptchc, ptchr);
+ 	      double yB = ycoordinate2(1, vclB[cB], 0, ptchc, ptchr);
+
+ 	      hxxAB->Fill( xAr, xB );
+ 	      hyyAB->Fill( yAr, yB );
+
+ 	      double dx = xAr - xB;
+ 	      double dy = yAr - yB;
+
+
+ 	      double dxy = sqrt( dx*dx + dy*dy );
+ 	      /*
+ 	      //finn  closest:  update if closer
+ 	      if( dxy < AMatchB.at(cA).distance ){
+ 		AMatchB.at(icA).index = icB;
+ 		AMatchB.at(icA).distance = dxy;
+ 		cout << "index cA " << icA << " index cB " << icB << " distance A-B " << AMatchB.at(icA).distance << " dxy " << dxy << endl;
+ 	      }
+
+ 	      if( dxy < BMatchA.at(icB).distance ){
+ 		BMatchA.at(icB).index = icA;
+ 		BMatchA.at(icB).distance = dxy;
+ 		cout << "index cA " << icA << " index cB " << icB << " distance B-A " << BMatchA.at(icB).distance << " dxy " << dxy << endl;
+ 	      }
+ 	      cout << " index A " << icA << " index cB " << icB <<  " distance dxy " << dxy << endl;
+
+ 	      */
+ 	      if( vclA[cA].q > qL  && vclA[cA].q < qR && vclB[cB].q > qLB && vclB[cB].q < qRB && vclA[cA].iso && vclB[cB].iso )
+ 		{
+
+ 		  hdxAB->Fill( dx );
+ 		  if(PRINT)   cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
+
+ 		  hdyAB->Fill( dy );
+ 		  dxvsxAB->Fill( xB, dx );
+ 		  dxvsyAB->Fill( yB, dx );
+
+ 		}
+
+ 	      hdxvsev->Fill( iev, dx );
+
+ 	      if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 && fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
+ 		++nm;
+ 	      //icB++;
+ 	    } // clusters
+ 	  //icA++;
+ 	} // cl
+
+       nmvsevAB->Fill( iev, nm );
+
+       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+       // B-C cluster correlations:
+       if(PRINT) cout << "entering BC correlation loop " << endl;
+       nm = 0;
+       for( int cB=0; cB < vclB.size(); ++cB ){
+
+ 	//for( vector<cluster>::iterator cB = vclB.begin(); cB != vclB.end(); ++cB )	{
+
+ 	  double xB = xcoordinate2(1, vclB[cB], 0, ptchc, ptchr);
+ 	  double yB = ycoordinate2(1, vclB[cB], 0, ptchc, ptchr);
+
+ 	  hxB->Fill( xB );
+ 	  hyB->Fill( yB );
+ 	  if( vclB[cB].iso )
+ 	    {
+ 	      hxBi->Fill( xB );
+ 	      hyBi->Fill( yB );
+ 	      hclqBi->Fill( vclB[cB].q );
+ 	    }
+
+ 	  //	  for( vector<cluster>::iterator cC = vclC.begin(); cC != vclC.end(); ++cC ) {
+ 	  for( int cC=0; cC < vclC.size(); ++cC ){
+
+ 	      double xC = xcoordinate2(2, vclC[cC], alignxC, ptchc, ptchr);
+ 	      double yC = ycoordinate2(2, vclC[cC], alignyC, ptchc, ptchr);
+
+ 	      double xCr = xC*cfC - yC*sfC;
+ 	      double yCr = xC*sfC + yC*cfC;
+
+ 	      hxC->Fill( xCr );
+ 	      hyC->Fill( yCr );
+ 	      if( vclC[cC].iso )
+ 		{
+ 		  hxCi->Fill( xCr );
+ 		  hyCi->Fill( yCr );
+ 		  hclqCi->Fill( vclC[cC].q );
+ 		}
+
+ 	      hxxCB->Fill( xB, xCr );
+ 	      hyyCB->Fill( yB, yCr );
+
+ 	      double dx = xCr - xB;
+ 	      double dy = yCr - yB;
+
+ 	      double dxy = sqrt( dx*dx + dy*dy );
+ 	      /*
+ 	      //finn  closest:  update if closer
+ 	      if( dxy < CMatchB.at(icC).distance ){
+ 		CMatchB.at(icC).index = icB2;
+ 		CMatchB.at(icC).distance = dxy;
+ 		cout << "index cC " << icC << " index cB2 " << icB2 << " distance C-B " << CMatchB.at(icC).distance << " dxy " << dxy << endl;
+ 	      }
+
+ 	      if( dxy < BMatchC.at(icB2).distance ){
+ 		BMatchC.at(icB2).index = icC;
+ 		BMatchC.at(icB2).distance = dxy;
+ 		cout << "index cC " << icC << " index cB2 " << icB2 << " distance B-C " << BMatchC.at(icB2).distance << " dxy " << dxy << endl;
+ 	      }
+ 	      cout << " index cC " << icC << " index cB2 " << icB2 <<  " distance dxy " << dxy << endl;
+ 	      */
+
+
+ 	  if( vclC[cC].q > qL  && vclC[cC].q < qR && vclB[cB].q > qLB && vclB[cB].q < qRB && vclC[cC].iso && vclB[cB].iso )
+ 	    {
+
+ 	      hdxCB->Fill( dx );
+ 	      hdyCB->Fill( dy );
+ 	      dxvsxCB->Fill( xB, dx );
+ 	      dxvsyCB->Fill( yB, dx );
+
+ 	    }
+
+ 	  if( fabs( dx ) < straightTracks * beamDivergenceScaled + 0.020 && fabs( dy ) < straightTracks * beamDivergenceScaled + 0.100 )
+ 	    ++nm;
+ 	  //	  icC++;
+ 	    } // clusters C
+ 	  //icB2++;
+ 	} // cl B
+
+       nmvsevCB->Fill( iev, nm );
+
+       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
       ///////        A-C cluster correlations: ///////////
       if(PRINT) cout << "entering AC correlation loop " << endl;
       int nm = 0;
