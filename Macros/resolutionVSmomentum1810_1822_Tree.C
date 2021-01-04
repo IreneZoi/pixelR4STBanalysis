@@ -255,14 +255,17 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
       if(linear==true){
 	freshres = fnotsq_nonirr->Eval(BeamEnergyInverseSquare[i]);
 	cout << " fresh "<< freshres << endl;
-	freshres_plus=fnotsq_nonirr->Eval(1./((BeamEnergy[i]+BeamEnergyError[i])*(BeamEnergy[i]+BeamEnergyError[i]))); 
-	freshres_minus=fnotsq_nonirr->Eval(1./((BeamEnergy[i]-BeamEnergyError[i])*(BeamEnergy[i]-BeamEnergyError[i])));
-	cout << " plus "<< freshres_plus << endl;
-	cout << " minus "<< freshres_minus << endl;
-	freshres_err = std::max(abs(freshres-freshres_plus),abs(freshres_minus-freshres));
-        cout << "err "<< freshres_err << endl;
-	freshres_err=0.5*(1./(TMath::Sqrt(TMath::Power(freshres,3))))*TMath::Sqrt(freshres);
+	//freshres_plus=fnotsq_nonirr->Eval(1./((BeamEnergy[i]+BeamEnergyError[i])*(BeamEnergy[i]+BeamEnergyError[i]))); 
+	//freshres_minus=fnotsq_nonirr->Eval(1./((BeamEnergy[i]-BeamEnergyError[i])*(BeamEnergy[i]-BeamEnergyError[i])));
+	//cout << " plus "<< freshres_plus << endl;
+	//cout << " minus "<< freshres_minus << endl;
+	//freshres_err = std::max(abs(freshres-freshres_plus),abs(freshres_minus-freshres));
+        //cout << "err "<< freshres_err << endl;
+	//freshres_err=0.5*(1./(TMath::Sqrt(TMath::Power(freshres,3))))*TMath::Sqrt(freshres);
 	freshres=TMath::Sqrt(freshres);
+	freshres_err=freshres/TMath::Sqrt(21165.000); //dx3_clphABC90evR->GetEntries() in ~/Output/drei-r2838_irene_dphcutB14_beamdiv_A11C12.root
+        cout << "err "<< freshres_err << endl;
+        cout << " fresh "<< freshres << endl;
 	
       }else{
 	freshres = fnotsq_nonirr->Eval(BeamEnergy[i]);
@@ -276,7 +279,7 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
 
       }
 
-      
+      cout << " ******* Unfolding ******" << endl;      
       if(print) cout << "Energy " << i<< ": " << ss_BeamEnergy[i] << " GeV -> Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << endl;
       ExtractRes(&(Resolution[i]),&(ResolutionError[i]),true, freshres, freshres_err);
       myfile2 << ss_BeamEnergy[i] << " " << Resolution[i] << " " << ResolutionError[i] << "\n";
@@ -284,7 +287,7 @@ void resolutionVSmomentum1810_1822_Tree(TString func = "RMSself")
       if(print) cout << "Energy " << i<< ": " << ss_BeamEnergy[i] << " GeV -> Resolution: " << Resolution[i] << " and res err: " << ResolutionError[i] << endl;
       ResolutionSquare[i]=Resolution[i]*Resolution[i];
       ResolutionErrorSquare[i]=2*ResolutionError[i]*Resolution[i];
-      if(print) cout << "Energy^2 " << i<< ": " << BeamEnergyInverseSquare[i] << " GeV^2 -> Resolution: " << ResolutionSquare[i] << " and res err: " << ResolutionErrorSquare[i] << endl;
+      if(print) cout << "Energy^2 " << i<< ": " << BeamEnergyInverseSquare[i] << " GeV^2 -> Resolution Square: " << ResolutionSquare[i] << " and res err: " << ResolutionErrorSquare[i] << endl;
       
     }
   myfile2.close();

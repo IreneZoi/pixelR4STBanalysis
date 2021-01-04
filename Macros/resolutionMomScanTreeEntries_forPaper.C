@@ -263,12 +263,13 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   
   cout << " non irr " << endl;
   for(int i=0; i<momsNONirr; i++){
+    if(print) cout << "Energy " << mom_0[i] << "+- " << momerr_0[i] << " GeV -> Resolution: " << res_0[i] << " and res err: " << reserr_0[i] << endl;
       mom1_0[i]=1./mom_0[i];
       mom2_0[i]=mom1_0[i]*mom1_0[i];
       momerr2_0[i]=momerr_0[i]*2*TMath::Power(mom1_0[i],3);
       res2_0[i]=res_0[i]*res_0[i];
       reserr2_0[i]=2*reserr_0[i]*res_0[i];
-      if(print) cout << "Energy^2 " << mom_0[i] << ": " << mom2_0[i] << " GeV^2 -> Resolution: " << res2_0[i] << " and res err: " << reserr2_0[i] << endl;
+      if(print) cout << "Energy^2 " << mom2_0[i] << "+- " << momerr2_0[i] << " GeV^2 -> Resolution2: " << res2_0[i] << " and res err: " << reserr2_0[i] << endl;
   }
 
   cout << " prot irr " << endl;
@@ -295,7 +296,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
   gStyle->SetLegendFont(43);
-  gStyle->SetLegendTextSize(12);
+  gStyle->SetLegendTextSize(15);
 
 
   TGraphErrors* resolutionPlotInvSquare[irradiations];
@@ -337,8 +338,8 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
 
 
   
-  resolutionPlotInvSquare[0]->GetYaxis()->SetRangeUser(0.,200.);
-  resolutionPlotInvSquare[0]->GetXaxis()->SetLimits(0.,0.6);
+  resolutionPlotInvSquare[0]->GetYaxis()->SetRangeUser(0.,300.);
+  resolutionPlotInvSquare[0]->GetXaxis()->SetLimits(0.,1.);
 
   TF1 *fit32 = new TF1("fit32","pol1", 0., 0.45);
   fit32->SetLineColor(kGray);
@@ -352,7 +353,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   TString ss_fit_err2[2];
 
 
-  TF1 *fitI = new TF1("fitI","pol1", 0., 0.5);
+  TF1 *fitI = new TF1("fitI","pol1", 0., 0.7);
   fitI->SetLineColor(kOrange);
   fitI->SetParName(0,"#sigma_{intr}^{2}");
   fitI->SetParName(1,"#sigma_{MS}^{2}");
@@ -380,7 +381,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
 
 
 
-  TLegend* lgI2 = new TLegend(0.58,0.51,0.88,0.81);
+  TLegend* lgI2 = new TLegend(0.45,0.3,0.88,0.6);
   lgI2->SetLineWidth(0);
   lgI2->SetFillStyle(0);
   lgI2->AddEntry(resolutionPlotInvSquare[0],"Optimal incidence angle","");
