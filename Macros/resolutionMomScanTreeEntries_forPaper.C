@@ -306,7 +306,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
 
   resolutionPlotInvSquare[0]->SetTitle(" ");
   resolutionPlotInvSquare[0]->GetYaxis()->SetTitle("#sigma_{x}^{2} [#mum^{2}]");
-  resolutionPlotInvSquare[0]->GetXaxis()->SetTitle("p_{beam}^{2} [GeV^{2}]");
+  resolutionPlotInvSquare[0]->GetXaxis()->SetTitle("p_{beam}^{-2} [GeV^{-2}]");
 
   resolutionPlotInvSquare[0]->GetYaxis()->SetTitleFont(43);
   resolutionPlotInvSquare[0]->GetYaxis()->SetTitleSize(20); // labels will be 14 pixels                                                                                                                                  
