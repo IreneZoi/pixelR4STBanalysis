@@ -62,7 +62,8 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
 
   GetHists(&landau_map,angles, 1, 1,dphcut, Runs, i_dphcut, Label, Hist, h_res,true,inputfileNONirr);
   
-  int color[angles] = {39,1,803}; // at zero color was 920
+  //int color[angles] = {39,1,803}; // at zero color was 920
+  int color[angles] = {800,1,801}; // at zero color was 920
       
   TH1F  h_landau[angles];
   TH1F  h_landau_orig[angles];
