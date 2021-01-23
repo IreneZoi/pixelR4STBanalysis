@@ -21,7 +21,7 @@ using namespace std;
 #define anglesNirr4 8//9
 #define irradiations 3
 #define biasScan 4
-
+#define angleerror 1.5
 
 //void TDR();
 //void TDR2(TCanvas * c_all, int period=0, int pos= 11);
@@ -31,7 +31,7 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
 
 
   // 194i  4 25   800   12   5.6   3.86636   0.0322234   3839   FDB150P_12_R4S100x25-P1_1   Pstop_default_FDB   15 
-
+  
   
   TString inputDir="/home/zoiirene/Output/TextFiles/";
   TString outputDir="/home/zoiirene/Output/Plots/";
@@ -77,7 +77,7 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
   double angleerr_0[anglesNONirr];
   double angleerr_1[anglesPirr2];
   double angleerr_2[anglesNirr4];
-  double angleerr_3[]= {1};
+  double angleerr_3[]= {angleerror};
 
   double res_0[anglesNONirr];
   double res_1[anglesPirr2];
@@ -123,7 +123,7 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
 	      if(i==0)
 		{
 		  angle_0[j] = angle;
-		  angleerr_0[j] = 1;
+		  angleerr_0[j] = angleerror;
 		  res_0[j] = res;
 		  reserr_0[j] = reserror;
 		  if(print)	 cout  << angle_0[j] << " " << res_0[j] << " " << reserr_0[j] << endl;
@@ -131,7 +131,7 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
 	      if(i==1)
 		{
 		  angle_1[j] = angle;
-		  angleerr_1[j] = 1;
+		  angleerr_1[j] = angleerror;
 		  res_1[j] = res;
 		  reserr_1[j] = reserror;
 		  if(print)	 cout  << angle_1[j] << " " << res_1[j] << " " << reserr_1[j] << endl;
@@ -139,7 +139,7 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
 	      if(i==2)
 		{
 		  angle_2[j] = angle;
-		  angleerr_2[j] = 1;
+		  angleerr_2[j] = angleerror;
 		  res_2[j] = res;
 		  reserr_2[j] = reserror;
 		  if(print)	 cout  << angle_2[j] << " " << res_2[j] << " " << reserr_2[j] << endl;
@@ -175,7 +175,7 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
 	      stream  >> angle >> res >> reserror ;
 	      if(print)	 cout << "line " << j+7 << endl;
 	      angle_2[j] = angle;
-	      angleerr_2[j] = 1;
+	      angleerr_2[j] = angleerror;
 	      res_N[i][j] = res;
 	      reserr_N[i][j] = reserror;
 	      if(print)	 cout  << angle_2[j] << " " << res_N[i][j] << " " << reserr_N[i][j] << " at " << ss_bias[i] << endl;
