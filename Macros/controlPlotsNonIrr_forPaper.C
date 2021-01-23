@@ -495,6 +495,7 @@ for( int i = 0 ; i < angles; i ++){
   hs->Add(hdx2);
   hs->Add(hdx1);
   h_resq[0].GetYaxis()->SetRangeUser(0,0.25);
+  h_resq[0].SetLineColor(kBlack);
   h_resq[0].Draw("histe");
   cresph->Update();
 
@@ -581,7 +582,7 @@ for( int i = 0 ; i < angles; i ++){
   Stats[0]->SetX2NDC(.85);
   Stats[0]->SetY1NDC(.55);
   Stats[0]->SetY2NDC(.65);
-
+  Stats[0]->SetLineColor(color[0]);
   h_NrowB[1].GetYaxis()->SetRangeUser(0.,1.);
   h_NrowB[1].Draw("histesames");
   cnB90->Update();
