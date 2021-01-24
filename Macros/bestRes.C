@@ -129,13 +129,13 @@ void bestRes(TString func = "RMSself", bool unfolding = false)
  };
  TString filelabel[measurements] = {
    //
-   "thrScan_A12C15",
-   "closest_A11C15",
-   "closest_A32C42",
-   "thrScan_A13C14",
-   "closest_A11C14",
-   "closest2_A11C12",
-   "thrScan_A12C13"
+   "beamdiv_A12C15",
+   "beamdiv_A11C15",
+   "beamdiv_A32C42",
+   "beamdiv_A13C14",
+   "beamdiv_A11C14",
+   "beamdiv_A11C12",
+   "beamdiv_A12C13"
    //
    //
    //
@@ -187,7 +187,7 @@ void bestRes(TString func = "RMSself", bool unfolding = false)
    // 12, 
    // 25
  };
- Double_t Resolution[measurements],ResolutionError[measurements],Percentage[measurements];
+ Double_t Resolution[measurements],ResolutionError[measurements],Percentage[measurements],Min[measurements],Max[measurements];
  Double_t RMS[measurements],RMSError[measurements];
  TString search;
  TString comment;
@@ -234,7 +234,7 @@ void bestRes(TString func = "RMSself", bool unfolding = false)
 	 if(print)               cout << " found map " << endl;
 	 if(print)                   cout << "map key " << it2->first.first << " " << it2->first.second << " " << it2->second->GetEntries() << endl;
 
-	 FitTH1(it2->second, &(RMS[i]), &(RMSError[i]),  "dphcut"+ss_thr[i], runs[i], Label[0], Hist, func,&(Percentage[i]));
+	 FitTH1(it2->second, &(RMS[i]), &(RMSError[i]),  "dphcut"+ss_thr[i], runs[i], Label[0], Hist, func,&(Percentage[i]),&(Min[i]),&(Max[i]));
 
 	 if(print) cout << "run " << i<< ": " << runs[i] << " RMS: " << RMS[i] << " and res err: " << RMSError[i] << endl;
 
