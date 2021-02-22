@@ -12,7 +12,7 @@
 
 #include "tdrstyle.C"
 #include "CMS_lumi.C"
-
+#include "resolution.h"
 
 bool print=true;
 using namespace std;
@@ -54,7 +54,13 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
   double clsize[dphcuts];
   double events_err[dphcuts];
   double clsize_err[dphcuts];
+  double Resolution[dphcuts];
+  double ResolutionError[dphcuts];
+  double Percentage[dphcuts];
+  double Min[dphcuts];
+  double Max[dphcuts];
 
+  
   for(int i=0; i<dphcuts; i++)  {
     err_0[i]=0;
     i_dphcutPerc[i]=(double)i_dphcut_0[i]/MPV*100.;
@@ -72,6 +78,13 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
     events[i]=hnrowB->GetEntries();
     events_err[i]=TMath::Sqrt(events[i]);
     cout << " thr "<< ss_dphcutPerc[i] << " entries " << events[i] << " clsize " << clsize[i] << endl;
+    TH1I * hres;
+    hres = (TH1I*)file->Get("dx3_clphABC90evR");
+    FitTH1(hres, &(Resolution[i]), &(ResolutionError[i]), ss_dphcutPerc[i], "A", "148", "C", func, &(Percentage[i]),&(Min[i]),&(Max[i]));
+    ExtractRes(&(Resolution[i]),&(ResolutionError[i]));
+
+
+
   }
 
 
@@ -81,7 +94,7 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
 
 
   ///////////////////////////////
-  //now compare irradiations and cluster size at best angle
+  //now compare threshold and cluster size at best angle
 
 
   TCanvas *cc  = new TCanvas("cc", "FDB resolution", 600, 600);
@@ -201,7 +214,135 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
     cc->SaveAs(outname+".pdf");
     cc->SaveAs(outname+".root");
     cc->SaveAs(outname+".C");
+
     
+    ///////////////////////////////
+  //now compare threshold and cluster size at best angle
+
+
+  TCanvas *c2  = new TCanvas("c2", "FDB resolution", 600, 600);
+  gPad->SetTicks(1,1);
+  gROOT->SetStyle("Plain");
+  c2->SetLeftMargin(-2);
+  c2->SetRightMargin(-10);
+  c2->SetTopMargin(1.);
+  gStyle->SetPadGridX(1);
+  gStyle->SetPadGridY(1);
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(0);
+  gStyle->SetOptTitle(0);
+
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(15);
+  TLegend* legFDB2r = new TLegend(0.3,0.15,0.8,0.25);
+  legFDB2r->SetNColumns(4);
+  legFDB2r->SetLineColor(0);
+
+  cout << " initialized new canvas" << endl;
+  TPad *pad2r = new TPad("pad2r","",0,0.,1,0.45);
+  pad2r->SetTopMargin(0.03);
+  pad2r->SetBottomMargin(0.4);
+  pad2r->SetLeftMargin(0.15);
+  pad2r->SetRightMargin(0.1);
+  pad2r->Draw();
+
+  TPad *pad1r = new TPad("pad1r","",0,0.45,1,1);
+  pad1r->Draw();
+  pad1r->SetBottomMargin(0.03);
+  pad1r->SetRightMargin(0.1);
+  pad1r->SetLeftMargin(0.15);
+
+  pad1r->cd();
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(15);
+
+  gPad->SetTicks(1,1);
+  TGraphErrors* Res = new TGraphErrors(dphcuts,i_dphcutPerc,Resolution,err_0,ResolutionError);
+  Res->GetYaxis()->SetTitle("#sigma^{0}_{x}");  
+  Res->GetXaxis()->SetTitleSize(0); // labels will be 14 pixels
+  Res->GetXaxis()->SetLabelSize(0); // labels will be 14 pixels
+  Res->GetYaxis()->SetTitleFont(43); // labels will be 14 pixels
+  Res->GetYaxis()->SetLabelFont(43); // labels will be 14 pixels
+  Res->GetYaxis()->SetTitleSize(15); // labels will be 14 pixels
+  Res->GetYaxis()->SetTitleOffset(2.5); // labels will be 14 pixels
+  Res->GetYaxis()->SetLabelSize(15); // labels will be 14 pixels
+  Res->GetXaxis()->SetLimits(-1,75); // labels will be 14 pixels
+  Res->GetYaxis()->SetRangeUser(0,10.);
+  Res->SetMarkerStyle(20);
+  Res->SetMarkerSize(0.5);
+
+  //  gPad->SetLogy();
+  
+  Res->Draw("AEP");
+  legFDB2r->AddEntry(Res,legend,"");
+  legFDB2r->Draw();
+  TLine *  linebr = new TLine( 12./MPV*100,0.,12./MPV*100,10);
+  linebr->SetLineColor(kGray);
+  linebr->SetLineWidth(2);
+  linebr->SetLineStyle(2);
+  linebr->Draw("same");
+
+
+
+  pad2r->cd();
+  //TGraphErrors* clsizePlot = new TGraphErrors(dphcuts,i_dphcutPerc,clsize,err_0,clsize_err);
+
+  gPad->SetTicks(1,1);
+
+
+  clsizePlot->GetYaxis()->SetTitle("Average cluster size");
+  clsizePlot->GetXaxis()->SetTitle("Threshold [%]");
+
+  clsizePlot->GetYaxis()->SetNdivisions(5,0,5);
+			       
+  clsizePlot->GetXaxis()->SetTitleFont(43);
+  clsizePlot->GetXaxis()->SetTitleSize(15); // labels will be 14 pixels
+  clsizePlot->GetXaxis()->SetTitleOffset(3); // labels will be 14 pixels
+  clsizePlot->GetXaxis()->SetLabelFont(43);
+  clsizePlot->GetXaxis()->SetLabelSize(15); // labels will be 14 pixels
+
+  clsizePlot->GetYaxis()->SetTitleFont(43);
+  clsizePlot->GetYaxis()->SetTitleSize(15); // labels will be 14 pixels
+  clsizePlot->GetYaxis()->SetLabelFont(43);
+  clsizePlot->GetYaxis()->SetLabelSize(15); // labels will be 14 pixels
+  clsizePlot->GetXaxis()->SetLimits(-1.,75.);
+  clsizePlot->GetYaxis()->SetRangeUser(0.,5.);
+
+  
+    clsizePlot->SetTitle(" ");
+    clsizePlot->SetMarkerStyle(20);
+    clsizePlot->SetMarkerSize(0.5);
+    //clsizePlot->SetMarkerColor(colors_irr[l]);
+    //clsizePlot->SetLineColor(colors_irr[l]);
+    //clsizePlot->SetMarkerStyle(marker_irr[l]);
+    cout << " initialized styles" << endl;
+    clsizePlot->Draw("AEP");
+    
+    //TLine *  linea = new TLine( -1.,2.,75.,2.);
+    linea->SetLineColor(kRed);
+    //linea->SetLineWidth(2);
+    //linea->SetLineStyle(2);
+    linea->Draw("same");
+
+    //TLine *  linev = new TLine( 12./MPV*100,0.,12./MPV*100,12);
+    // linev->SetLineColor(kGray);
+    //linev->SetLineWidth(2);
+    //linev->SetLineStyle(2);
+    linev->Draw("same");
+  
+    pad1r->cd();
+    cout << " back to pad 1" << endl;		  
+    outname = outputDir+"ResolutionSummaryPaper_ResThrScan_bestAngle_nonirr_"+name+"_clsize";
+    c2->SaveAs(outname+".eps");
+    c2->SaveAs(outname+".png");
+    c2->SaveAs(outname+".pdf");
+    c2->SaveAs(outname+".root");
+    c2->SaveAs(outname+".C");
+
 
 
 
