@@ -21,7 +21,7 @@ using namespace std;
 #define anglesNirr4 8//9
 #define irradiations 3
 #define biasScan 4
-#define angleerror 1.5
+#define angleerror 1.1 // ( 0.5 stat and 1 syst added in quadrature )
 
 //void TDR();
 //void TDR2(TCanvas * c_all, int period=0, int pos= 11);
