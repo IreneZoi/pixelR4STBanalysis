@@ -42,6 +42,10 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   ang[0] = "0 deg"; 
   ang[1] = "8.8 deg";
   ang[2] = "27.5 deg";
+  TString angshort[angles];
+  angshort[0] = "0"; 
+  angshort[1] = "8p8";
+  angshort[2] = "27p5";
 
 
   std::map<std::pair<TString, TString>, TH1F *>::iterator it;
@@ -430,97 +434,145 @@ for( int i = 0 ; i < angles; i ++){
   cresph2->SaveAs(outname+".C");
 
   // ---------------------
-  //vertical incidence residual for different cluster size
-  // getting resudual from tree
-  TFile *f = new TFile(inputDir+"drei-r"+Runs[0]+"_irene_dphcutB"+ss_dphcut[0]+"_"+inputfileNONirr+".root");
-  TTree *t1 = (TTree*)f->Get("charge_res");
-  TH1F * hdx3treeph = new TH1F("hdx3treeph", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  t1->Draw("dx3tree>>hdx3treeph","clphAiiitree<387&&clphBiiitree<302&&clphCiiitree<402","goff");
-  hdx3treeph = (TH1F*)gDirectory->Get("hdx3treeph");
-  hdx3treeph->Draw();
-  ScaleAxis(hdx3treeph->GetXaxis(), ScaleX);
+  // residual for different cluster size
+  float ymax[angles] = {0.25,0.35,0.2};
+  TString cut[angles] = {"clphAiiitree<387&&clphBiiitree<302&&clphCiiitree<402","clphAiiitree<397&&clphBiiitree<317&&clphCiiitree<417","clphAiiitree<452&&clphBiiitree<382&&clphCiiitree<477"};
+  for(int i = 0; i < angles; i++){
+    // getting resudual from tree
+    TFile *f = new TFile(inputDir+"drei-r"+Runs[i]+"_irene_dphcutB"+ss_dphcut[0]+"_"+inputfileNONirr+".root");
+    TTree *t1 = (TTree*)f->Get("charge_res");
+    TH1F * hdx3treeph = new TH1F("hdx3treeph", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+    t1->Draw("dx3tree>>hdx3treeph",cut[i],"goff");
+    hdx3treeph = (TH1F*)gDirectory->Get("hdx3treeph");
+    hdx3treeph->Draw();
+    ScaleAxis(hdx3treeph->GetXaxis(), ScaleX);
 
-
-  TH1F * hdx1 = new TH1F("hdx1", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  t1->Draw("dx3tree>>hdx1","clphAiiitree<387&&clphBiiitree<302&&clphCiiitree<402&&nrowBtree==1","goff");
-  hdx1 = (TH1F*)gDirectory->Get("hdx1");
-  hdx1->Draw();
-  ScaleAxis(hdx1->GetXaxis(), ScaleX);
-  TH1F * hdx2 = new TH1F("hdx2", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  t1->Draw("dx3tree>>hdx2","clphAiiitree<387&&clphBiiitree<302&&clphCiiitree<402&&nrowBtree==2","goff");
-  hdx2 = (TH1F*)gDirectory->Get("hdx2");
-  hdx2->Draw();
-  ScaleAxis(hdx2->GetXaxis(), ScaleX);
-  TH1F * hdx3 = new TH1F("hdx3", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
-  t1->Draw("dx3tree>>hdx3","clphAiiitree<387&&clphBiiitree<302&&clphCiiitree<402&&nrowBtree>=3","goff");
-  hdx3 = (TH1F*)gDirectory->Get("hdx3");
-  hdx3->Draw();
-  ScaleAxis(hdx3->GetXaxis(), ScaleX);
-
-
-  TCanvas *cresph0 = new TCanvas("cresph0", "FDB resolution", 600, 600);
-  cresph0->SetLeftMargin(0.12);
-  cresph0->SetRightMargin(-0.1);
-  gPad->SetTicks(1,1);
-  gROOT->SetStyle("Plain");
-  gStyle->SetPadGridX(0);
-  gStyle->SetPadGridY(0);
-  gStyle->SetPalette(1);
-  gStyle->SetOptStat(0);
-  gStyle->SetOptTitle(0);
-  gStyle->SetTextFont(43);
-  gStyle->SetTextSize(10);
-  TLegend* legresq0 = new TLegend(0.13,0.73,0.7,0.82);//0.3,0.7,0.8,0.8);
-  legresq0->SetLineColor(0);
-  cout << "starting making hists pretty" << endl;
-  hdx1->Scale(1./hdx3treeph->Integral());
-  hdx2->Scale(1./hdx3treeph->Integral());
-  hdx3->Scale(1./hdx3treeph->Integral());
-  hdx3treeph->Scale(1./hdx3treeph->Integral());
-
-
-  hdx1->GetXaxis()->SetRangeUser(-50,50);
-  hdx2->GetXaxis()->SetRangeUser(-50,50);
-  hdx3->GetXaxis()->SetRangeUser(-50,50);
-  hdx3treeph->GetXaxis()->SetRangeUser(-50,50);
-
-  hdx1->SetFillStyle(3005);
-  hdx1->SetFillColor(8);
-  hdx2->SetFillColor(4);
-  hdx3->SetFillColor(2);
-  hdx2->SetFillStyle(3004);
-  hdx3->SetFillStyle(3001);
-  THStack *hs = new THStack("hs","");
-  hs->Add(hdx3);
-  hs->Add(hdx2);
-  hs->Add(hdx1);
-  h_resq[0].GetYaxis()->SetRangeUser(0,0.25);
-  h_resq[0].SetLineColor(kBlack);
-  h_resq[0].Draw("histe");
-  cresph->Update();
-
-  //hdx3treeph->SetLineStyle(2);
-  //hdx3treeph->Draw("histsame");
-  hs->Draw("histsame");
-  cout << " hdx3treeph " << hdx3treeph->GetMean() << endl;
-  TLegend* legB0 = new TLegend(0.15,0.83,0.6,0.88);
-  legB0->SetLineColor(0);
-  legB0->AddEntry(&(h_landau_orig[0]),base+", "+ang[0],"");
-  legB0->Draw();
-
-  legresq0->AddEntry(hdx1,"Cluster size = 1","f");
-  legresq0->AddEntry(hdx2,"Cluster size = 2","f");
-  legresq0->AddEntry(hdx3,"Cluster size #geq 3","f");
-  legresq0->Draw();
+    TCanvas *c1 = new TCanvas("c1", "FDB resolution", 600, 600);
+    gStyle->SetOptStat(110001110);
+    TH1F * hdx1 = new TH1F("hdx1", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+    t1->Draw("dx3tree>>hdx1",cut[i]+"&&nrowBtree==1","goff");
+    hdx1 = (TH1F*)gDirectory->Get("hdx1");
+    hdx1->Draw();
+    ScaleAxis(hdx1->GetXaxis(), ScaleX);
+    c1->Update(); 
+    Stats[0] =   (TPaveStats*)hdx1->FindObject("stats");     //GetListOfFunctions()->FindObject("stats");                                                                                                                                  
+    Stats[0]->SetX1NDC(0.65);
+    Stats[0]->SetX2NDC(.85);
+    Stats[0]->SetY1NDC(.60);
+    Stats[0]->SetY2NDC(.75);
+    Stats[0]->SetLineColor(8);
   
-  outname = outputDir+"ResPHAllnoLog_NonIrr_VerticalCLsize_"+name;
-  cresph0->SaveAs(outname+".eps");
-  cresph0->SaveAs(outname+".png");
-  cresph0->SaveAs(outname+".pdf");
-  cresph0->SaveAs(outname+".root");
-  cresph0->SaveAs(outname+".C");
+    TCanvas *c2 = new TCanvas("c2", "FDB resolution", 600, 600);
+    gStyle->SetOptStat(110001110);
+    TH1F * hdx2 = new TH1F("hdx2", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+    t1->Draw("dx3tree>>hdx2",cut[i]+"&&nrowBtree==2","goff");
+    hdx2 = (TH1F*)gDirectory->Get("hdx2");
+    hdx2->Draw();
+    ScaleAxis(hdx2->GetXaxis(), ScaleX);
+    c2->Update();
+    Stats[1] =   (TPaveStats*)hdx2->FindObject("stats");     //GetListOfFunctions()->FindObject("stats");                                                                                                                                   
+    Stats[1]->SetX1NDC(0.65);
+    Stats[1]->SetX2NDC(.85);
+    Stats[1]->SetY1NDC(.44);
+    Stats[1]->SetY2NDC(.59);
+    Stats[1]->SetLineColor(4);
 
+    TCanvas *c3 = new TCanvas("c3", "FDB resolution", 600, 600);
+    gStyle->SetOptStat(110001110);
+    TH1F * hdx3 = new TH1F("hdx3", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
+    t1->Draw("dx3tree>>hdx3",cut[i]+"&&nrowBtree>=3","goff");
+    hdx3 = (TH1F*)gDirectory->Get("hdx3");
+    hdx3->Draw();
+    ScaleAxis(hdx3->GetXaxis(), ScaleX);
+    c3->Update();
+    Stats[2] =   (TPaveStats*)hdx3->FindObject("stats");     //GetListOfFunctions()->FindObject("stats");
+    Stats[2]->SetX1NDC(0.65);
+    Stats[2]->SetX2NDC(.85);
+    Stats[2]->SetY1NDC(.28);
+    Stats[2]->SetY2NDC(.43);
+    Stats[2]->SetLineColor(2);
 
+    // start real plot
+    TCanvas *cresph0 = new TCanvas("cresph0", "FDB resolution", 600, 600);
+    cresph0->SetLeftMargin(0.12);
+    cresph0->SetRightMargin(-0.1);
+    gPad->SetTicks(1,1);
+    gROOT->SetStyle("Plain");
+    gStyle->SetPadGridX(0);
+    gStyle->SetPadGridY(0);
+    gStyle->SetPalette(1);
+    gStyle->SetOptStat(0);
+    gStyle->SetOptTitle(0);
+    gStyle->SetTextFont(43);
+    gStyle->SetTextSize(10);
+    TLegend* legresq0 = new TLegend(0.13,0.73,0.6,0.82);//0.3,0.7,0.8,0.8);
+    legresq0->SetLineColor(0);
+    cout << "starting making hists pretty" << endl;
+    hdx1->Scale(1./hdx3treeph->Integral());
+    hdx2->Scale(1./hdx3treeph->Integral());
+    hdx3->Scale(1./hdx3treeph->Integral());
+    hdx3treeph->Scale(1./hdx3treeph->Integral());
+    
+
+    hdx1->GetXaxis()->SetRangeUser(-50,50);
+    hdx2->GetXaxis()->SetRangeUser(-50,50);
+    hdx3->GetXaxis()->SetRangeUser(-50,50);
+    hdx3treeph->GetXaxis()->SetRangeUser(-50,50);
+
+    hdx1->SetFillStyle(3005);
+    hdx1->SetFillColor(8);
+    hdx2->SetFillColor(4);
+    hdx3->SetFillColor(2);
+    hdx2->SetFillStyle(3004);
+    hdx3->SetFillStyle(3001);
+    THStack *hs = new THStack("hs","");
+    if(i == 0){
+      hs->Add(hdx3);
+      hs->Add(hdx2);
+      hs->Add(hdx1);
+    }
+    else if(i ==1){
+      hs->Add(hdx3);
+      hs->Add(hdx1);
+      hs->Add(hdx2);
+    }
+    else if(i ==2){
+      hs->Add(hdx1);
+      hs->Add(hdx2);
+      hs->Add(hdx3);
+    }
+      
+    h_resq[i].GetYaxis()->SetRangeUser(0,ymax[i]);
+    h_resq[i].SetLineColor(kBlack);
+    h_resq[i].Draw("histe");
+    cresph->Update();
+    Stats[0]->Draw();
+    Stats[1]->Draw();
+    Stats[2]->Draw();
+    //hdx3treeph->SetLineStyle(2);
+    //hdx3treeph->Draw("histsame");
+    hs->Draw("histsame");
+    cout << " hdx3treeph " << hdx3treeph->GetMean() << endl;
+    TLegend* legB0 = new TLegend(0.15,0.83,0.6,0.88);
+    legB0->SetLineColor(0);
+    legB0->AddEntry(&(h_landau_orig[i]),base+", "+ang[i],"");
+    legB0->Draw();
+    
+    legresq0->AddEntry(hdx1,"Rows in cluster (DUT) = 1","f");
+    legresq0->AddEntry(hdx2,"Rows in cluster (DUT) = 2","f");
+    legresq0->AddEntry(hdx3,"Rows in cluster (DUT) #geq 3","f");
+    legresq0->Draw();
+    
+    outname = outputDir+"ResPHAllnoLog_NonIrr_Angle"+angshort[i]+"_CLsize_"+name;
+    cresph0->SaveAs(outname+".eps");
+    cresph0->SaveAs(outname+".png");
+    cresph0->SaveAs(outname+".pdf");
+    cresph0->SaveAs(outname+".root");
+    cresph0->SaveAs(outname+".C");
+
+  }//loop on angles
+
+  
   ////// clsize distribution
   // version 90 cut
   Hist = "nrowB_clphABC90evR";
