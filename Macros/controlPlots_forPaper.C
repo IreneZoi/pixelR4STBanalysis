@@ -14,7 +14,7 @@
 #include "fileHandler.h"
 #include "tdrstyle.C"
 #include "CMS_lumi.C"
-
+#include <string>
 
 bool print=true;
 using namespace std;
@@ -28,7 +28,7 @@ void TDR2(TCanvas * c_all, int period=0, int pos= 11);
 Double_t ScaleX(Double_t x);
 void ScaleAxis(TAxis *a, Double_t (*Scale)(Double_t));
 
-void controlPlots_forPaper(TString name = "preliminary_beamdiv")
+void controlPlots_forPaper(TString name = "preliminary_beamdiv_N7")
 {
 
   TString inputDir="/home/zoiirene/Output/";
@@ -39,7 +39,7 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
   irr[1] = "#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton, 800 V";
   irr[2] = "#phi_{eq} = 3.6 #times 10^{15} cm^{-2}, neutron, 800 V";
 
-
+  int nsigma =6;
   std::map<std::pair<TString, TString>, TH1F *>::iterator it;
   TH1F * h_res;  
   TString Label[1] = {"straightTracksY_isoAandCandB_straightTracksX"};
@@ -411,7 +411,7 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
   Double_t minX[irradiations];
   Double_t maxX[irradiations];
   Double_t RMS[irradiations];
-  for( int i = 0 ; i < irradiations; i ++)  FitTH1(&(h_resq_orig[i]), &(RMS[i]), &(rmserr[i]),runs[i]+"_", "A", "B", "C", "RMSself", &(perc[i]),&(minX[i]),&(maxX[i]));
+  for( int i = 0 ; i < irradiations; i ++)  FitTH1(&(h_resq_orig[i]), &(RMS[i]), &(rmserr[i]),runs[i]+"_", "A", "B", "C", "RMSself", &(perc[i]),&(minX[i]),&(maxX[i]),nsigma);
 
   
   TCanvas *cresph2 = new TCanvas("cresph2", "FDB resolution", 600, 600);
@@ -437,8 +437,10 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
   
   TLegend* legresq2 = new TLegend(0.13,0.67,0.69,0.85);
   legresq2->SetLineColor(0);
-
-  
+  std::string ns = std::to_string(nsigma);
+  ofstream myfile;
+  myfile.open ("res_tracks_RMS"+ns+".txt");
+  myfile << "irr RMS tracks\n";
   cout << "starting making hists pretty" << endl;
   for( int i = 0 ; i < irradiations; i ++){
     cout << "            " << irr[i] << endl;
@@ -480,9 +482,9 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
     irr[i] = "";
     legresq2->AddEntry(&(h_resq[i]),irr[i]+"#mu = "+s_m+" #mum, RMS = "+s_r+" #mum, tracks: "+s_p+" %","");
     h_resq[i].GetXaxis()->SetRangeUser(-50.,50.);
-
+    myfile << i << " " << s_r << " " << s_p << std::endl;
   }
-    
+  myfile.close();
    
   legB->Draw();
   
