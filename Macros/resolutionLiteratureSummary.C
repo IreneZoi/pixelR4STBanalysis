@@ -233,6 +233,8 @@ void resolutionLiteratureSummary()
 
   TF1* pi12 = new TF1("pi12","x/TMath::Sqrt(12)",0,160);
   pi12->Draw("lsame");
+  resolutionPlot[20]->Draw("EPsame");      
+  resolutionPlot[35]->Draw("EPsame");
 
   legFDB3->AddEntry(pi12,"pitch/#sqrt{12}","l");
   //cFDB2->SetLogy();
@@ -305,7 +307,12 @@ void resolutionLiteratureSummary()
     //legFDB5log->AddEntry(resolutionPlot[i],Label[i],"p");
       
   }
-
+  cLog->Update();
+  cout << "***************************    label 19  "<< Legend[19] << endl;
+  resolutionPlot[19]->Draw("EPsame");
+  cout << "***************************    label 34  "<< Legend[34] << endl;
+  resolutionPlot[34]->Draw("EPsame");
+  cLog->Update();
   pi12->Draw("lsame");
   cLog->SetLogy();
   cLog->SetLogx();
@@ -518,7 +525,10 @@ void resolutionLiteratureSummary()
       //legFDB2div->AddEntry(resolutionPlotDiv[i],Legend[i],"p"); 
 
   }
+  resolutionPlotDiv[20]->Draw("EPsame");      
+  resolutionPlotDiv[35]->Draw("EPsame");      
 
+  
   //  TF1* pi12 = new TF1("pi12","x/TMath::Sqrt(12)",0,160);
   //  pi12->Draw("lsame");
   TF1* div12 = new TF1("div12","1.",0,160);
