@@ -240,8 +240,8 @@ void resVSchargeNoADD_forPaper(){
     //    fLandau[0][i]->GetXaxis()->SetLimits(0.,1000.);
     //fLandau[1][i]->GetXaxis()->SetLimits(0.,1000.);
     fLandau[0][i]->GetYaxis()->SetRangeUser(0.,0.16);
-    fLandau[0][i]->GetXaxis()->SetMaxDigits(2); //SetNoExponent(true);
-    fLandau[0][i]->GetYaxis()->SetMaxDigits(2); //SetNoExponent(true);                                                                                                                                                                        
+    //fLandau[0][i]->GetXaxis()->SetMaxDigits(2); //SetNoExponent(true);
+    //fLandau[0][i]->GetYaxis()->SetMaxDigits(2); //SetNoExponent(true);                                                                                                                                                                        
 
     //    fLandau[0][i]->GetXaxis()->SetMaxDigits(3);
     fLandau[0][i]->GetYaxis()->SetMaxDigits(3);
@@ -412,8 +412,9 @@ void resVSchargeNoADD_forPaper(){
     cout << " Canvas for angle " << i << endl;
     cR[i] = new TCanvas("cFDB2", "FDB resolution", 600, 600);
     cR[i]->SetTopMargin(0.02);
-    cR[i]->SetLeftMargin(0.12);
-    //cFDB2[i]->SetRightMargin(0.01);
+    cR[i]->SetBottomMargin(0.1);
+    cR[i]->SetLeftMargin(0.15);
+    cR[i]->SetRightMargin(0.04);
     gPad->SetTicks(1,1);
     gROOT->SetStyle("Plain");
     gStyle->SetPadGridX(0);
@@ -421,8 +422,8 @@ void resVSchargeNoADD_forPaper(){
     gStyle->SetPalette(1);
     gStyle->SetOptStat(0);
     gStyle->SetOptTitle(0);
-    gStyle->SetTextFont(43);
-    gStyle->SetTextSize(10);
+    //gStyle->SetTextFont(43);
+    //gStyle->SetTextSize(10);
     gStyle->SetLegendFont(43);
     gStyle->SetLegendTextSize(24);
     
@@ -432,28 +433,34 @@ void resVSchargeNoADD_forPaper(){
     //    fLandau[0][i]->GetXaxis()->SetLimits(0.,1000.);
     //fLandau[1][i]->GetXaxis()->SetLimits(0.,1000.);
     fLandau[0][i]->GetYaxis()->SetRangeUser(0.,0.16);
-    fLandau[0][i]->GetXaxis()->SetMaxDigits(2); //SetNoExponent(true);
-    fLandau[0][i]->GetYaxis()->SetMaxDigits(2); //SetNoExponent(true);                                                                                                                                                                        
+    //fLandau[0][i]->GetXaxis()->SetMaxDigits(2); //SetNoExponent(true);
+    //fLandau[0][i]->GetYaxis()->SetMaxDigits(2); //SetNoExponent(true);                                                                                                                                                                        
 
-    //    fLandau[0][i]->GetXaxis()->SetMaxDigits(3);
-    fLandau[0][i]->GetYaxis()->SetMaxDigits(3);
+    fLandau[0][i]->GetXaxis()->SetNdivisions(5);
+    //fLandau[0][i]->GetYaxis()->SetMaxDigits(3);
     fLandau[0][i]->GetYaxis()->SetTitle("Normalized number of clusters");
     fLandau[0][i]->GetXaxis()->SetTitle("Cluster charge [ADC]");
-
+    
     fLandau[0][i]->GetXaxis()->SetTitleFont(43);
-    fLandau[0][i]->GetXaxis()->SetTitleOffset(1.);
-    fLandau[0][i]->GetXaxis()->SetTitleSize(24); // labels will be 14 pixels
+    fLandau[0][i]->GetXaxis()->SetTitleOffset(0.9);
+    fLandau[0][i]->GetXaxis()->SetTitleSize(30); // labels will be 14 pixels
 
     fLandau[0][i]->GetYaxis()->SetTitleFont(43);
-    fLandau[0][i]->GetYaxis()->SetTitleSize(24); // labels will be 14 pixels
+    fLandau[0][i]->GetYaxis()->SetTitleSize(30); // labels will be 14 pixels
     fLandau[0][i]->GetYaxis()->SetTitleOffset(1.5); //1.5);
     
     fLandau[0][i]->GetXaxis()->SetLabelFont(43);
-    fLandau[0][i]->GetXaxis()->SetLabelSize(24); // labels will be 14 pixels
+    fLandau[0][i]->GetXaxis()->SetLabelSize(30); // labels will be 14 pixels
     fLandau[0][i]->GetYaxis()->SetLabelFont(43);
-    fLandau[0][i]->GetYaxis()->SetLabelSize(24); // labels will be 14 pixels
-
-    
+    fLandau[0][i]->GetYaxis()->SetLabelSize(30); // labels will be 14 pixels
+    /*
+    fLandau[0][i]->GetXaxis()->SetTitleSize(0.05);
+    fLandau[0][i]->GetYaxis()->SetTitleSize(0.05);
+    fLandau[0][i]->GetXaxis()->SetTitleOffset(0.9);
+    fLandau[0][i]->GetYaxis()->SetTitleOffset(1.4);
+    fLandau[0][i]->GetXaxis()->SetLabelSize(0.05);
+    fLandau[0][i]->GetYaxis()->SetLabelSize(0.05);
+    */
 
 
 
@@ -494,7 +501,7 @@ void resVSchargeNoADD_forPaper(){
 
 
 
-    TLegend* leg = new TLegend(0.15,0.75,0.85,0.9);
+    TLegend* leg = new TLegend(0.2,0.75,0.85,0.9);
     leg->SetLineColor(0);
     leg->SetFillStyle(0);
 
@@ -530,9 +537,10 @@ void resVSchargeNoADD_forPaper(){
     
     cout << " Canvas for angle " << i << endl;
     cL[i] = new TCanvas("cFDB2", "FDB resolution", 600, 600);
-    cL[i]->SetBottomMargin(0.2);
+    cL[i]->SetBottomMargin(0.45);
     cL[i]->SetTopMargin(0.02);
-    //cFDB2[i]->SetRightMargin(0.01);
+    cL[i]->SetRightMargin(0.02);
+    cL[i]->SetLeftMargin(0.12);
     gPad->SetTicks(1,1);
     gROOT->SetStyle("Plain");
     gStyle->SetPadGridX(0);
@@ -547,6 +555,7 @@ void resVSchargeNoADD_forPaper(){
 
 
     const char *Interval[perc] = {"  [0,MPV-#sigma]","  [MPV-#sigma,MPV+#sigma]","  [MPV+#sigma,MPV+3#sigma]","  [MPV+3#sigma,MPV+5#sigma]"," >MPV+5#sigma"};
+    //const char *Interval[perc] = {"  [0,MPV-#sigma]","  MPV#pm#sigma","  [MPV+#sigma,MPV+3#sigma]","  [MPV+3#sigma,MPV+5#sigma]"," >MPV+5#sigma"};
     TH1D* resolutionHist[irradiations];
     resolutionHist[0] = new TH1D("noirr","noirr",perc,0,perc);
     resolutionHist[1] = new TH1D("irr","irr",perc,0,perc);
@@ -563,8 +572,8 @@ void resVSchargeNoADD_forPaper(){
 
     gPad->SetTicks(1,1);
     resolutionHist[0]->SetCanExtend(TH1::kAllAxes);
-    resolutionHist[0]->LabelsOption("d");
-    resolutionHist[0]->LabelsDeflate();
+    resolutionHist[0]->LabelsOption("v");
+    //resolutionHist[0]->LabelsDeflate();
     resolutionHist[0]->SetTitle(" ");
     resolutionHist[0]->GetYaxis()->SetTitle("#sigma_{x} [#mum]");
     resolutionHist[0]->GetXaxis()->SetTitle("");
@@ -573,22 +582,32 @@ void resVSchargeNoADD_forPaper(){
 
     resolutionHist[0]->GetXaxis()->SetTitleFont(43);
     resolutionHist[0]->GetXaxis()->SetTitleOffset(2.5);
-    resolutionHist[0]->GetXaxis()->SetTitleSize(24); // labels will be 14 pixels
+    resolutionHist[0]->GetXaxis()->SetTitleSize(30); // labels will be 14 pixels
     
     resolutionHist[0]->GetYaxis()->SetTitleFont(43);
-    resolutionHist[0]->GetYaxis()->SetTitleSize(24); // labels will be 14 pixels
+    resolutionHist[0]->GetYaxis()->SetTitleSize(30); // labels will be 14 pixels
     resolutionHist[0]->GetYaxis()->SetTitleOffset(1.);
     
     resolutionHist[0]->GetXaxis()->SetLabelFont(43);
-    resolutionHist[0]->GetXaxis()->SetLabelSize(24); // labels will be 14 pixels
+    resolutionHist[0]->GetXaxis()->SetLabelSize(30); // labels will be 14 pixels
     resolutionHist[0]->GetYaxis()->SetLabelFont(43);
-    resolutionHist[0]->GetYaxis()->SetLabelSize(24); // labels will be 14 pixels
+    resolutionHist[0]->GetYaxis()->SetLabelSize(30); // labels will be 14 pixels
+    
     resolutionHist[0]->SetMarkerColor(kBlack);
     resolutionHist[0]->SetLineColor(kBlack);
     resolutionHist[0]->SetMarkerStyle(20);
     resolutionHist[0]->GetXaxis()->SetLimits(0.,5.);
     resolutionHist[0]->GetYaxis()->SetRangeUser(0.,15.);
     resolutionHist[0]->Draw("e1x0p");
+    /*
+    
+   resolutionHist[0]->GetXaxis()->SetTitleSize(0.05);
+   resolutionHist[0]->GetYaxis()->SetTitleSize(0.05);
+   resolutionHist[0]->GetXaxis()->SetTitleOffset(0.9);
+   resolutionHist[0]->GetYaxis()->SetTitleOffset(1.4);
+   resolutionHist[0]->GetXaxis()->SetLabelSize(0.05);
+   resolutionHist[0]->GetYaxis()->SetLabelSize(0.05);
+    */
     
     resolutionHist[1]->SetMarkerSize(1.);
     resolutionHist[1]->SetMarkerColor(kGreen+1);
@@ -607,7 +626,7 @@ void resVSchargeNoADD_forPaper(){
     tlB.SetTextSize(24);
     tlB.DrawLatexNDC(0.2,0.89,AnglesNice[i]+", 5.6 GeV");
 
-    TLegend* leg3 = new TLegend(0.145,0.25,0.85,0.35);
+    TLegend* leg3 = new TLegend(0.145,0.5,0.85,0.6);
     leg3->SetLineColor(0);
     leg3->SetFillStyle(0);
     for(int l =0; l < irradiations; l++)

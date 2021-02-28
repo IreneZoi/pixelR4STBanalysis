@@ -285,10 +285,10 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   
 
   TCanvas *c42 = new TCanvas("c42", "resolution vs inverse beam energy squared", 600, 600);
-  c42->SetLeftMargin(0.12);
+  c42->SetLeftMargin(0.15);
   c42->SetRightMargin(0.01);
   c42->SetTopMargin(0.05);
-  c42->SetBottomMargin(0.1);
+  c42->SetBottomMargin(0.13);
 
   gPad->SetTicks(1,1);
   gStyle->SetOptStat(0);
@@ -307,21 +307,28 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
   resolutionPlotInvSquare[0]->SetTitle(" ");
   resolutionPlotInvSquare[0]->GetYaxis()->SetTitle("#sigma_{x}^{2} [#mum^{2}]");
   resolutionPlotInvSquare[0]->GetXaxis()->SetTitle("p_{beam}^{-2} [GeV^{-2}]");
-
+  
   resolutionPlotInvSquare[0]->GetYaxis()->SetTitleFont(43);
-  resolutionPlotInvSquare[0]->GetYaxis()->SetTitleSize(24); // labels will be 14 pixels                                                                                                                                  
+  resolutionPlotInvSquare[0]->GetYaxis()->SetTitleSize(30); // labels will be 14 pixels                                                                                                                                  
   resolutionPlotInvSquare[0]->GetYaxis()->SetTitleOffset(1.4); // labels will be 14 pixels                                                                                                                               
 
   resolutionPlotInvSquare[0]->GetYaxis()->SetLabelFont(43);
-  resolutionPlotInvSquare[0]->GetYaxis()->SetLabelSize(24); // labels will be 14 pixels                                                                                                                                  
+  resolutionPlotInvSquare[0]->GetYaxis()->SetLabelSize(30); // labels will be 14 pixels                                                                                                                                  
 
   resolutionPlotInvSquare[0]->GetXaxis()->SetLabelFont(43);
-  resolutionPlotInvSquare[0]->GetXaxis()->SetLabelSize(24); // labels will be 14 pixels                                                                                                                                  
+  resolutionPlotInvSquare[0]->GetXaxis()->SetLabelSize(30); // labels will be 14 pixels                                                                                                                                  
   resolutionPlotInvSquare[0]->GetXaxis()->SetTitleOffset(1.); // labels will be 14 pixels                                                                                                                               
 
   resolutionPlotInvSquare[0]->GetXaxis()->SetTitleFont(43);
-  resolutionPlotInvSquare[0]->GetXaxis()->SetTitleSize(24); // labels will be 14 pixels                                                                                                                                  
-
+  resolutionPlotInvSquare[0]->GetXaxis()->SetTitleSize(30); // labels will be 14 pixels                                                                                                                                  
+  /*
+  resolutionPlotInvSquare[0]->GetXaxis()->SetTitleSize(0.05);
+  resolutionPlotInvSquare[0]->GetYaxis()->SetTitleSize(0.05);
+  resolutionPlotInvSquare[0]->GetXaxis()->SetTitleOffset(0.9);
+  resolutionPlotInvSquare[0]->GetYaxis()->SetTitleOffset(1.4);
+  resolutionPlotInvSquare[0]->GetXaxis()->SetLabelSize(0.05);
+  resolutionPlotInvSquare[0]->GetYaxis()->SetLabelSize(0.05);
+  */
   resolutionPlotInvSquare[0]->SetMarkerSize(1.);
   resolutionPlotInvSquare[0]->SetMarkerColor(kBlack);
   resolutionPlotInvSquare[0]->SetLineColor(kBlack);

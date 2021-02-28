@@ -74,14 +74,14 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
     TDirectory * histodir =(TDirectoryFile*)file->Get(dir);
     hnrowB = (TH1I*)histodir->Get("nrowB");
     clsize[i]=hnrowB->GetMean();
-    clsize_err[i]=hnrowB->GetRMS();
+    clsize_err[i]=0; //hnrowB->GetRMS();
     events[i]=hnrowB->GetEntries();
     events_err[i]=TMath::Sqrt(events[i]);
     cout << " thr "<< ss_dphcutPerc[i] << " entries " << events[i] << " clsize " << clsize[i] << endl;
     TH1I * hres;
     hres = (TH1I*)file->Get("dx3_clphABC90evR");
-    FitTH1(hres, &(Resolution[i]), &(ResolutionError[i]), ss_dphcutPerc[i], "A", "148", "C", func, &(Percentage[i]),&(Min[i]),&(Max[i]));
-    ExtractRes(&(Resolution[i]),&(ResolutionError[i]));
+    //FitTH1(hres, &(Resolution[i]), &(ResolutionError[i]), ss_dphcutPerc[i], "A", "148", "C", func, &(Percentage[i]),&(Min[i]),&(Max[i]));
+    //ExtractRes(&(Resolution[i]),&(ResolutionError[i]));
 
 
 
@@ -100,8 +100,8 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
   TCanvas *cc  = new TCanvas("cc", "FDB resolution", 600, 600);
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
-  cc->SetLeftMargin(-2);
-  cc->SetRightMargin(-10);
+  cc->SetLeftMargin(0.1);
+  cc->SetRightMargin(0.02);
   cc->SetTopMargin(1.);
   gStyle->SetPadGridX(0);
   gStyle->SetPadGridY(0);
@@ -112,30 +112,30 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
   gStyle->SetLegendFont(43);
-  gStyle->SetLegendTextSize(15);
-  TLegend* legFDB2 = new TLegend(0.3,0.3,0.8,0.5);
+  gStyle->SetLegendTextSize(30);
+  TLegend* legFDB2 = new TLegend(0.2,0.3,0.8,0.5);
   legFDB2->SetNColumns(4);
   legFDB2->SetLineColor(0);
 
   cout << " initialized new canvas" << endl;
   TPad *pad2 = new TPad("pad2","",0,0.,1,0.45);
   pad2->SetTopMargin(0.03);
-  pad2->SetBottomMargin(0.4);
-  pad2->SetLeftMargin(0.15);
-  pad2->SetRightMargin(0.1);
+  pad2->SetBottomMargin(0.22);
+  pad2->SetLeftMargin(0.1);
+  pad2->SetRightMargin(0.02);
   pad2->Draw();
 
   TPad *pad1 = new TPad("pad1","",0,0.45,1,1);
   pad1->Draw();
   pad1->SetBottomMargin(0.03);
-  pad1->SetRightMargin(0.1);
-  pad1->SetLeftMargin(0.15);
+  pad1->SetRightMargin(0.02);
+  pad1->SetLeftMargin(0.1);
 
   pad1->cd();
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
   gStyle->SetLegendFont(43);
-  gStyle->SetLegendTextSize(15);
+  gStyle->SetLegendTextSize(24);
 
   gPad->SetTicks(1,1);
   TGraphErrors* Evts = new TGraphErrors(dphcuts,i_dphcutPerc,events,err_0,events_err);
@@ -144,11 +144,14 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
   Evts->GetXaxis()->SetLabelSize(0); // labels will be 14 pixels
   Evts->GetYaxis()->SetTitleFont(43); // labels will be 14 pixels
   Evts->GetYaxis()->SetLabelFont(43); // labels will be 14 pixels
-  Evts->GetYaxis()->SetTitleSize(15); // labels will be 14 pixels
-  Evts->GetYaxis()->SetTitleOffset(2.5); // labels will be 14 pixels
-  Evts->GetYaxis()->SetLabelSize(15); // labels will be 14 pixels
+  Evts->GetYaxis()->SetTitleSize(30); // labels will be 14 pixels
+  Evts->GetYaxis()->SetTitleOffset(0.9); // labels will be 14 pixels
+  Evts->GetYaxis()->SetLabelSize(30); // labels will be 14 pixels
   Evts->GetXaxis()->SetLimits(-1,75); // labels will be 14 pixels
   Evts->GetYaxis()->SetRangeUser(0,50000.);
+  Evts->GetYaxis()->SetMaxDigits(3);
+  Evts->SetMarkerStyle(20);
+
   //  gPad->SetLogy();
   Evts->Draw("AEP");
   legFDB2->AddEntry(Evts,legend,"");
@@ -167,32 +170,35 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
   gPad->SetTicks(1,1);
 
 
-  clsizePlot->GetYaxis()->SetTitle("Average cluster size");
+  clsizePlot->GetYaxis()->SetTitle("Mean cluster size");
   clsizePlot->GetXaxis()->SetTitle("Threshold [%]");
 
   clsizePlot->GetYaxis()->SetNdivisions(5,0,5);
 			       
   clsizePlot->GetXaxis()->SetTitleFont(43);
-  clsizePlot->GetXaxis()->SetTitleSize(15); // labels will be 14 pixels
-  clsizePlot->GetXaxis()->SetTitleOffset(3); // labels will be 14 pixels
+  clsizePlot->GetXaxis()->SetTitleSize(30); // labels will be 14 pixels
+  clsizePlot->GetXaxis()->SetTitleOffset(2.); // labels will be 14 pixels
   clsizePlot->GetXaxis()->SetLabelFont(43);
-  clsizePlot->GetXaxis()->SetLabelSize(15); // labels will be 14 pixels
+  clsizePlot->GetXaxis()->SetLabelSize(30); // labels will be 14 pixels
 
   clsizePlot->GetYaxis()->SetTitleFont(43);
-  clsizePlot->GetYaxis()->SetTitleSize(15); // labels will be 14 pixels
+  clsizePlot->GetYaxis()->SetTitleSize(30); // labels will be 14 pixels
+  clsizePlot->GetYaxis()->SetTitleOffset(0.9); // labels will be 14 pixels
+
   clsizePlot->GetYaxis()->SetLabelFont(43);
-  clsizePlot->GetYaxis()->SetLabelSize(15); // labels will be 14 pixels
+  clsizePlot->GetYaxis()->SetLabelSize(30); // labels will be 14 pixels
   clsizePlot->GetXaxis()->SetLimits(-1.,75.);
-  clsizePlot->GetYaxis()->SetRangeUser(0.,12.);
+  clsizePlot->GetYaxis()->SetRangeUser(0.,5.);
 
   
     clsizePlot->SetTitle(" ");
-    clsizePlot->SetMarkerSize(1.);
+    clsizePlot->SetMarkerStyle(20);
+    //clsizePlot->SetMarkerSize(2.);
     //clsizePlot->SetMarkerColor(colors_irr[l]);
     //clsizePlot->SetLineColor(colors_irr[l]);
     //clsizePlot->SetMarkerStyle(marker_irr[l]);
     cout << " initialized styles" << endl;
-    clsizePlot->Draw("AEP");
+    clsizePlot->Draw("AP");
     
     TLine *  linea = new TLine( -1.,2.,75.,2.);
     linea->SetLineColor(kGray);
@@ -219,7 +225,7 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
     ///////////////////////////////
   //now compare threshold and cluster size at best angle
 
-
+    /*
   TCanvas *c2  = new TCanvas("c2", "FDB resolution", 600, 600);
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
@@ -236,9 +242,9 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
   gStyle->SetTextSize(10);
   gStyle->SetLegendFont(43);
   gStyle->SetLegendTextSize(15);
-  TLegend* legFDB2r = new TLegend(0.3,0.15,0.8,0.25);
-  legFDB2r->SetNColumns(4);
-  legFDB2r->SetLineColor(0);
+  //TLegend* legFDB2r = new TLegend(0.2,0.15,0.8,0.25);
+  //legFDB2r->SetNColumns(4);
+  //legFDB2r->SetLineColor(0);
 
   cout << " initialized new canvas" << endl;
   TPad *pad2r = new TPad("pad2r","",0,0.,1,0.45);
@@ -273,13 +279,18 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
   Res->GetXaxis()->SetLimits(-1,75); // labels will be 14 pixels
   Res->GetYaxis()->SetRangeUser(0,10.);
   Res->SetMarkerStyle(20);
-  Res->SetMarkerSize(0.5);
+  Res->SetMarkerSize(20);
 
   //  gPad->SetLogy();
   
   Res->Draw("AEP");
-  legFDB2r->AddEntry(Res,legend,"");
-  legFDB2r->Draw();
+  TLatex tlB;
+  tlB.SetTextFont(43);
+  tlB.SetTextSize(30);
+  tlB.DrawLatexNDC(0.2,0.15,legend);
+
+  //legFDB2r->AddEntry(Res,legend,"");
+  //legFDB2r->Draw();
   TLine *  linebr = new TLine( 12./MPV*100,0.,12./MPV*100,10);
   linebr->SetLineColor(kGray);
   linebr->SetLineWidth(2);
@@ -301,7 +312,7 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
 			       
   clsizePlot->GetXaxis()->SetTitleFont(43);
   clsizePlot->GetXaxis()->SetTitleSize(15); // labels will be 14 pixels
-  clsizePlot->GetXaxis()->SetTitleOffset(3); // labels will be 14 pixels
+  clsizePlot->GetXaxis()->SetTitleOffset(1); // labels will be 14 pixels
   clsizePlot->GetXaxis()->SetLabelFont(43);
   clsizePlot->GetXaxis()->SetLabelSize(15); // labels will be 14 pixels
 
@@ -314,13 +325,13 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
 
   
     clsizePlot->SetTitle(" ");
-    clsizePlot->SetMarkerStyle(20);
-    clsizePlot->SetMarkerSize(0.5);
+    clsizePlot->SetMarkerStyle(8);
+    clsizePlot->SetMarkerSize(20);
     //clsizePlot->SetMarkerColor(colors_irr[l]);
     //clsizePlot->SetLineColor(colors_irr[l]);
     //clsizePlot->SetMarkerStyle(marker_irr[l]);
     cout << " initialized styles" << endl;
-    clsizePlot->Draw("AEP");
+    clsizePlot->Draw("AP");
     
     //TLine *  linea = new TLine( -1.,2.,75.,2.);
     linea->SetLineColor(kRed);
@@ -345,7 +356,7 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
 
 
 
-
+    */
 
 
 

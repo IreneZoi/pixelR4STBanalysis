@@ -973,7 +973,8 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   //cpx->SetRightMargin(-0.1);
   cpx->SetLeftMargin(0.14);  
   cpx->SetRightMargin(0.05);  
-  cpx->SetTopMargin(0.05);  
+  cpx->SetTopMargin(0.03);  
+  cpx->SetBottomMargin(0.12);  
 
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
@@ -993,20 +994,20 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   t->Draw("pxphBtree>>hpxphB90","clphAiiitree<397&&clphBiiitree<317&&clphCiiitree<417","goff");
   hpxphB90 = (TH1F*)gDirectory->Get("hpxphB90");
 
-  TLegend* legresq90 = new TLegend(0.15,0.78,0.7,0.88);//0.3,0.7,0.8,0.8);
+  TLegend* legresq90 = new TLegend(0.15,0.8,0.7,0.9);//0.3,0.7,0.8,0.8);
   legresq90->SetLineColor(0);
   cout << "starting making hists pretty" << endl;
   hpxphB->GetYaxis()->SetTitle("Pixels above threshold");
   hpxphB->GetXaxis()->SetTitle("Pixel Pulse Height [ADC]");
   hpxphB->GetYaxis()->SetTitleFont(43);
-  hpxphB->GetYaxis()->SetTitleSize(20);
-  hpxphB->GetYaxis()->SetTitleOffset(1.8);
+  hpxphB->GetYaxis()->SetTitleSize(30);
+  hpxphB->GetYaxis()->SetTitleOffset(1.2);
   hpxphB->GetXaxis()->SetTitleFont(43);
-  hpxphB->GetXaxis()->SetTitleSize(20);
+  hpxphB->GetXaxis()->SetTitleSize(30);
   hpxphB->GetYaxis()->SetLabelFont(43);
-  hpxphB->GetYaxis()->SetLabelSize(20);
+  hpxphB->GetYaxis()->SetLabelSize(30);
   hpxphB->GetXaxis()->SetLabelFont(43);
-  hpxphB->GetXaxis()->SetLabelSize(20);
+  hpxphB->GetXaxis()->SetLabelSize(30);
   hpxphB->GetYaxis()->SetRangeUser(0.1,100000);
   hpxphB->Rebin(4);
   hpxphB90->Rebin(4);
@@ -1020,7 +1021,7 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
 
   //hdx3treeph->SetLineStyle(2);
   //hdx3treeph->Draw("histsame");
-  TLegend* legB90 = new TLegend(0.2,0.85,0.6,0.89);
+  TLegend* legB90 = new TLegend(0.2,0.91,0.6,0.93);
   legB90->SetLineColor(0);
   legB90->AddEntry(&(h_landau_orig[0]),base+", "+ang[1],"");
   //legB90->Draw();
@@ -1028,7 +1029,7 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   TLatex tlpx;
   tlpx.SetTextFont(43);
   tlpx.SetTextSize(24);
-  tlpx.DrawLatexNDC(0.2,0.89,base);
+  tlpx.DrawLatexNDC(0.2,0.91,base);
 
   
   legresq90->AddEntry(hpxphB,"All","le");
