@@ -420,7 +420,7 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   TLegend* legresq2 = new TLegend(0.15,0.65,0.7,0.875);//0.3,0.7,0.8,0.8);
   legresq2->SetLineColor(0);
   cout << "starting making hists pretty" << endl;
-for( int i = 0 ; i < angles; i ++){
+  for( int i = 0 ; i < angles; i ++){
     cout << "            " << ang[i] << endl;
 
     cout << " min & max " << minX[i] << " " << maxX[i] << endl;
@@ -430,6 +430,7 @@ for( int i = 0 ; i < angles; i ++){
     cresph->Update();
     cout << " changed range " <<endl;
     Mean[i]=h_resq[i].GetMean();
+    RMS[i]=h_resq[i].GetRMS();
     cout << " mean " << Mean[i] << endl;
     cout << " rms "<< RMS[i] << endl;
     
@@ -443,7 +444,7 @@ for( int i = 0 ; i < angles; i ++){
     stream_p << std::fixed << std::setprecision(1) << perc[i]*100;
     std::string s_p = stream_p.str();
     if(i!=0)  gPad->Modified();
-    legresq2->AddEntry(&(h_resq[i]),ang[i]+", #mu = "+s_m+" #mum, RMS = "+s_r+" #mum","le");
+    legresq2->AddEntry(&(h_resq[i]),ang[i]+", #mu = "+s_m+" #mum, #delta_{#Deltax} = "+s_r+" #mum","le");
     TString tracks = "tracks: "+s_p+" %";
     legresq2->AddEntry(&(h_resq[i]),tracks,"");
     h_resq[i].GetXaxis()->SetRangeUser(-50.,50.);
@@ -657,8 +658,8 @@ for( int i = 0 ; i < angles; i ++){
     std::stringstream stream_k;
     stream_k << std::fixed << std::setprecision(2) << h_resq[i].GetKurtosis();
     std::string s_k = stream_k.str();
-    TString labellegend1 = " #mu = "+s_m+" #mum, RMS = "+s_r+" #mum";
-    TString labellegend2 = " skewness = "+s_s+", kurtosis = "+s_k;
+    TString labellegend1 = "#mu = "+s_m+" #mum, RMS = "+s_r+" #mum";
+    TString labellegend2 = "#tilde{#mu}_{3} = "+s_s+", #tilde{#mu}_{4} = "+s_k;
     TLatex tl;
     tl.SetTextFont(43);
     tl.SetTextSize(24);
