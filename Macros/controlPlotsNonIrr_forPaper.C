@@ -67,7 +67,9 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   GetHists(&landau_map,angles, 1, 1,dphcut, Runs, i_dphcut, Label, Hist, h_res,true,inputfileNONirr);
   
   //int color[angles] = {39,1,803}; // at zero color was 920
-  int color[angles] = {800,1,801}; // at zero color was 920
+  //int color[angles] = {800,1,801}; // at zero color was 920
+  int color[angles] = {600,1,632}; // at zero color was 920
+  int styles[angles] = {2,1,5}; // at zero color was 920
       
   TH1F  h_landau[angles];
   TH1F  h_landau_orig[angles];
@@ -112,6 +114,8 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   TCanvas *cFDB2 = new TCanvas("cFDB2", "FDB resolution", 600, 600);
   cFDB2->SetLeftMargin(0.15);  
   cFDB2->SetRightMargin(1.5);  
+  cFDB2->SetTopMargin(0.05);  
+
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
   gStyle->SetPadGridX(0);
@@ -120,9 +124,9 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
   gStyle->SetTextFont(43);
-  gStyle->SetTextSize(10);
+  gStyle->SetTextSize(50);
   gStyle->SetLegendFont(43);
-  gStyle->SetLegendTextSize(15);
+  gStyle->SetLegendTextSize(30);
   cout << "starting making hists pretty" << endl;
   h_landau_orig[0].SetTitle(" ");
   h_landau_orig[0].GetYaxis()->SetTitle("Normalized number of events");
@@ -130,7 +134,7 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   //  h_landau_orig[0].SetMarkerSize(2.5);
   h_landau_orig[0].SetLineColor(color[0]);
   h_landau_orig[0].SetMarkerColor(color[0]);
-  h_landau_orig[0].SetLineStyle(1);
+  h_landau_orig[0].SetLineStyle(styles[0]);
   h_landau_orig[0].SetLineWidth(2);
   h_landau_orig[0].Rebin(2);
   h_landau_orig[0].Scale(0.5);
@@ -138,6 +142,12 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   h_landau_orig[0].GetXaxis()->SetMaxDigits(3); //SetNoExponent(true);
   h_landau_orig[0].GetYaxis()->SetRangeUser(0.0001,1.);
   h_landau_orig[0].GetXaxis()->SetRange(0.,h_landau_orig[0].GetNbinsX()+1);
+  h_landau_orig[0].GetXaxis()->SetTitleSize(0.05);
+  h_landau_orig[0].GetYaxis()->SetTitleSize(0.05);
+  h_landau_orig[0].GetXaxis()->SetTitleOffset(0.9);
+  h_landau_orig[0].GetYaxis()->SetTitleOffset(1.4);  
+  h_landau_orig[0].GetXaxis()->SetLabelSize(0.05);
+  h_landau_orig[0].GetYaxis()->SetLabelSize(0.05);
   h_landau_orig[0].Draw("histe");
   //  TGaxis::SetMaxDigits(3);
   //  h_landau_orig[1].SetMarkerSize(2.5);
@@ -148,7 +158,7 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   h_landau_orig[1].GetYaxis()->SetRangeUser(0.0001,1.);
   h_landau_orig[1].SetLineColor(color[1]);
   //  h_landau_orig[1].SetMarkerColor(kGray+3);
-  h_landau_orig[1].SetLineStyle(2);
+  h_landau_orig[1].SetLineStyle(styles[1]);
   h_landau_orig[1].SetLineWidth(2);
   h_landau_orig[1].GetXaxis()->SetRange(0.,h_landau_orig[1].GetNbinsX()+1);
   //  h_landau_orig[1].GetXaxis()->SetNoExponent(true);
@@ -164,16 +174,23 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   h_landau_orig[2].Rebin(2);
   h_landau_orig[2].Scale(0.5);
   h_landau_orig[2].SetLineWidth(2);
-  h_landau_orig[2].SetLineStyle(3);
+  h_landau_orig[2].SetLineStyle(styles[2]);
   //  h_landau_orig[2].GetXaxis()->SetNoExponent(true);
   h_landau_orig[2].Draw("histesame");
-
-  TLegend* legFDB = new TLegend(0.3,0.8,0.7,0.85);
+  /*
+  TLegend* legFDB = new TLegend(0.1,0.83,0.7,0.88);
   legFDB->SetLineColor(0);
   //legFDB2->SetLegendFont(43);
   legFDB->AddEntry(&(h_landau_orig[0]),base,"");
   legFDB->Draw();
-  TLegend* legFDB2 = new TLegend(0.4,0.7,0.8,0.8);
+  */
+  TLatex tlFDB;
+  tlFDB.SetTextFont(43);
+  tlFDB.SetTextSize(30);
+  tlFDB.DrawLatexNDC(0.2,0.83,base);
+
+  
+  TLegend* legFDB2 = new TLegend(0.2,0.68,0.8,0.82);
   legFDB2->SetLineColor(0);
   for(int i =0; i < angles; i++){
 
@@ -192,7 +209,7 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
     line2[i]    = new TLine( bin90[i],0.,bin90[i],0.015);
     line2[i]->SetLineColor(color[i]);
     line2[i]->SetLineWidth(2);
-    line2[i]->SetLineStyle(i+1);
+    line2[i]->SetLineStyle(styles[i]);
     line2[i]->Draw("same");
     ar[i]  = new TArrow(bin90[i],0.001,bin90[i]-50,0.001,0.03,"|>"); //,"<|");
     ar[i]->SetLineColor(color[i]);
@@ -253,20 +270,24 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   
 
   TCanvas *cresph = new TCanvas("cresph", "FDB resolution", 600, 600);
-  cresph->SetLeftMargin(0.12);  
-  cresph->SetRightMargin(-0.1);  
+  cresph->SetLeftMargin(0.14);  
+  cresph->SetRightMargin(0.05);  
+  cresph->SetTopMargin(0.05);  
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
   gStyle->SetPadGridX(0);
   gStyle->SetPadGridY(0);
   gStyle->SetPalette(1);
-  //gStyle->SetOptStat(111110);
-  gStyle->SetOptStat(0);
+  gStyle->SetOptStat(110000010);
+  //gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(24);
 
-  TLegend* legresq = new TLegend(0.25,0.73,0.7,0.82);
+
+  TLegend* legresq = new TLegend(0.15,0.73,0.7,0.88);
   legresq->SetLineColor(0);
 
   
@@ -276,9 +297,18 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
     h_resq[i].SetTitle(" ");
     h_resq[i].GetYaxis()->SetTitle("Normalized number of events");
     h_resq[i].GetXaxis()->SetTitle("#Deltax [#mum]");
+    h_resq[i].GetXaxis()->SetTitleSize(0.05);
+    h_resq[i].GetYaxis()->SetTitleSize(0.05);
+    h_resq[i].GetXaxis()->SetTitleOffset(0.9);
+    h_resq[i].GetYaxis()->SetTitleOffset(1.4);  
+    h_resq[i].GetXaxis()->SetLabelSize(0.05);
+    h_resq[i].GetYaxis()->SetLabelSize(0.05);
 
+    
     h_resq[i].SetLineColor(color[i]);
-    h_resq[i].SetLineStyle(1+i);
+    h_resq[i].SetLineStyle(styles[i]);
+    cout << " hist color "<< color[i] << endl;
+
     h_resq[i].SetLineWidth(2);
     //Mean[i]=h_resq[i].GetMean();
     //RMS[i]=h_resq[i].GetRMS();
@@ -291,6 +321,17 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
     //h_resq[i].GetYaxis()->SetRangeUser(0.1,30000.);
     h_resq[i].Draw("histesames");
     cresph->Update();
+
+    Stats[i] =   (TPaveStats*)h_resq[i].FindObject("stats");     //GetListOfFunctions()->FindObject("stats");                                                                                                                                
+    Stats[i]->SetLineColor(color[i]);
+    Stats[i]->SetLineStyle(styles[i]);
+    Stats[i]->SetX1NDC(0.18);
+    Stats[i]->SetX2NDC(0.38);
+    Stats[i]->SetY1NDC(.60-i*0.11);
+    Stats[i]->SetY2NDC(.70-i*0.11);
+    cresph->Update();
+    cout << " stat color "<< color[i] << endl;
+
     cout << " changed range " <<endl;
     Mean[i]=h_resq[i].GetMean();
     RMS[i]=h_resq[i].GetRMS();
@@ -316,14 +357,20 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
     //    RMS_ss[i].Form("%f",RMS[i]);
     if(i!=0)  gPad->Modified();
     legresq->AddEntry(&(h_resq[i]),ang[i]+", #mu = "+s_m+" #mum, RMS = "+s_r+" #mum","le");
+
+
   }
 
-  TLegend* legB = new TLegend(0.2,0.83,0.6,0.88);
+  TLegend* legB = new TLegend(0.2,0.83,0.4,0.88);
   legB->SetLineColor(0);
   //legFDB2->SetLegendFont(43);
   legB->AddEntry(&(h_landau_orig[0]),base,"");
-  legB->Draw();
-  
+  //legB->Draw();
+  TLatex tlB;
+  tlB.SetTextFont(43);
+  tlB.SetTextSize(22);
+  tlB.DrawLatexNDC(0.2,0.89,base);
+
   
   //  legresq->SetTextSize(0.03);
 
@@ -352,8 +399,12 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   for( int i = 0 ; i < angles; i ++)  FitTH1(&(h_resq_orig[i]), &(RMS[i]), &(rmserr[i]),Runs[i]+"_", "A", "B", "C", "RMSself", &(perc[i]),&(minX[i]),&(maxX[i]));
   
   TCanvas *cresph2 = new TCanvas("cresph2", "FDB resolution", 600, 600);
-  cresph2->SetLeftMargin(0.12);  
-  cresph2->SetRightMargin(-0.1);  
+  //cresph2->SetLeftMargin(0.12);
+  //cresph2->SetRightMargin(-0.1);  
+  cresph2->SetLeftMargin(0.14);  
+  cresph2->SetRightMargin(0.05);  
+  cresph2->SetTopMargin(0.05);  
+
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
   gStyle->SetPadGridX(0);
@@ -363,7 +414,10 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   gStyle->SetOptTitle(0);
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
-  TLegend* legresq2 = new TLegend(0.13,0.73,0.7,0.82);//0.3,0.7,0.8,0.8);
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(24);
+  
+  TLegend* legresq2 = new TLegend(0.15,0.65,0.7,0.875);//0.3,0.7,0.8,0.8);
   legresq2->SetLineColor(0);
   cout << "starting making hists pretty" << endl;
 for( int i = 0 ; i < angles; i ++){
@@ -371,7 +425,7 @@ for( int i = 0 ; i < angles; i ++){
 
     cout << " min & max " << minX[i] << " " << maxX[i] << endl;
     h_resq[i].GetXaxis()->SetRangeUser(minX[i],maxX[i]);
-    h_resq[i].GetYaxis()->SetRangeUser(0.,0.35);
+    h_resq[i].GetYaxis()->SetRangeUser(0.,0.4);
     h_resq[i].Draw("histesames");
     cresph->Update();
     cout << " changed range " <<endl;
@@ -389,19 +443,28 @@ for( int i = 0 ; i < angles; i ++){
     stream_p << std::fixed << std::setprecision(1) << perc[i]*100;
     std::string s_p = stream_p.str();
     if(i!=0)  gPad->Modified();
-    legresq2->AddEntry(&(h_resq[i]),ang[i]+", #mu = "+s_m+" #mum, RMS = "+s_r+" #mum, tracks: "+s_p+" %","le");
+    legresq2->AddEntry(&(h_resq[i]),ang[i]+", #mu = "+s_m+" #mum, RMS = "+s_r+" #mum","le");
+    TString tracks = "tracks: "+s_p+" %";
+    legresq2->AddEntry(&(h_resq[i]),tracks,"");
     h_resq[i].GetXaxis()->SetRangeUser(-50.,50.);
+    cout << " ***************** Skewness orig "<<  h_resq[i].GetSkewness() << endl;
 
   }
 
-  legB->Draw();
+  TLatex tlB2;
+  tlB2.SetTextFont(43);
+  tlB2.SetTextSize(24);
+  tlB2.DrawLatexNDC(0.2,0.89,base);
+
+ 
+//legB->Draw();
   legresq2->Draw();
 
   for (int i = 0 ; i < angles; i ++){
     TLine *  linemin = new TLine( minX[i],0.,minX[i],0.2);
     linemin->SetLineColor(color[i]);
     linemin->SetLineWidth(2);
-    linemin->SetLineStyle(1+i);
+    linemin->SetLineStyle(styles[i]);
     linemin->Draw("same");
 
     TArrow *armin = new TArrow(minX[i],0.1,minX[i]+6,0.1,0.03,"|>"); //,"<|");
@@ -413,7 +476,7 @@ for( int i = 0 ; i < angles; i ++){
     TLine *  linemax = new TLine( maxX[i],0.,maxX[i],0.2);
     linemax->SetLineColor(color[i]);
     linemax->SetLineWidth(2);
-    linemax->SetLineStyle(1+i);
+    linemax->SetLineStyle(styles[i]);
     linemax->Draw("same");
   
     TArrow *armax = new TArrow(maxX[i],0.1,maxX[i]-6,0.1,0.03,"|>"); //,"<|");
@@ -435,7 +498,7 @@ for( int i = 0 ; i < angles; i ++){
 
   // ---------------------
   // residual for different cluster size
-  float ymax[angles] = {0.25,0.35,0.2};
+  float ymax[angles] = {0.25,0.4,0.2};
   TString cut[angles] = {"clphAiiitree<387&&clphBiiitree<302&&clphCiiitree<402","clphAiiitree<397&&clphBiiitree<317&&clphCiiitree<417","clphAiiitree<452&&clphBiiitree<382&&clphCiiitree<477"};
   for(int i = 0; i < angles; i++){
     // getting resudual from tree
@@ -446,20 +509,28 @@ for( int i = 0 ; i < angles; i ++){
     hdx3treeph = (TH1F*)gDirectory->Get("hdx3treeph");
     hdx3treeph->Draw();
     ScaleAxis(hdx3treeph->GetXaxis(), ScaleX);
+    hdx3treeph->ResetStats();
+    hdx3treeph->GetXaxis()->SetRangeUser(-50,50);
+    cout << " ***************** Skewness "<<  hdx3treeph->GetSkewness() << endl;
 
     TCanvas *c1 = new TCanvas("c1", "FDB resolution", 600, 600);
     gStyle->SetOptStat(110001110);
     TH1F * hdx1 = new TH1F("hdx1", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
     t1->Draw("dx3tree>>hdx1",cut[i]+"&&nrowBtree==1","goff");
     hdx1 = (TH1F*)gDirectory->Get("hdx1");
+    hdx1->ResetStats();
     hdx1->Draw();
     ScaleAxis(hdx1->GetXaxis(), ScaleX);
+    hdx1->ResetStats();
+    hdx1->GetXaxis()->SetRangeUser(-50,50);
+    cout << " ***************** Skewness 1 " <<  hdx1->GetSkewness() << endl;
+
     c1->Update(); 
     Stats[0] =   (TPaveStats*)hdx1->FindObject("stats");     //GetListOfFunctions()->FindObject("stats");                                                                                                                                  
-    Stats[0]->SetX1NDC(0.65);
-    Stats[0]->SetX2NDC(.85);
-    Stats[0]->SetY1NDC(.60);
-    Stats[0]->SetY2NDC(.75);
+    Stats[0]->SetX1NDC(0.7);
+    Stats[0]->SetX2NDC(.90);
+    Stats[0]->SetY1NDC(.55);
+    Stats[0]->SetY2NDC(.70);
     Stats[0]->SetLineColor(8);
   
     TCanvas *c2 = new TCanvas("c2", "FDB resolution", 600, 600);
@@ -467,14 +538,19 @@ for( int i = 0 ; i < angles; i ++){
     TH1F * hdx2 = new TH1F("hdx2", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
     t1->Draw("dx3tree>>hdx2",cut[i]+"&&nrowBtree==2","goff");
     hdx2 = (TH1F*)gDirectory->Get("hdx2");
+    hdx2->ResetStats();
     hdx2->Draw();
     ScaleAxis(hdx2->GetXaxis(), ScaleX);
+    hdx2->ResetStats();
+    hdx2->GetXaxis()->SetRangeUser(-50,50);
+    cout << " ***************** Skewness 2 "<<  hdx2->GetSkewness() << endl;
+
     c2->Update();
     Stats[1] =   (TPaveStats*)hdx2->FindObject("stats");     //GetListOfFunctions()->FindObject("stats");                                                                                                                                   
-    Stats[1]->SetX1NDC(0.65);
-    Stats[1]->SetX2NDC(.85);
-    Stats[1]->SetY1NDC(.44);
-    Stats[1]->SetY2NDC(.59);
+    Stats[1]->SetX1NDC(0.7);
+    Stats[1]->SetX2NDC(.9);
+    Stats[1]->SetY1NDC(.39);
+    Stats[1]->SetY2NDC(.54);
     Stats[1]->SetLineColor(4);
 
     TCanvas *c3 = new TCanvas("c3", "FDB resolution", 600, 600);
@@ -482,20 +558,29 @@ for( int i = 0 ; i < angles; i ++){
     TH1F * hdx3 = new TH1F("hdx3", "triplet dx3 ; dx [mm];triplets", 500, -0.5, 0.5 );
     t1->Draw("dx3tree>>hdx3",cut[i]+"&&nrowBtree>=3","goff");
     hdx3 = (TH1F*)gDirectory->Get("hdx3");
+    hdx3->ResetStats();
     hdx3->Draw();
     ScaleAxis(hdx3->GetXaxis(), ScaleX);
+    hdx3->ResetStats();
+    hdx3->GetXaxis()->SetRangeUser(-50,50);
+    cout << " ***************** Skewness 3 "<<  hdx3->GetSkewness() << endl;
+
     c3->Update();
     Stats[2] =   (TPaveStats*)hdx3->FindObject("stats");     //GetListOfFunctions()->FindObject("stats");
-    Stats[2]->SetX1NDC(0.65);
-    Stats[2]->SetX2NDC(.85);
-    Stats[2]->SetY1NDC(.28);
-    Stats[2]->SetY2NDC(.43);
+    Stats[2]->SetX1NDC(0.7);
+    Stats[2]->SetX2NDC(.9);
+    Stats[2]->SetY1NDC(.23);
+    Stats[2]->SetY2NDC(.38);
     Stats[2]->SetLineColor(2);
 
     // start real plot
     TCanvas *cresph0 = new TCanvas("cresph0", "FDB resolution", 600, 600);
-    cresph0->SetLeftMargin(0.12);
-    cresph0->SetRightMargin(-0.1);
+    //cresph0->SetLeftMargin(0.12);
+    //cresph0->SetRightMargin(-0.1);
+    cresph0->SetLeftMargin(0.14);  
+    cresph0->SetRightMargin(0.05);  
+    cresph0->SetTopMargin(0.05);  
+
     gPad->SetTicks(1,1);
     gROOT->SetStyle("Plain");
     gStyle->SetPadGridX(0);
@@ -503,10 +588,13 @@ for( int i = 0 ; i < angles; i ++){
     gStyle->SetPalette(1);
     gStyle->SetOptStat(0);
     gStyle->SetOptTitle(0);
-    gStyle->SetTextFont(43);
-    gStyle->SetTextSize(10);
-    TLegend* legresq0 = new TLegend(0.13,0.73,0.6,0.82);//0.3,0.7,0.8,0.8);
+    gStyle->SetLegendFont(43);
+    gStyle->SetLegendTextSize(24);
+    TLegend* legresq0 = new TLegend(0.15,0.65,0.6,0.75);//0.3,0.7,0.8,0.8);
     legresq0->SetLineColor(0);
+    //legresq0->SetTextFont(43);
+    //legresq0->SetTextSize(20);
+    
     cout << "starting making hists pretty" << endl;
     hdx1->Scale(1./hdx3treeph->Integral());
     hdx2->Scale(1./hdx3treeph->Integral());
@@ -556,7 +644,36 @@ for( int i = 0 ; i < angles; i ++){
     TLegend* legB0 = new TLegend(0.15,0.83,0.6,0.88);
     legB0->SetLineColor(0);
     legB0->AddEntry(&(h_landau_orig[i]),base+", "+ang[i],"");
-    legB0->Draw();
+    //legB0->Draw();
+    std::stringstream stream_m;
+    stream_m << std::fixed << std::setprecision(2) << h_resq[i].GetMean();
+    std::string s_m = stream_m.str();
+    std::stringstream stream_r;
+    stream_r << std::fixed << std::setprecision(2) << h_resq[i].GetRMS();
+    std::string s_r = stream_r.str();
+    std::stringstream stream_s;
+    stream_s << std::fixed << std::setprecision(2) <<h_resq[i].GetSkewness();
+    std::string s_s = stream_s.str();
+    std::stringstream stream_k;
+    stream_k << std::fixed << std::setprecision(2) << h_resq[i].GetKurtosis();
+    std::string s_k = stream_k.str();
+    TString labellegend1 = " #mu = "+s_m+" #mum, RMS = "+s_r+" #mum";
+    TString labellegend2 = " skewness = "+s_s+", kurtosis = "+s_k;
+    TLatex tl;
+    tl.SetTextFont(43);
+    tl.SetTextSize(24);
+    tl.DrawLatexNDC(0.2,0.88,base+", "+ang[i]);
+    tl.DrawLatexNDC(0.2,0.84,labellegend1);
+    tl.DrawLatexNDC(0.2,0.8,labellegend2);
+    //pt->Draw();
+
+		//legB0->AddEntry(&(h_landau_orig[i]),labellegend,"");
+
+
+
+
+
+
     
     legresq0->AddEntry(hdx1,"Rows in cluster (DUT) = 1","f");
     legresq0->AddEntry(hdx2,"Rows in cluster (DUT) = 2","f");
@@ -599,7 +716,7 @@ for( int i = 0 ; i < angles; i ++){
 	  cout << h_NrowB[i].Integral() << endl;
 	  if (h_NrowB[i].GetSumw2N() == 0) h_NrowB[i].Sumw2(kTRUE);
 	  h_NrowB[i].SetLineColor(color[i]);
-	  h_NrowB[i].SetLineStyle(i+1);
+	  h_NrowB[i].SetLineStyle(styles[i]);
 	  h_NrowB[i].SetLineWidth(2);
 	  h_NrowB[i].SetMarkerColor(color[i]);
 
@@ -609,6 +726,10 @@ for( int i = 0 ; i < angles; i ++){
   TCanvas *cnB90 = new TCanvas("cnB90", "FDB resolution", 600, 600);
   cnB90->SetLeftMargin(0.12);
   cnB90->SetRightMargin(-0.1);
+  cnB90->SetLeftMargin(0.14);  
+  cnB90->SetRightMargin(0.05);  
+  cnB90->SetTopMargin(0.05);  
+
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
   gStyle->SetPadGridX(0);
@@ -618,11 +739,20 @@ for( int i = 0 ; i < angles; i ++){
   gStyle->SetOptTitle(0);
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(24);
 
   cout << "starting making hists pretty" << endl;
   h_NrowB[0].SetTitle(" ");
   h_NrowB[0].GetYaxis()->SetTitle("Normalized number of events");
   h_NrowB[0].GetXaxis()->SetTitle("Rows in cluster on DUT plane [pixels]");
+  h_NrowB[0].GetXaxis()->SetTitleSize(0.05);
+  h_NrowB[0].GetYaxis()->SetTitleSize(0.05);
+  h_NrowB[0].GetXaxis()->SetTitleOffset(0.9);
+  h_NrowB[0].GetYaxis()->SetTitleOffset(1.4);  
+  h_NrowB[0].GetXaxis()->SetLabelSize(0.05);
+  h_NrowB[0].GetYaxis()->SetLabelSize(0.05);
+
   h_NrowB[0].GetXaxis()->SetRangeUser(0,10);
   h_NrowB[0].GetYaxis()->SetRangeUser(0.,1.); //RangeUser(0.,40000);
   h_NrowB[0].Draw("histe");
@@ -635,6 +765,8 @@ for( int i = 0 ; i < angles; i ++){
   Stats[0]->SetY1NDC(.55);
   Stats[0]->SetY2NDC(.65);
   Stats[0]->SetLineColor(color[0]);
+  Stats[0]->SetLineStyle(styles[0]);
+
   h_NrowB[1].GetYaxis()->SetRangeUser(0.,1.);
   h_NrowB[1].Draw("histesames");
   cnB90->Update();
@@ -644,7 +776,7 @@ for( int i = 0 ; i < angles; i ++){
   Stats[1]->SetY1NDC(.44);
   Stats[1]->SetY2NDC(.54);
   Stats[1]->SetLineColor(color[1]);
-  Stats[1]->SetLineStyle(2);
+  Stats[1]->SetLineStyle(styles[1]);
   gPad->Modified();
 
   h_NrowB[2].GetYaxis()->SetRangeUser(0.,1.);
@@ -656,16 +788,22 @@ for( int i = 0 ; i < angles; i ++){
   Stats[2]->SetY1NDC(.33);
   Stats[2]->SetY2NDC(.43);
   Stats[2]->SetLineColor(color[2]);
-  Stats[2]->SetLineStyle(3);
+  Stats[2]->SetLineStyle(styles[2]);
   gPad->Modified();
 
-  TLegend*legB2 = new TLegend(0.45,0.8,0.8,0.85);
+  TLegend*legB2 = new TLegend(0.15,0.88,0.8,0.92);
   legB2->SetLineColor(0);
   //legFDB2->SetLegendFont(43);
   legB2->AddEntry(&(h_landau_orig[0]),base,"");
   legB2->Draw();
-
-  
+  //tl.DrawLatexNDC(0.2,0.84,labellegend1);
+  //tl.DrawLatexNDC(0.2,0.8,labellegend2);
+  /*
+  TLatex tlcl;
+  tlcl.SetTextFont(43);
+  tlcl.SetTextSize(24);
+  tlcl.DrawLatexNDC(0.2,0.89,base);
+  */
 
   TLegend* legnB90 = new TLegend(0.55,0.7,0.8,0.8);
   legnB90->SetLineColor(0);
@@ -745,6 +883,8 @@ for( int i = 0 ; i < angles; i ++){
   Stats[0]->SetX2NDC(.85);
   Stats[0]->SetY1NDC(.55);
   Stats[0]->SetY2NDC(.65);
+  Stats[0]->SetLineColor(color[0]);
+  Stats[0]->SetLineStyle(styles[0]);
 
   h_NrowB[1].GetYaxis()->SetRangeUser(0.,1.);
   h_NrowB[1].Draw("histesames");
@@ -755,7 +895,7 @@ for( int i = 0 ; i < angles; i ++){
   Stats[1]->SetY1NDC(.44);
   Stats[1]->SetY2NDC(.54);
   Stats[1]->SetLineColor(color[1]);
-  Stats[1]->SetLineStyle(2);
+  Stats[1]->SetLineStyle(styles[1]);
   gPad->Modified();
 
   h_NrowB[2].GetYaxis()->SetRangeUser(0.,1.);
@@ -767,7 +907,7 @@ for( int i = 0 ; i < angles; i ++){
   Stats[2]->SetY1NDC(.33);
   Stats[2]->SetY2NDC(.43);
   Stats[2]->SetLineColor(color[2]);
-  Stats[2]->SetLineStyle(3);
+  Stats[2]->SetLineStyle(styles[2]);
   gPad->Modified();
 
   ///// now thr0
@@ -786,6 +926,8 @@ for( int i = 0 ; i < angles; i ++){
   Stats0[0]->SetX2NDC(.65);
   Stats0[0]->SetY1NDC(.55);
   Stats0[0]->SetY2NDC(.65);
+  Stats[0]->SetLineColor(color[0]);
+  Stats[0]->SetLineStyle(styles[0]);
 
   h_NrowB0[1].GetYaxis()->SetRangeUser(0.,1.);
   h_NrowB0[1].Draw("*histesames");
@@ -796,7 +938,7 @@ for( int i = 0 ; i < angles; i ++){
   Stats0[1]->SetY1NDC(.44);
   Stats0[1]->SetY2NDC(.54);
   Stats0[1]->SetLineColor(color[1]);
-  Stats0[1]->SetLineStyle(2);
+  Stats0[1]->SetLineStyle(styles[1]);
   gPad->Modified();
 
   h_NrowB0[2].GetYaxis()->SetRangeUser(0.,1.);
@@ -808,7 +950,7 @@ for( int i = 0 ; i < angles; i ++){
   Stats0[2]->SetY1NDC(.33);
   Stats0[2]->SetY2NDC(.43);
   Stats0[2]->SetLineColor(color[2]);
-  Stats0[2]->SetLineStyle(3);
+  Stats0[2]->SetLineStyle(styles[2]);
   gPad->Modified();
 
   legB2->Draw();
@@ -826,8 +968,12 @@ for( int i = 0 ; i < angles; i ++){
   //pixel charge
   // getting resudual from tree
   TCanvas *cpx = new TCanvas("cpx", "FDB resolution", 600, 600);
-  cpx->SetLeftMargin(0.12);
-  cpx->SetRightMargin(-0.1);
+  //cpx->SetLeftMargin(0.12);
+  //cpx->SetRightMargin(-0.1);
+  cpx->SetLeftMargin(0.14);  
+  cpx->SetRightMargin(0.05);  
+  cpx->SetTopMargin(0.05);  
+
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
   gStyle->SetPadGridX(0);
@@ -846,7 +992,7 @@ for( int i = 0 ; i < angles; i ++){
   t->Draw("pxphBtree>>hpxphB90","clphAiiitree<397&&clphBiiitree<317&&clphCiiitree<417","goff");
   hpxphB90 = (TH1F*)gDirectory->Get("hpxphB90");
 
-  TLegend* legresq90 = new TLegend(0.2,0.73,0.7,0.82);//0.3,0.7,0.8,0.8);
+  TLegend* legresq90 = new TLegend(0.15,0.78,0.7,0.88);//0.3,0.7,0.8,0.8);
   legresq90->SetLineColor(0);
   cout << "starting making hists pretty" << endl;
   hpxphB->GetYaxis()->SetTitle("Pixels above threshold");
@@ -860,6 +1006,7 @@ for( int i = 0 ; i < angles; i ++){
   hpxphB->GetYaxis()->SetLabelSize(20);
   hpxphB->GetXaxis()->SetLabelFont(43);
   hpxphB->GetXaxis()->SetLabelSize(20);
+  hpxphB->GetYaxis()->SetRangeUser(0.1,100000);
   hpxphB->Rebin(4);
   hpxphB90->Rebin(4);
   hpxphB->SetLineWidth(2);
@@ -867,15 +1014,22 @@ for( int i = 0 ; i < angles; i ++){
   hpxphB->Draw("histe");
   hpxphB90->SetLineStyle(2);
   hpxphB90->Draw("histesame");
-  cresph->Update();
+  cpx->Update();
+  cpx->SetLogy();
 
   //hdx3treeph->SetLineStyle(2);
   //hdx3treeph->Draw("histsame");
-  TLegend* legB90 = new TLegend(0.2,0.83,0.6,0.88);
+  TLegend* legB90 = new TLegend(0.2,0.85,0.6,0.89);
   legB90->SetLineColor(0);
   legB90->AddEntry(&(h_landau_orig[0]),base+", "+ang[1],"");
-  legB90->Draw();
+  //legB90->Draw();
 
+  TLatex tlpx;
+  tlpx.SetTextFont(43);
+  tlpx.SetTextSize(24);
+  tlpx.DrawLatexNDC(0.2,0.89,base);
+
+  
   legresq90->AddEntry(hpxphB,"All","le");
   legresq90->AddEntry(hpxphB90,"90% events with lowest cluster charge","le");
   legresq90->Draw();
