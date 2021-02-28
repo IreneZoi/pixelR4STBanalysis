@@ -265,6 +265,10 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
   //  TDR(); 
   TCanvas *cN = new TCanvas("cN", "FDB resolution", 600, 600);
   //  TCanvas *cN = new TCanvas("cN", "FDB resolution", 1500, 900);
+  cN->SetLeftMargin(0.1);
+  cN->SetRightMargin(0.01);
+  cN->SetTopMargin(0.05);
+
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
   gStyle->SetPadGridX(0);
@@ -276,7 +280,7 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
   gStyle->SetLegendFont(43);
-  gStyle->SetLegendTextSize(20);
+  gStyle->SetLegendTextSize(24);
   //test
   //cN->SetLeftMargin(0.15);
   //cN->SetRightMargin(1.5);
@@ -294,14 +298,20 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
   resolutionPlotN[0]->GetYaxis()->SetTitle("#sigma_{x}  [#mum]");
   resolutionPlotN[0]->GetXaxis()->SetTitle("Incidence angle [deg]");
   resolutionPlotN[0]->GetXaxis()->SetTitleFont(43);
-  resolutionPlotN[0]->GetXaxis()->SetTitleSize(20); // labels will be 14 pixels
+  resolutionPlotN[0]->GetXaxis()->SetTitleSize(24); // labels will be 14 pixels
   resolutionPlotN[0]->GetYaxis()->SetTitleFont(43);
-  resolutionPlotN[0]->GetYaxis()->SetTitleSize(20); // labels will be 14 pixels
+  resolutionPlotN[0]->GetYaxis()->SetTitleSize(24); // labels will be 14 pixels
   resolutionPlotN[0]->GetXaxis()->SetLabelFont(43);
-  resolutionPlotN[0]->GetXaxis()->SetLabelSize(20); // labels will be 14 pixels
+  resolutionPlotN[0]->GetXaxis()->SetLabelSize(24); // labels will be 14 pixels
   resolutionPlotN[0]->GetYaxis()->SetLabelFont(43);
-  resolutionPlotN[0]->GetYaxis()->SetLabelSize(20); // labels will be 14 pixels
-  
+  resolutionPlotN[0]->GetYaxis()->SetLabelSize(24); // labels will be 14 pixels
+  //resolutionPlotN[0]->GetXaxis()->SetTitleSize(0.05);
+  //resolutionPlotN[0]->GetYaxis()->SetTitleSize(0.05);
+  //resolutionPlotN[0]->GetXaxis()->SetTitleOffset(0.9);
+  //resolutionPlotN[0]->GetYaxis()->SetTitleOffset(1.4);
+  //resolutionPlotN[0]->GetXaxis()->SetLabelSize(0.05);
+  //resolutionPlotN[0]->GetYaxis()->SetLabelSize(0.05);
+
   resolutionPlotN[0]->SetMarkerColor(kMagenta-1);
   resolutionPlotN[0]->SetLineColor(kMagenta-1);
   resolutionPlotN[0]->SetMarkerStyle(36);
@@ -352,7 +362,12 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
 
   TCanvas *c3 = new TCanvas("c3", "FDB resolution", 600, 600);
   gROOT->SetStyle("Plain");
-  c3->SetLeftMargin(1.);
+  //c3->SetLeftMargin(1.);
+  c3->SetLeftMargin(0.01);
+  c3->SetRightMargin(0.999);
+  c3->SetTopMargin(0.05);
+  c3->SetBottomMargin(0.01);
+
   //   c3->SetBottomMargin(.9);
   gStyle->SetPadGridX(0);
   gStyle->SetPadGridY(0);
@@ -364,22 +379,24 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
   gStyle->SetLegendFont(43);
-  gStyle->SetLegendTextSize(15);
+  gStyle->SetLegendTextSize(24);
 
   
   
-  TPad *pad2 = new TPad("pad2","",0,0.,1,0.4);
+  TPad *pad2 = new TPad("pad2","",0,0.,1.,0.4);
   pad2->SetTopMargin(0.03);
-  pad2->SetBottomMargin(0.4);
-  
+  pad2->SetRightMargin(0.01);
+  pad2->SetBottomMargin(0.22);
+
   pad2->Draw();
 
   //pad2->SetFillStyle(4000); //will be transparent
   //#pad2->SetFrameFillStyle(0);
-  TPad *pad1 = new TPad("pad1","",0,0.4,1,1);  
+  TPad *pad1 = new TPad("pad1","",0,0.4,1.,1);  
   pad1->Draw();
+  pad1->SetRightMargin(0.01);
   pad1->SetBottomMargin(0.03);
-  
+  pad1->SetTopMargin(0.05);
   pad1->cd();
   gPad->SetTicks(1,1);
 
@@ -395,10 +412,10 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   //resolutionPlot[0]->GetXaxis()->SetTitle("#theta [deg]");
 
   resolutionPlot[0]->GetYaxis()->SetTitleFont(43);
-  resolutionPlot[0]->GetYaxis()->SetTitleSize(20); // labels will be 14 pixels
+  resolutionPlot[0]->GetYaxis()->SetTitleSize(24); // labels will be 14 pixels
 
   resolutionPlot[0]->GetYaxis()->SetLabelFont(43);
-  resolutionPlot[0]->GetYaxis()->SetLabelSize(20); // labels will be 14 pixels
+  resolutionPlot[0]->GetYaxis()->SetLabelSize(24); // labels will be 14 pixels
   
   resolutionPlot[0]->GetXaxis()->SetLabelFont(43);
   resolutionPlot[0]->GetXaxis()->SetLabelSize(0); // labels will be 14 pixels
@@ -407,7 +424,7 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   resolutionPlot[0]->SetLineColor(kBlack);
   resolutionPlot[0]->SetMarkerStyle(20);
 
-  resolutionPlot[0]->GetYaxis()->SetRangeUser(0.,10.);
+  resolutionPlot[0]->GetYaxis()->SetRangeUser(0.,12.);
 
 
 
@@ -450,7 +467,7 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   
 
 
-  TLegend* leg3 = new TLegend(0.15,0.67,0.55,0.87);
+  TLegend* leg3 = new TLegend(0.15,0.65,0.55,0.93);
   leg3->SetLineColor(0);
   leg3->AddEntry(resolutionPlot[0],irr[0],"lp");
   leg3->AddEntry(resolutionPlot[1],irr[1],"lp");
@@ -476,15 +493,15 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   clsizePlot[0]->GetYaxis()->SetNdivisions(5);
 
   clsizePlot[0]->GetXaxis()->SetTitleFont(43);
-  clsizePlot[0]->GetXaxis()->SetTitleSize(20); // labels will be 14 pixels
-  clsizePlot[0]->GetXaxis()->SetTitleOffset(3); // labels will be 14 pixels
+  clsizePlot[0]->GetXaxis()->SetTitleSize(24); // labels will be 14 pixels
+  clsizePlot[0]->GetXaxis()->SetTitleOffset(2.2); // labels will be 14 pixels
   clsizePlot[0]->GetXaxis()->SetLabelFont(43);
-  clsizePlot[0]->GetXaxis()->SetLabelSize(20); // labels will be 14 pixels
+  clsizePlot[0]->GetXaxis()->SetLabelSize(24); // labels will be 14 pixels
   
   clsizePlot[0]->GetYaxis()->SetTitleFont(43);
-  clsizePlot[0]->GetYaxis()->SetTitleSize(20); // labels will be 14 pixels
+  clsizePlot[0]->GetYaxis()->SetTitleSize(24); // labels will be 14 pixels
   clsizePlot[0]->GetYaxis()->SetLabelFont(43);
-  clsizePlot[0]->GetYaxis()->SetLabelSize(20); // labels will be 14 pixels
+  clsizePlot[0]->GetYaxis()->SetLabelSize(24); // labels will be 14 pixels
   
   clsizePlot[0]->SetMarkerColor(kBlack);
   clsizePlot[0]->SetLineColor(kBlack);
