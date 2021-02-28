@@ -414,7 +414,8 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
   c->SetLeftMargin(1.);
-  c->SetTopMargin(1.);
+  c->SetRightMargin(0.03);
+  c->SetTopMargin(0.03);
   gStyle->SetPadGridX(0);
   gStyle->SetPadGridY(0);
   gStyle->SetPalette(1);
@@ -424,13 +425,13 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
   gStyle->SetLegendFont(43);
-  gStyle->SetLegendTextSize(20);
+  gStyle->SetLegendTextSize(24);
   
-  TLegend* legAng = new TLegend(0.2,0.8,0.45,0.85);
+  TLegend* legAng = new TLegend(0.2,0.86,0.45,0.9);
   //legFDB2->SetNColumns(5);
   legAng->SetLineColor(0);
   //legAng->SetTextSize(0.03);
-  TLegend* legIrr = new TLegend(0.15,0.6,0.8,0.8);
+  TLegend* legIrr = new TLegend(0.15,0.63,0.8,0.85);
   legIrr->SetLineColor(0);
 		  //legIrr->SetTextSize(0.035);
   legIrr->SetFillStyle(0);
@@ -460,18 +461,24 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
 	resolutionPlotIrr[0]->GetXaxis()->SetTitle("Threshold [%]");
 
         resolutionPlotIrr[0]->GetYaxis()->SetTitleFont(43);
-        resolutionPlotIrr[0]->GetYaxis()->SetTitleSize(20); // labels will be 14 pixels
+        resolutionPlotIrr[0]->GetYaxis()->SetTitleSize(30); // labels will be 14 pixels
 
 	resolutionPlotIrr[0]->GetYaxis()->SetLabelFont(43);
-	resolutionPlotIrr[0]->GetYaxis()->SetLabelSize(20); // labels will be 14 pixels
+	resolutionPlotIrr[0]->GetYaxis()->SetLabelSize(30); // labels will be 14 pixels
 
 	resolutionPlotIrr[0]->GetXaxis()->SetLabelFont(43);
-	resolutionPlotIrr[0]->GetXaxis()->SetLabelSize(20); // labels will be 14 pixels
+	resolutionPlotIrr[0]->GetXaxis()->SetLabelSize(24); // labels will be 14 pixels
 
 	resolutionPlotIrr[0]->GetXaxis()->SetTitleFont(43);
-	resolutionPlotIrr[0]->GetXaxis()->SetTitleSize(20); // labels will be 14 pixels
-	
-	
+	resolutionPlotIrr[0]->GetXaxis()->SetTitleSize(24); // labels will be 14 pixels
+	/*
+	resolutionPlotIrr[0]->GetXaxis()->SetTitleSize(0.05);
+	resolutionPlotIrr[0]->GetYaxis()->SetTitleSize(0.05);
+	resolutionPlotIrr[0]->GetXaxis()->SetTitleOffset(0.9);
+	resolutionPlotIrr[0]->GetYaxis()->SetTitleOffset(1.);
+	resolutionPlotIrr[0]->GetXaxis()->SetLabelSize(0.05);
+	resolutionPlotIrr[0]->GetYaxis()->SetLabelSize(0.05);
+	*/
 	resolutionPlotIrr[0]->GetXaxis()->SetLimits(0.,35.);
 	resolutionPlotIrr[0]->GetYaxis()->SetRangeUser(0.,12.);
 	resolutionPlotIrr[0]->Draw("AEP");
@@ -501,8 +508,10 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
   TCanvas *cc  = new TCanvas("cc", "FDB resolution", 600, 600);
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
-  cc->SetLeftMargin(1.);
-  cc->SetTopMargin(1.);
+  cc->SetLeftMargin(0.16);
+  cc->SetTopMargin(0.1);
+  cc->SetBottomMargin(0.03);
+  cc->SetRightMargin(0.03);
   gStyle->SetPadGridX(0);
   gStyle->SetPadGridY(0);
   gStyle->SetPalette(1);
@@ -512,12 +521,14 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
   gStyle->SetLegendFont(43);
-  gStyle->SetLegendTextSize(20);
+  gStyle->SetLegendTextSize(24);
 
   cout << " initialized new canvas" << endl;
   TPad *pad2 = new TPad("pad2","",0,0.,1,0.45);
   pad2->SetTopMargin(0.03);
-  pad2->SetBottomMargin(0.4);
+  pad2->SetBottomMargin(0.25);
+  pad2->SetRightMargin(0.03);
+  pad2->SetLeftMargin(0.12);
 
   pad2->Draw();
 
@@ -526,6 +537,9 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
   TPad *pad1 = new TPad("pad1","",0,0.45,1,1);
   pad1->Draw();
   pad1->SetBottomMargin(0.03);
+  pad1->SetTopMargin(0.04);
+  pad1->SetRightMargin(0.03);
+  pad1->SetLeftMargin(0.12);
 
   pad1->cd();
   gPad->SetTicks(1,1);
@@ -554,21 +568,22 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
 
 
 
-  clsizePlot[0]->GetYaxis()->SetTitle("Average cluster size");
+  clsizePlot[0]->GetYaxis()->SetTitle("Mean cluster size");
   clsizePlot[0]->GetXaxis()->SetTitle("Threshold [%]");
 
   clsizePlot[0]->GetYaxis()->SetNdivisions(5,0,5);
 			       
   clsizePlot[0]->GetXaxis()->SetTitleFont(43);
-  clsizePlot[0]->GetXaxis()->SetTitleSize(20); // labels will be 14 pixels
-  clsizePlot[0]->GetXaxis()->SetTitleOffset(3); // labels will be 14 pixels
+  clsizePlot[0]->GetXaxis()->SetTitleSize(30); // labels will be 14 pixels
+  clsizePlot[0]->GetXaxis()->SetTitleOffset(1.9); // labels will be 14 pixels
   clsizePlot[0]->GetXaxis()->SetLabelFont(43);
-  clsizePlot[0]->GetXaxis()->SetLabelSize(20); // labels will be 14 pixels
+  clsizePlot[0]->GetXaxis()->SetLabelSize(30); // labels will be 14 pixels
 
   clsizePlot[0]->GetYaxis()->SetTitleFont(43);
-  clsizePlot[0]->GetYaxis()->SetTitleSize(20); // labels will be 14 pixels
+  clsizePlot[0]->GetYaxis()->SetTitleSize(30); // labels will be 14 pixels
   clsizePlot[0]->GetYaxis()->SetLabelFont(43);
-  clsizePlot[0]->GetYaxis()->SetLabelSize(20); // labels will be 14 pixels
+  clsizePlot[0]->GetYaxis()->SetLabelSize(30); // labels will be 14 pixels
+  clsizePlot[0]->GetYaxis()->SetTitleOffset(0.8); // labels will be 14 pixels
   clsizePlot[0]->GetXaxis()->SetLimits(0.,35.);
   clsizePlot[0]->GetYaxis()->SetRangeUser(0.,5.);
 
