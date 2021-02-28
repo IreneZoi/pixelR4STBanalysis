@@ -28,7 +28,7 @@ void TDR2(TCanvas * c_all, int period=0, int pos= 11);
 Double_t ScaleX(Double_t x);
 void ScaleAxis(TAxis *a, Double_t (*Scale)(Double_t));
 
-void controlPlots_forPaper(TString name = "preliminary_beamdiv_N7")
+void controlPlots_forPaper(TString name = "preliminary_beamdiv")
 {
 
   TString inputDir="/home/zoiirene/Output/";
@@ -112,10 +112,15 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv_N7")
 
   /////// plots!
 
-  
+  Color_t colors[irradiations] = {kBlack,kGreen+1,kMagenta};
+  int styles[irradiations] = {1,2,5};
   TCanvas *cFDB2 = new TCanvas("cFDB2", "FDB resolution", 600, 600);
-  cFDB2->SetLeftMargin(0.15);  
-  cFDB2->SetRightMargin(1.5);  
+  //cFDB2->SetLeftMargin(0.15);  
+  //cFDB2->SetRightMargin(1.5);
+  cFDB2->SetLeftMargin(0.14);
+  cFDB2->SetRightMargin(0.1);
+  cFDB2->SetTopMargin(0.05);
+
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
   gStyle->SetPadGridX(0);
@@ -126,14 +131,14 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv_N7")
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
   gStyle->SetLegendFont(43);
-  gStyle->SetLegendTextSize(15);
+  gStyle->SetLegendTextSize(24);
   cout << "starting making hists pretty" << endl;
   h_landau_orig[0].SetTitle(" ");
   h_landau_orig[0].GetYaxis()->SetTitle("Normalized number of events");
   h_landau_orig[0].GetXaxis()->SetTitle("Cluster charge [ADC]");
   //  h_landau_orig[0].SetMarkerSize(2.5);
-  h_landau_orig[0].SetLineColor(kBlack);
-  h_landau_orig[0].SetLineStyle(1);
+  h_landau_orig[0].SetLineColor(colors[0]);
+  h_landau_orig[0].SetLineStyle(styles[0]);
   h_landau_orig[0].SetLineWidth(2);
   h_landau_orig[0].Rebin(2);
   h_landau_orig[0].Scale(0.5);
@@ -141,6 +146,12 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv_N7")
   h_landau_orig[0].GetXaxis()->SetMaxDigits(3); //SetNoExponent(true);
   h_landau_orig[0].GetYaxis()->SetRangeUser(0.0001,1.);
   h_landau_orig[0].GetXaxis()->SetRange(0.,h_landau_orig[0].GetNbinsX()+1);
+  h_landau_orig[0].GetXaxis()->SetTitleSize(0.05);
+  h_landau_orig[0].GetYaxis()->SetTitleSize(0.05);
+  h_landau_orig[0].GetXaxis()->SetTitleOffset(0.9);
+  h_landau_orig[0].GetYaxis()->SetTitleOffset(1.4);
+  h_landau_orig[0].GetXaxis()->SetLabelSize(0.05);
+  h_landau_orig[0].GetYaxis()->SetLabelSize(0.05);
   h_landau_orig[0].Draw("histe");
   //  TGaxis::SetMaxDigits(3);
   //  h_landau_orig[1].SetMarkerSize(2.5);
@@ -149,9 +160,9 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv_N7")
   h_landau_orig[1].Rebin(2);
   h_landau_orig[1].Scale(0.5);
   h_landau_orig[1].GetYaxis()->SetRangeUser(0.0001,1.);
-  h_landau_orig[1].SetLineColor(kGreen+1);
-  h_landau_orig[1].SetMarkerColor(kGreen+1);
-  h_landau_orig[1].SetLineStyle(1);
+  h_landau_orig[1].SetLineColor(colors[1]);
+  h_landau_orig[1].SetLineStyle(styles[1]);  
+  h_landau_orig[1].SetMarkerColor(colors[1]);
   h_landau_orig[1].SetLineWidth(2);
   h_landau_orig[1].GetXaxis()->SetRange(0.,h_landau_orig[1].GetNbinsX()+1);
   //  h_landau_orig[1].GetXaxis()->SetNoExponent(true);
@@ -162,16 +173,16 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv_N7")
   h_landau_orig[2].GetYaxis()->SetRangeUser(0.0001,1.);
   h_landau_orig[2].GetXaxis()->SetRange(0.,h_landau_orig[2].GetNbinsX()+1);
   //h_landau_orig[2].GetYaxis()->SetRangeUser(0.,0.08);
-  h_landau_orig[2].SetLineColor(kMagenta);
-  h_landau_orig[2].SetMarkerColor(kMagenta);
+  h_landau_orig[2].SetLineColor(colors[2]);
+  h_landau_orig[2].SetLineStyle(styles[2]);  
+  h_landau_orig[2].SetMarkerColor(colors[2]);
   h_landau_orig[2].Rebin(2);
   h_landau_orig[2].Scale(0.5);
   h_landau_orig[2].SetLineWidth(2);
-  h_landau_orig[2].SetLineStyle(1);
   //  h_landau_orig[2].GetXaxis()->SetNoExponent(true);
   h_landau_orig[2].Draw("histesame");
 
-  TLegend* legFDB2 = new TLegend(0.4,0.7,0.8,0.85);
+  TLegend* legFDB2 = new TLegend(0.145,0.75,0.8,0.9);
   legFDB2->SetLineColor(0);
   //legFDB2->SetLegendFont(43);
   for(int i =0; i < irradiations; i++)
@@ -190,7 +201,7 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv_N7")
     line2[i]    = new TLine( bin90[i],0.,bin90[i],0.015);
     line2[i]->SetLineColor(color[i]);
     line2[i]->SetLineWidth(2);
-    line2[i]->SetLineStyle(1);
+    line2[i]->SetLineStyle(styles[i]);
     line2[i]->Draw("same");
     ar[i]  = new TArrow(bin90[i],0.001,bin90[i]-50,0.001,0.03,"|>"); //,"<|");
     ar[i]->SetLineColor(color[i]);
@@ -415,8 +426,10 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv_N7")
 
   
   TCanvas *cresph2 = new TCanvas("cresph2", "FDB resolution", 600, 600);
-  cresph2->SetLeftMargin(0.12);  
-  cresph2->SetRightMargin(-0.1);  
+  cresph2->SetLeftMargin(0.14);
+  cresph2->SetRightMargin(0.05);
+  cresph2->SetTopMargin(0.05);
+
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
   gStyle->SetPadGridX(0);
@@ -426,16 +439,19 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv_N7")
   gStyle->SetOptTitle(0);
   gStyle->SetTextFont(43);
   gStyle->SetTextSize(10);
-  int colors[irradiations]={1,417,616};
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(24);
+  
+  //  int colors[irradiations]={1,417,616};
     
   Float_t Mean[irradiations];
 
 
-  TLegend* legB = new TLegend(0.25,0.85,0.4,0.88);
+  TLegend* legB = new TLegend(0.15,0.45,0.4,0.5);
   legB->SetLineColor(0);
   legB->AddEntry(&(h_resq[0]),"#theta = 8.8 deg","");
   
-  TLegend* legresq2 = new TLegend(0.13,0.67,0.69,0.85);
+  TLegend* legresq2 = new TLegend(0.15,0.52,0.69,0.92);
   legresq2->SetLineColor(0);
   std::string ns = std::to_string(nsigma);
   ofstream myfile;
@@ -453,7 +469,13 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv_N7")
     h_resq[i].SetLineStyle(1+i);
     h_resq[i].SetLineWidth(2);
     h_resq[i].GetXaxis()->SetRangeUser(minX[i],maxX[i]);
-    h_resq[i].GetYaxis()->SetRangeUser(0.,0.35);
+    h_resq[i].GetYaxis()->SetRangeUser(0.,0.5);
+    h_resq[i].GetXaxis()->SetTitleSize(0.05);
+    h_resq[i].GetYaxis()->SetTitleSize(0.05);
+    h_resq[i].GetXaxis()->SetTitleOffset(0.9);
+    h_resq[i].GetYaxis()->SetTitleOffset(1.4);
+    h_resq[i].GetXaxis()->SetLabelSize(0.05);
+    h_resq[i].GetYaxis()->SetLabelSize(0.05);
     
     h_resq[i].Draw("histesames");
     cresph->Update();
@@ -472,6 +494,13 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv_N7")
     std::stringstream stream_p;
     stream_p << std::fixed << std::setprecision(1) << perc[i]*100;
     std::string s_p = stream_p.str();
+    std::stringstream stream_s;
+    stream_s << std::fixed << std::setprecision(2) << h_resq[i].GetSkewness();
+    std::string s_s = stream_s.str();
+    std::stringstream stream_k;
+    stream_k << std::fixed << std::setprecision(2) << h_resq[i].GetKurtosis();
+    std::string s_k = stream_k.str();
+
     
     if(i!=0)  gPad->Modified();
     irr[0] = "Non-irradiated";//, 120 V"; // "no irr, 5.6 GeV";
@@ -479,8 +508,10 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv_N7")
     irr[2] = "#phi_{eq} = 3.6 #times 10^{15} cm^{-2}, neutron";//, 800 V";
 
     legresq2->AddEntry(&(h_resq[i]),irr[i],"le"); // +", #mu = "+s_m+" #mum, RMS = "+s_r+" #mum, tracks: "+s_p+" %","le");
-    irr[i] = "";
-    legresq2->AddEntry(&(h_resq[i]),irr[i]+"#mu = "+s_m+" #mum, RMS = "+s_r+" #mum, tracks: "+s_p+" %","");
+    TString firstleg = "#mu = "+s_m+" #mum, #delta_{#Deltax} = "+s_r+" #mum";
+    legresq2->AddEntry(&(h_resq[i]),firstleg,""); // +", #mu = "+s_m+" #mum, RMS = "+s_r+" #mum, tracks: "+s_p+" %","le");
+    TString secondleg = "#tilde{#mu}_{3} = "+s_s+", #tilde{#mu}_{4} = "+s_k+", tracks: "+s_p+" %";
+    legresq2->AddEntry(&(h_resq[i]),secondleg,"");
     h_resq[i].GetXaxis()->SetRangeUser(-50.,50.);
     myfile << i << " " << s_r << " " << s_p << std::endl;
   }
