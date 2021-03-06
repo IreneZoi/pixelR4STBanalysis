@@ -1,0 +1,22 @@
+Using non-irr at best angle: Output/drei-r2743_irene_dphcutB12_beamdiv_A13C14.root
+
+1) Gauss + bkg full range ( .x fitgp0.C("dx3_clphABC90evR;cycle") )  : sigma        3.39933e-03 ±  1.78835e-05  mm 
+2) Gauss + bkg in ±3 sigma ( .x fitgp0.C("dx3_clphABC90evR;cycle",-3*3.39933e-03,3*3.39933e-03) ) : sigma        3.13978e-03 ±  2.46699e-05  mm
+3) generalized error function  ( .x fitep0.C("dx3_clphABC90evR") )   : sigma        2.97848e-03 ±  3.27698e-05  mm
+4) generalized error function in ±3 sigma( .x fitep0.C("dx3_clphABC90evR;cycle",-3*2.97848e-03,3*2.97848e-03)):  sigma        3.13399e-03 ±  4.72535e-05  mm
+5) Student's t full range (.x fittp0.C("dx3_clphABC90evR")) : sigma        3.01995e-03 ±  2.27359e-05 mm
+6) Student's t in ±3 sigma(.x fittp0.C("dx3_clphABC90evR",-3*0.00301957,3*0.00301957)): sigma        3.12059e-03   2.71182e-05
+7) RMS
+
+Gaussian & 3.40 $\pm$ 0.02\\
+Gaussian ($\pm~3~\sigma$) &  3.14 $\pm$ 0.02 \\
+Gen. Error Func. & 2.98 $\pm$ 0.03 \\
+Gen. Error Func. ($\pm~3~\sigma$) & 3.13 $\pm$ 0.05\\
+Student's t & 3.02 $\pm$ 0.02\\
+Student's t ($\pm~3~\sigma$) &  3.12 $\pm$ 0.03 \\
+RMS & 4.86 $\pm$ 0.02\\
+RMS ($\pm$ pitch) & 3.97 $\pm$ 0.02\\
+RMS ($\pm$ pitch/2) & 3.60 $\pm$ 0.02\\
+$\delta_{\Delta x}$ (N=3) & 3.41  $\pm$ 0.02\\
+$\delta_{\Delta x}$ (N=6) & 3.96 $\pm$ 0.02\\
+
