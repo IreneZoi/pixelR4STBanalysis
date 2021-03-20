@@ -38,6 +38,10 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
   irr[0] = "Non-irradiated, 120 V"; // "no irr, 5.6 GeV";
   irr[1] = "#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton, 800 V";
   irr[2] = "#phi_{eq} = 3.6 #times 10^{15} cm^{-2}, neutron, 800 V";
+  TString irrshort[irradiations];
+  irrshort[0] = "NonIrr";
+  irrshort[1] = "ProtIrr2E15";
+  irrshort[2] = "NeutrIrr3p6E15";
 
   int nsigma =6;
   std::map<std::pair<TString, TString>, TH1F *>::iterator it;
@@ -153,6 +157,21 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
   h_landau_orig[0].GetXaxis()->SetLabelSize(0.05);
   h_landau_orig[0].GetYaxis()->SetLabelSize(0.05);
   h_landau_orig[0].Draw("histe");
+
+
+  //// Write Txt files for Robert                                                                                                                                                                                                             
+  ofstream mylandau0;
+  mylandau0.open ("/home/zoiirene/Output/TextFiles/Fig12_ClusterCharge_NonIrr_8.8deg.txt");
+  mylandau0 << "Bin Center [ADC]  Content \n";
+  for(int i=0; i < h_landau_orig[0].GetNbinsX()+1; i++){
+
+    mylandau0 << h_landau_orig[0].GetBinCenter(i) << " " << h_landau_orig[0].GetBinContent(i) << "\n";
+  }
+  mylandau0.close();
+
+
+
+
   //  TGaxis::SetMaxDigits(3);
   //  h_landau_orig[1].SetMarkerSize(2.5);
   h_landau_orig[1].GetXaxis()->SetLimits(0,1000.);
@@ -167,7 +186,19 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
   h_landau_orig[1].GetXaxis()->SetRange(0.,h_landau_orig[1].GetNbinsX()+1);
   //  h_landau_orig[1].GetXaxis()->SetNoExponent(true);
   h_landau_orig[1].Draw("histesame");
- 				      
+
+  //// Write Txt files for Robert                                                                                                                                                                                                             
+  ofstream mylandau1;
+  mylandau1.open ("/home/zoiirene/Output/TextFiles/Fig12_ClusterCharge_ProtIrr2E15_8p8deg.txt");
+  mylandau1 << "Bin Center [ADC]  Content \n";
+  for(int i=0; i < h_landau_orig[1].GetNbinsX()+1; i++){
+
+    mylandau1 << h_landau_orig[1].GetBinCenter(i) << " " << h_landau_orig[1].GetBinContent(i) << "\n";
+  }
+  mylandau1.close();
+
+
+  
   // h_landau_orig[2].SetMarkerSize(2.5);
   h_landau_orig[2].GetXaxis()->SetLimits(0,1000.);
   h_landau_orig[2].GetYaxis()->SetRangeUser(0.0001,1.);
@@ -182,6 +213,19 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
   //  h_landau_orig[2].GetXaxis()->SetNoExponent(true);
   h_landau_orig[2].Draw("histesame");
 
+
+  ofstream mylandau2;
+  mylandau2.open ("/home/zoiirene/Output/TextFiles/Fig12_ClusterCharge_NeutrIrr3p6E15_8p8deg.txt");
+  mylandau2 << "Bin Center [ADC]  Content \n";
+  for(int i=0; i < h_landau_orig[2].GetNbinsX()+1; i++){
+
+    mylandau2 << h_landau_orig[2].GetBinCenter(i) << " " << h_landau_orig[2].GetBinContent(i) << "\n";
+  }
+  mylandau2.close();
+
+
+
+  
   TLegend* legFDB2 = new TLegend(0.145,0.75,0.8,0.9);
   legFDB2->SetLineColor(0);
   //legFDB2->SetLegendFont(43);
@@ -476,6 +520,18 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
     h_resq[i].GetYaxis()->SetTitleOffset(1.4);
     h_resq[i].GetXaxis()->SetLabelSize(0.05);
     h_resq[i].GetYaxis()->SetLabelSize(0.05);
+
+    ofstream myres;
+    myres.open ("/home/zoiirene/Output/TextFiles/Fig13_ResidualWithoutTails_"+irrshort[i]+"_8p8deg.txt");
+    myres << "Bin Center [um]  Content \n";
+    for(int k=0; k < h_resq[i].GetNbinsX()+1; k++){
+
+      myres << h_resq[i].GetBinCenter(k) << " " << h_resq[i].GetBinContent(k) << "\n";
+    }
+    myres.close();
+
+
+
     
     h_resq[i].Draw("histesames");
     cresph->Update();
