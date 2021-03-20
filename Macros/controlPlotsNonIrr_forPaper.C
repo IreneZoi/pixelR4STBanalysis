@@ -149,6 +149,16 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   h_landau_orig[0].GetXaxis()->SetLabelSize(0.05);
   h_landau_orig[0].GetYaxis()->SetLabelSize(0.05);
   h_landau_orig[0].Draw("histe");
+  //// Write Txt files for Robert
+  ofstream mylandau0;
+  mylandau0.open ("/home/zoiirene/Output/TextFiles/Fig9_ClusterCharge_NonIrr_0deg.txt");
+  mylandau0 << "Bin Center [ADC]  Content \n";
+  for(int i=0; i < h_landau_orig[0].GetNbinsX()+1; i++){
+
+    mylandau0 << h_landau_orig[0].GetBinCenter(i) << " " << h_landau_orig[0].GetBinContent(i) << "\n";
+  }
+  mylandau0.close();
+
   //  TGaxis::SetMaxDigits(3);
   //  h_landau_orig[1].SetMarkerSize(2.5);
   h_landau_orig[1].GetXaxis()->SetLimits(0,1000.);
@@ -163,7 +173,21 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   h_landau_orig[1].GetXaxis()->SetRange(0.,h_landau_orig[1].GetNbinsX()+1);
   //  h_landau_orig[1].GetXaxis()->SetNoExponent(true);
   h_landau_orig[1].Draw("histesame");
- 				      
+
+  //// Write Txt files for Robert
+  ofstream mylandau1;
+  mylandau1.open ("/home/zoiirene/Output/TextFiles/Fig9_ClusterCharge_NonIrr_8p8deg.txt");
+  mylandau1 << "Bin Center [ADC]  Content \n";
+  for(int i=0; i < h_landau_orig[1].GetNbinsX()+1; i++){
+
+    mylandau1 << h_landau_orig[1].GetBinCenter(i) << " " << h_landau_orig[1].GetBinContent(i) << "\n";
+  }
+  mylandau1.close();
+
+
+
+
+  
   // h_landau_orig[2].SetMarkerSize(2.5);
   h_landau_orig[2].GetXaxis()->SetLimits(0,1000.);
   h_landau_orig[2].GetYaxis()->SetRangeUser(0.0001,1.);
@@ -177,6 +201,19 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   h_landau_orig[2].SetLineStyle(styles[2]);
   //  h_landau_orig[2].GetXaxis()->SetNoExponent(true);
   h_landau_orig[2].Draw("histesame");
+
+  //// Write Txt files for Robert                                                                                                                                                                                                             
+  ofstream mylandau2;
+  mylandau2.open ("/home/zoiirene/Output/TextFiles/Fig9_ClusterCharge_NonIrr_27p5deg.txt");
+  mylandau2 << "Bin Center [ADC]  Content \n";
+  for(int i=0; i < h_landau_orig[2].GetNbinsX()+1; i++){
+
+    mylandau2 << h_landau_orig[2].GetBinCenter(i) << " " << h_landau_orig[2].GetBinContent(i) << "\n";
+  }
+  mylandau2.close();
+
+
+  
   /*
   TLegend* legFDB = new TLegend(0.1,0.83,0.7,0.88);
   legFDB->SetLineColor(0);
@@ -322,6 +359,17 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
     h_resq[i].Draw("histesames");
     cresph->Update();
 
+    ofstream myres;
+    myres.open ("/home/zoiirene/Output/TextFiles/Fig10_ResidualWithTails_NonIrr_"+angshort[i]+"deg.txt");
+    myres << "Bin Center [um]  Content \n";
+    for(int k=0; k < h_resq[i].GetNbinsX()+1; k++){
+
+    myres << h_resq[i].GetBinCenter(k) << " " << h_resq[i].GetBinContent(k) << "\n";
+    }
+    myres.close();
+
+
+    
     Stats[i] =   (TPaveStats*)h_resq[i].FindObject("stats");     //GetListOfFunctions()->FindObject("stats");                                                                                                                                
     Stats[i]->SetLineColor(color[i]);
     Stats[i]->SetLineStyle(styles[i]);
@@ -428,6 +476,15 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
     h_resq[i].GetYaxis()->SetRangeUser(0.,0.4);
     h_resq[i].Draw("histesames");
     cresph->Update();
+    ofstream myres;
+    myres.open ("/home/zoiirene/Output/TextFiles/Fig11_ResidualWithoutTails_NonIrr_"+angshort[i]+"deg.txt");
+    myres << "Bin Center [um]  Content \n";
+    for(int k=0; k < h_resq[i].GetNbinsX()+1; k++){
+
+    myres << h_resq[i].GetBinCenter(k) << " " << h_resq[i].GetBinContent(k) << "\n";
+    }
+    myres.close();
+
     cout << " changed range " <<endl;
     Mean[i]=h_resq[i].GetMean();
     RMS[i]=h_resq[i].GetRMS();
@@ -767,6 +824,32 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   Stats[0]->SetY2NDC(.65);
   Stats[0]->SetLineColor(color[0]);
   Stats[0]->SetLineStyle(styles[0]);
+
+  //Write Txt Files for Robert
+  ofstream mycl0;
+  mycl0.open ("/home/zoiirene/Output/TextFiles/Fig8_ClusterSize_NonIrr_"+angshort[0]+"deg.txt");
+  mycl0 << "Bin Center  Content \n";
+  for(int k=0; k < h_NrowB[0].GetNbinsX()+1; k++){
+
+    mycl0 << h_NrowB[0].GetBinCenter(k) << " " << h_NrowB[0].GetBinContent(k) << "\n";
+  }
+  mycl0.close();
+  ofstream mycl1;
+  mycl1.open ("/home/zoiirene/Output/TextFiles/Fig8_ClusterSize_NonIrr_"+angshort[1]+"deg.txt");
+  mycl1 << "Bin Center  Content \n";
+  for(int k=0; k < h_NrowB[1].GetNbinsX()+1; k++){
+
+    mycl1 << h_NrowB[1].GetBinCenter(k) << " " << h_NrowB[1].GetBinContent(k) << "\n";
+  }
+  mycl1.close();
+  ofstream mycl2;
+  mycl2.open ("/home/zoiirene/Output/TextFiles/Fig8_ClusterSize_NonIrr_"+angshort[2]+"deg.txt");
+  mycl2 << "Bin Center  Content \n";
+  for(int k=0; k < h_NrowB[2].GetNbinsX()+1; k++){
+
+    mycl2 << h_NrowB[2].GetBinCenter(k) << " " << h_NrowB[2].GetBinContent(k) << "\n";
+  }
+  mycl2.close();
 
   h_NrowB[1].GetYaxis()->SetRangeUser(0.,1.);
   h_NrowB[1].Draw("histesames");
