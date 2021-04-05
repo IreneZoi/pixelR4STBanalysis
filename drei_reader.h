@@ -79,9 +79,9 @@ double ycoordinate(int plane, vector<cluster>::iterator c, double align, double 
 double ycoordinate2(int plane, cluster c, double align, double pitchc, double pitchr); 
 double eta(vector<cluster>::iterator c); 
 double eta2(cluster c); 
-double alignx(TH1I * h, TString plane,TString run,int iteration);
-double aligny(TH1I * h, TString plane,TString run,int iteration);
-double alignangle(TProfile * h, TString plane,TString run,int iteration);
+double alignx(TH1I * h, TString plane,TString run,int iteration, double * mean, double * meanerror);
+double aligny(TH1I * h, TString plane,TString run,int iteration, double * mean, double * meanerror);
+double alignangle(TProfile * h, TString plane,TString run,int iteration, TString name, double * mean, double * meanerror);
 void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TString method);
 
 

@@ -120,7 +120,7 @@ int main( int argc, char* argv[] )
   double qRB = 0;
   double Tsunami[DreiMasterPlanes];
   double dphcut[DreiMasterPlanes];
-  double dx3corr;
+  double dx3corr = 0;
 
   string alignFileName = "0";
   if(alignversion == 1)
@@ -819,7 +819,7 @@ int main( int argc, char* argv[] )
 
       ///////        A-C cluster correlations: ///////////
       if(PRINT) cout << "entering AC correlation loop " << endl;
-      int nm = 0;
+      nm = 0;
       //      int iC =0;
       for( int cC=0; cC < vclC.size(); ++cC ){
 	
@@ -941,13 +941,13 @@ int main( int argc, char* argv[] )
 		  double dx3 = xB - xavg;
 		  double dy3 = yB - yavg;
 
-                  dx3vsx->Fill( xB, dx3 ); // turn
-		  dx3vsy->Fill( yB, dx3 );
 		  
 		  
 		  fillControlHists2(beforeCorrections,"beforeCorrections",dx3,dy3,vclA[cA],vclB[cB],vclC[cC],nrowB,ncolB,xmod,iev,xB,yB,xAr,yAr,xCr,yCr,dxCA,etaA,etaB,etaC,histoFile,fileName,hclphAiii,hclphBiii,hclphCiii,hclqAiii,hclqBiii,hclqCiii);
 
 		  dx3 = dx3 - dx3corr*xavg; // from -dx3vsx.Fit("pol1")
+		  dx3vsx->Fill( xB, dx3 ); // turn
+		  dx3vsy->Fill( yB, dx3 );
 
 
 		  double dxy = sqrt( dx3*dx3 + dy3*dy3 );
@@ -1762,32 +1762,43 @@ int main( int argc, char* argv[] )
 
   if(DOALIGNMENT)
     {
+      ofstream myfile;
+      std::string s_it = std::to_string(aligniteration);
+      std::string s_dphcut = std::to_string(dphcut[B]);
+      std::string aligndetailFile = "align/align_run"+runnum+"_dphcutB"+s_dphcut+"_iteration_"+s_it+".txt";
+      myfile.open(aligndetailFile);
+      myfile << "parameter value error \n";
       cout << "**************** alignment iteration " << aligniteration << endl;
       cout << "******* ALIGNA A ********" << endl;
       double newalignxA = alignxA;
+      double meanxA;
+      double meanxA_error;
       if(PRINT) cout << " newalignxA " << newalignxA << " alignxA " << alignxA << endl;
-      
+
       if(PRINT) cout << hdxAB->GetTitle() << " entries " << hdxAB->GetEntries() << endl;
       
-      if( hdxAB->GetEntries() > 999 )
-	{
-      cout << "******* A x ********" << endl;
-	  
-      newalignxA += alignx(hdxAB,"A",runnum,aligniteration);
-	}
+      if( hdxAB->GetEntries() > 999 )	{
+	cout << "******* A x ********" << endl;
+
+	newalignxA += alignx(hdxAB,"A",runnum,aligniteration,&meanxA,&meanxA_error);
+	cout << " mean from pointer "<< meanxA << " error " << meanxA_error << endl;
+	myfile<<"alignxA "<< meanxA << " "<< meanxA_error << "\n";
+      }
       else
 	cout << "  not enough statistics" << endl;
       
       // y:
 
       double newalignyA = alignyA;
+      double meanyA;
+      double meanyA_error;
       
       if(PRINT) cout << endl << hdyAB->GetTitle() << " entries " << hdyAB->GetEntries() << endl;
       if( hdyAB->GetEntries() > 999 ) {
 	//cout << "  y correction " << hdyAB->GetMean() << endl;
 	cout << "******* A y ********" << endl;
-
-	newalignyA += aligny(hdyAB,"A",runnum,aligniteration);
+	newalignyA += aligny(hdyAB,"A",runnum,aligniteration,&meanyA,&meanyA_error);
+	myfile<<"alignyA "<< meanyA << " "<< meanyA_error << "\n";
       }
       else
 	cout << "  not enough statistics" << endl;
@@ -1795,11 +1806,14 @@ int main( int argc, char* argv[] )
       // dxvsy -> -rot
       
       double newalignfA = alignfA;
-      
+      double meanfA;
+      double meanfA_error;
+
       if(PRINT) cout << endl << dxvsyAB->GetTitle() << " entries " << dxvsyAB->GetEntries() << endl;
       if( aligniteration > 0 && dxvsyAB->GetEntries() > 999 ) {
 	cout << "******* A angle ********" << endl;
-	newalignfA += alignangle(dxvsyAB,"A",runnum,aligniteration);
+	newalignfA += alignangle(dxvsyAB,"A",runnum,aligniteration,"f",&meanfA,&meanfA_error);
+	myfile<<"alignfA "<< meanfA << " "<< meanfA_error << "\n";
       }
       else
 	cout << "  not enough" << endl;
@@ -1808,11 +1822,15 @@ int main( int argc, char* argv[] )
 
       cout << "******* ALIGNA C ********" << endl;
       double newalignxC = alignxC;
-  
+      double meanxC;
+      double meanxC_error;
+
       if(PRINT) cout << endl << hdxCB->GetTitle() << " entries " << hdxCB->GetEntries() << endl;
       if( hdxCB->GetEntries() > 999 ) {
 	cout << "******* C x ********" << endl;
-	newalignxC += alignx(hdxCB,"C",runnum,aligniteration);
+	newalignxC += alignx(hdxCB,"C",runnum,aligniteration,&meanxC,&meanxC_error);
+	cout << " mean from pointer "<< meanxC << " error " << meanxC_error << endl;
+	myfile<<"alignxC "<< meanxC << " "<< meanxC_error << "\n";
       }
       else
 	cout << "  not enough" << endl;
@@ -1820,12 +1838,15 @@ int main( int argc, char* argv[] )
       // y:
       
       double newalignyC = alignyC;
+      double meanyC;
+      double meanyC_error;
 
       if(PRINT)      cout << endl << hdyCB->GetTitle() << " entries " << hdyCB->GetEntries() << endl;
       if( hdyCB->GetEntries() > 999 ) {
 	//	cout << "  y correction " << hdyCB->GetMean() << endl;
 	cout << "******* C y ********" << endl;
-	newalignyC += aligny(hdyCB,"C",runnum,aligniteration);
+	newalignyC += aligny(hdyCB,"C",runnum,aligniteration,&meanyC,&meanyC_error);
+	myfile<<"alignyC "<< meanyC << " "<< meanyC_error << "\n";
       }
       else
 	cout << "  not enough" << endl;
@@ -1833,25 +1854,32 @@ int main( int argc, char* argv[] )
       // dxvsy -> -rot
 
       double newalignfC = alignfC;
-      
+      double meanfC;
+      double meanfC_error;
+
       cout << endl << dxvsyCB->GetTitle() << " entries " << dxvsyCB->GetEntries() << endl;
       if( aligniteration > 0 && dxvsyCB->GetEntries() > 999 ) {
 	cout << "******* C angle ********" << endl;
-	newalignfC += alignangle(dxvsyCB,"C",runnum,aligniteration);
+	newalignfC += alignangle(dxvsyCB,"C",runnum,aligniteration,"f",&meanfC,&meanfC_error);
+	myfile<<"alignfC "<< meanfC << " "<< meanfC_error << "\n";
       }
       else
 	cout << "  not enough" << endl;
 
       double newdx3corr = dx3corr;
+      double meangamma;
+      double meangamma_error;
 
       cout << endl << dx3vsx->GetTitle() << " entries " << dx3vsx->GetEntries() << endl;
       if( aligniteration > 3 && dx3vsx->GetEntries() > 999 ) {
 	cout << "******* common angle  ********" << endl;
-	newdx3corr += alignangle(dx3vsx,"C",runnum,aligniteration);
+	newdx3corr += alignangle(dx3vsx,"C",runnum,aligniteration,"gamma",&meangamma,&meangamma_error);
+	myfile<<"gamma "<< meangamma << " "<< meangamma_error << "\n";
       }
       else
 	cout << "  not enough" << endl;
 
+      myfile.close();
       ++aligniteration;
       cout << endl
 	   << "for " << alignFileName << endl
@@ -2024,7 +2052,7 @@ void getPercentRange(TH1 * h,double * dlow, double * dhigh, double percent, TStr
 
 
 
-double alignx(TH1I * h, TString plane,TString run,int iteration)
+double alignx(TH1I * h, TString plane,TString run,int iteration, double * mean, double * meanerror)
 {
   TString iter;
   iter.Form("%d",iteration);
@@ -2060,12 +2088,13 @@ double alignx(TH1I * h, TString plane,TString run,int iteration)
   fgp0->SetParameter( 0, h->GetMaximum() ); // amplitude
   fgp0->SetParameter( 1, xpk ); //mean
   fgp0->SetParameter( 2, h->GetBinWidth(1) ); // sigma
-  fgp0->SetParameter( 3, h->GetBinContent( hdxAB->FindBin(xpk-1) ) ); // BG
+  fgp0->SetParameter( 3, h->GetBinContent( h->FindBin(xpk-1) ) ); // BG
   fgp0->SetParName(0, "amplitude");
   fgp0->SetParName(1, "mean");
   fgp0->SetParName(2, "sigma");
   fgp0->SetParName(3, "BG");
-  h->Fit( "fgp0", "qI", "", xpk-1, xpk+1 ); // fit range around peak
+  h->Fit( "fgp0", "q", "", xpk-1, xpk+1 ); // fit range around peak
+  //h->Fit( "fgp0", "qI", "", xpk-1, xpk+1 ); // fit range around peak - the I option doesn't work after switching to ubuntu 18.
   fgp0->SetLineColor(kRed);
   fgp0->SetLineWidth(2);
   fgp0->Draw("same");
@@ -2089,12 +2118,15 @@ double alignx(TH1I * h, TString plane,TString run,int iteration)
   c->SaveAs(outputFile+".pdf");
   c->SaveAs(outputFile+".png");
   c->SaveAs(outputFile+".root");
-  
+
+
+  *mean =fgp0->GetParameter(1);
+  *meanerror = fgp0->GetParError(1);
   return fgp0->GetParameter(1);
 }
 
 
-double aligny(TH1I * h, TString plane,TString run,int iteration)
+double aligny(TH1I * h, TString plane,TString run,int iteration, double * mean, double * meanerror)
 {
   TString iter;
   iter.Form("%d",iteration);
@@ -2129,7 +2161,7 @@ double aligny(TH1I * h, TString plane,TString run,int iteration)
        << endl << "  mean " << h->GetMean()
        << endl << "  mean error " << h->GetMeanError()
        << endl;
-  double mean = h->GetMean();
+  double Mean = h->GetMean();
   h->GetXaxis()->SetRangeUser(-0.5,0.5);
   h->Draw("hist");
 
@@ -2143,15 +2175,17 @@ double aligny(TH1I * h, TString plane,TString run,int iteration)
   c->SaveAs(outputFile+".png");
   c->SaveAs(outputFile+".root");
 
-  
-  return mean;
+  *mean =Mean;
+  *meanerror = h->GetMeanError();
+
+  return Mean;
 
 
 
   
 }
 
-double alignangle(TProfile * h, TString plane,TString run,int iteration)
+double alignangle(TProfile * h, TString plane,TString run,int iteration,TString name, double * mean, double * meanerror)
 {
   TString iter;
   iter.Form("%d",iteration);
@@ -2204,12 +2238,15 @@ double alignangle(TProfile * h, TString plane,TString run,int iteration)
 
   //  TString outputDir = outputDir+"";
   TString outputFile = outputDir+"alignf_"+plane+"_run"+run+"_iteration_"+iter;
+  if( name == "gamma") outputFile = outputDir+"align"+name+"_run"+run+"_iteration_"+iter;
   c->SaveAs(outputFile+".eps");
   c->SaveAs(outputFile+".pdf");
   c->SaveAs(outputFile+".png");
   c->SaveAs(outputFile+".root");
 
-  
+  *mean =fdxvsy->GetParameter(1);
+  *meanerror = fdxvsy->GetParError(1);
+
   
   return fdxvsy->GetParameter(1);
 }
