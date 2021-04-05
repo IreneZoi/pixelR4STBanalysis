@@ -95,6 +95,7 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
   
   
   TString ss_irr[irradiations] = {"nonirr","2E15prot","4E15neut"};
+  TString SS_irr[irradiations] = {"NonIrr","ProtIrr2E15","NeutrIrr3p6E15"};
   double angle_0[anglesNONirr];
   double angle_1[anglesPirr2];
   double angle_2[anglesNirr4];
@@ -551,6 +552,20 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
   resolutionPlotIrr[1]->Draw("EPsame");
   resolutionPlotIrr[2]->Draw("EPsame");
 
+
+  //// Write Txt files for Robert
+  for( int k = 0; k< irradiations; k++){
+    ofstream myres;
+    myres.open ("/home/zoiirene/Output/TextFiles/Fig16_Resolution_"+SS_irr[k]+"_8p8deg.txt");
+    myres << "Offline Threshold [%]  Resolution [um] \n";
+    for(int i=0; i < dphcuts; i++){
+      if( k == 0)    myres << i_dphcutPerc[i] << " " << resd_0[1][i] << "\n";
+      if( k == 1)    myres << i_dphcutPerc[i] << " " << resd_1[1][i] << "\n";
+      if( k == 2)    myres << i_dphcutPerc[i] << " " << res_3[i] << "\n";
+  }
+  myres.close();
+  }
+
   legAng->Draw();
   legIrr->Draw();
 
@@ -589,7 +604,20 @@ void resolutionAngleScanThrV2_forPaper(TString thr="500",TString name = "prelimi
 
   
   for (int l =0; l < irradiations; l++){
-		  
+
+
+  //// Write Txt files for Robert
+    ofstream myres;
+    myres.open ("/home/zoiirene/Output/TextFiles/Fig16_ClusterSize_"+SS_irr[l]+"_8p8deg.txt");
+    myres << "Offline Threshold [%]  Resolution [um] \n";
+    for(int i=0; i < dphcuts; i++){
+      if( l == 0)    myres << i_dphcutPerc[i] << " " << clsize_0[11][i] << "\n";
+      if( l == 1)    myres << i_dphcutPerc[i] << " " << clsize_1[11][i] << "\n";
+      if( l == 2)    myres << i_dphcutPerc[i] << " " << clsize_3[i] << "\n";
+    }
+    myres.close();
+
+
     clsizePlot[l]->SetTitle(" ");
     clsizePlot[l]->SetMarkerSize(1.);
     clsizePlot[l]->SetMarkerColor(colors_irr[l]);
