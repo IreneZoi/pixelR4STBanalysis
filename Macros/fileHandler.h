@@ -1,6 +1,106 @@
 #include "resolution.h"
 typedef std::map<std::pair<TString, TString>, TH1F*> MapTH1;
 
+void DrawMoreTGraphWithError(int comparisons, int *i_dphcut, float * mean, float * rms,float * mean1, float * rms1,float * mean2, float * rms2, TString Hist,TString Run, TString * Label, TString Name, TString yaxistitle, float xmin,float xmax,float ymin, float ymax, TString scan = "thresholds", TString xaxistitle =  "ph cut [ADC]")
+{
+
+  TString outputDir = "/home/zoiirene/Output/Plots/";
+  TString ss_dphcut[comparisons];
+  float f_dphcut[comparisons];
+  float errx[comparisons];
+  for(int i =0; i< comparisons;i++)
+    {
+      ss_dphcut[i].Form("%d",i_dphcut[i]);
+      f_dphcut[i] = (float) i_dphcut[i];
+      errx[i]=0;
+    }
+
+  TCanvas *c2 = new TCanvas("c2", "c2", 600, 600);
+  c2->SetLeftMargin(0.15);
+  c2->SetRightMargin(0.05);
+  c2->SetTopMargin(0.05);
+
+  gPad->SetTicks(1,1);
+  gROOT->SetStyle("Plain");
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(0);
+  gStyle->SetOptTitle(0);
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(24);
+
+  TGraphErrors * gr = new TGraphErrors(comparisons, f_dphcut, mean,errx,rms);//, errx, rms);
+  TGraphErrors * gr1 = new TGraphErrors(comparisons, f_dphcut, mean1,errx,rms1);//, errx, rms);
+  TGraphErrors * gr2 = new TGraphErrors(comparisons, f_dphcut, mean2,errx,rms2);//, errx, rms);
+
+  gr->SetLineColor(kAzure);
+  gr->SetLineWidth(2);
+  gr->SetMarkerColor(kAzure);
+  gr->SetMarkerSize(1.5);
+  gr->SetMarkerStyle(21);
+  gr->GetXaxis()->SetRangeUser(xmin,xmax);
+  gr->SetMinimum(ymin);
+  gr->SetMaximum(ymax);
+
+  gr2->SetLineColor(kBlue-8);
+  gr2->SetLineWidth(2);
+  gr2->SetLineStyle(3);
+  gr2->SetMarkerColor(kBlue-8);
+  gr2->SetMarkerSize(1.5);
+  gr2->SetMarkerStyle(25);
+
+  gr1->SetLineColor(kBlue+4);
+  gr1->SetLineWidth(2);
+  gr1->SetLineStyle(2);
+  gr1->SetMarkerColor(kBlue+4);
+  gr1->SetMarkerSize(1.5);
+  gr1->SetMarkerStyle(31);
+
+
+  gr->GetYaxis()->SetMaxDigits(1);
+  gr->GetXaxis()->SetTitleSize(0.05);
+  gr->GetYaxis()->SetTitleSize(0.05);
+  gr->GetXaxis()->SetTitleOffset(0.9);
+  gr->GetYaxis()->SetTitleOffset(1.4);
+  gr->GetXaxis()->SetLabelSize(0.05);
+  gr->GetYaxis()->SetLabelSize(0.05);
+
+  gr->GetXaxis()->SetTitle(xaxistitle);
+  gr->GetYaxis()->SetTitle(yaxistitle);
+  gr->GetXaxis()->SetLimits(xmin,xmax);
+  gr->SetMinimum(ymin);
+  gr->SetMaximum(ymax);
+
+  gr->Draw("ALPE");
+  gr1->Draw("LPEsame");
+  gr2->Draw("LPEsame");
+  TLegend* leg2;
+  if (Run  == "2801" && Hist == "dx3vsx"){
+    leg2 = new TLegend(0.2,0.65,0.4,0.8);
+  } else if (Run  == "2801" && (Hist == "alignfA" || Hist == "alignxC" )){
+    leg2 = new TLegend(0.7,0.65,0.9,0.8);
+  }else{
+    leg2 = new TLegend(0.7,0.15,0.9,0.3);
+  }
+
+  leg2->SetLineColor(0);
+  leg2->AddEntry(gr,Label[0], "pl");
+  leg2->AddEntry(gr1,Label[1], "pl");
+  leg2->AddEntry(gr2,Label[2], "pl");
+
+  leg2->Draw("same");
+  TString name;
+  name = outputDir+"compare_"+scan+"_"+Run+"_"+Hist+"_"+Name;
+  c2->SaveAs(name+".eps");
+  c2->SaveAs(name+".pdf");
+  c2->SaveAs(name+".png");
+  c2->SaveAs(name+".root");
+}
+
+
 void DrawTGraphWithError(int comparisons, int *i_dphcut, float * mean, float * rms, TString Hist,TString Run, TString Label, TString Name, TString yaxistitle, float xmin,float xmax,float ymin, float ymax, TString scan = "thresholds", TString xaxistitle =  "ph cut [ADC]")
 {
 
@@ -15,15 +115,22 @@ void DrawTGraphWithError(int comparisons, int *i_dphcut, float * mean, float * r
       errx[i]=0;
     }
 
-  TCanvas *c2 = new TCanvas("c2", "c2", 1500, 900);
+  TCanvas *c2 = new TCanvas("c2", "c2", 600, 600);
+  c2->SetLeftMargin(0.15);
+  c2->SetRightMargin(0.05);
+  c2->SetTopMargin(0.05);
+
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
   gStyle->SetPadGridX(0);
   gStyle->SetPadGridY(0);
   gStyle->SetPalette(1);
-  //  gStyle->SetOptStat();
-  gStyle->SetOptStat(1110);
+  gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
+  gStyle->SetTextFont(43);
+  gStyle->SetTextSize(10);
+  gStyle->SetLegendFont(43);
+  gStyle->SetLegendTextSize(24);
 
   TGraphErrors * gr = new TGraphErrors(comparisons, f_dphcut, mean,errx,rms);//, errx, rms);
   gr->SetLineColor(kAzure);
@@ -35,14 +142,18 @@ void DrawTGraphWithError(int comparisons, int *i_dphcut, float * mean, float * r
   gr->SetMinimum(ymin);
   gr->SetMaximum(ymax);
 
-  //  gr->SetTitle("Option ACP example");
+
+  gr->GetYaxis()->SetMaxDigits(1);
+  gr->GetXaxis()->SetTitleSize(0.05);
+  gr->GetYaxis()->SetTitleSize(0.05);
+  gr->GetXaxis()->SetTitleOffset(0.9);
+  gr->GetYaxis()->SetTitleOffset(1.4);
+  gr->GetXaxis()->SetLabelSize(0.05);
+  gr->GetYaxis()->SetLabelSize(0.05);
+
   gr->GetXaxis()->SetTitle(xaxistitle);
   gr->GetYaxis()->SetTitle(yaxistitle);
-  //gr->SetFillStyle(3003);
-  //gr->SetFillColor(kRed-8);
-
-
-  gr->GetXaxis()->SetRangeUser(xmin,xmax);
+  gr->GetXaxis()->SetLimits(xmin,xmax);
   gr->SetMinimum(ymin);
   gr->SetMaximum(ymax);
 
@@ -56,6 +167,8 @@ void DrawTGraphWithError(int comparisons, int *i_dphcut, float * mean, float * r
   c2->SaveAs(name+".png");
   c2->SaveAs(name+".root");
 }
+
+
 void DrawTGraphWithErrorDouble(int comparisons, double * i_dphcut, double * mean, double * rms, TString Hist,TString Run, TString Label, TString Name, TString yaxistitle, float xmin,float xmax,float ymin, float ymax, TString scan = "thresholds", TString xaxistitle =  "ph cut [ADC]")
 {
 
