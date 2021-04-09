@@ -573,7 +573,7 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
   }
   myfile.close();
    
-  legB->Draw();
+  //legB->Draw();
   
   legresq2->Draw();
 
