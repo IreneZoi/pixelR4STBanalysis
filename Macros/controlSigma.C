@@ -107,7 +107,7 @@ TCanvas *c3 = new TCanvas("c3", "FDB resolution", 600, 600);
 
 
   resolutionPlot[0]->SetTitle(" ");
-  resolutionPlot[0]->GetYaxis()->SetTitle("reduced RMS #delta_{#Delta_{x}}[#mum]"); //Single hit resolution [#mum]");
+  resolutionPlot[0]->GetYaxis()->SetTitle("Reduced RMS #delta_{#Delta_{x}} [#mum]"); //Single hit resolution [#mum]");
   //resolutionPlot[0]->GetXaxis()->SetTitle("#theta [deg]");
 
   resolutionPlot[0]->GetYaxis()->SetTitleFont(43);
