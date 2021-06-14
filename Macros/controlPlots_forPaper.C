@@ -139,7 +139,7 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
   cout << "starting making hists pretty" << endl;
   h_landau_orig[0].SetTitle(" ");
   h_landau_orig[0].GetYaxis()->SetTitle("Normalized number of events");
-  h_landau_orig[0].GetXaxis()->SetTitle("Cluster charge [ADC]");
+  h_landau_orig[0].GetXaxis()->SetTitle("Cluster charge [ADC counts]");
   //  h_landau_orig[0].SetMarkerSize(2.5);
   h_landau_orig[0].SetLineColor(colors[0]);
   h_landau_orig[0].SetLineStyle(styles[0]);
@@ -472,7 +472,8 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
   TCanvas *cresph2 = new TCanvas("cresph2", "FDB resolution", 600, 600);
   cresph2->SetLeftMargin(0.14);
   cresph2->SetRightMargin(0.05);
-  cresph2->SetTopMargin(0.05);
+  cresph2->SetTopMargin(0.02);
+  //cresph2->SetTopMargin(0.05);
 
   gPad->SetTicks(1,1);
   gROOT->SetStyle("Plain");
@@ -495,7 +496,7 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
   legB->SetLineColor(0);
   legB->AddEntry(&(h_resq[0]),"#theta = 8.8 deg","");
   
-  TLegend* legresq2 = new TLegend(0.15,0.52,0.69,0.92);
+  TLegend* legresq2 = new TLegend(0.15,0.46,0.69,0.96);
   legresq2->SetLineColor(0);
   std::string ns = std::to_string(nsigma);
   ofstream myfile;
@@ -513,7 +514,7 @@ void controlPlots_forPaper(TString name = "preliminary_beamdiv")
     h_resq[i].SetLineStyle(1+i);
     h_resq[i].SetLineWidth(2);
     h_resq[i].GetXaxis()->SetRangeUser(minX[i],maxX[i]);
-    h_resq[i].GetYaxis()->SetRangeUser(0.,0.5);
+    h_resq[i].GetYaxis()->SetRangeUser(0.,0.6);
     h_resq[i].GetXaxis()->SetTitleSize(0.05);
     h_resq[i].GetYaxis()->SetTitleSize(0.05);
     h_resq[i].GetXaxis()->SetTitleOffset(0.9);
