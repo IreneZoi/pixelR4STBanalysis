@@ -119,17 +119,17 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
 
   cout << " initialized new canvas" << endl;
   TPad *pad2 = new TPad("pad2","",0,0.,1,0.45);
-  pad2->SetTopMargin(0.03);
+  pad2->SetTopMargin(0.04);
   pad2->SetBottomMargin(0.22);
-  pad2->SetLeftMargin(0.1);
+  pad2->SetLeftMargin(0.15);
   pad2->SetRightMargin(0.02);
   pad2->Draw();
 
-  TPad *pad1 = new TPad("pad1","",0,0.45,1,1);
+  TPad *pad1 = new TPad("pad1","",0,0.48,1,1);
   pad1->Draw();
   pad1->SetBottomMargin(0.03);
   pad1->SetRightMargin(0.02);
-  pad1->SetLeftMargin(0.1);
+  pad1->SetLeftMargin(0.15);
 
   pad1->cd();
   gStyle->SetTextFont(43);
@@ -144,9 +144,9 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
   Evts->GetXaxis()->SetLabelSize(0); // labels will be 14 pixels
   Evts->GetYaxis()->SetTitleFont(43); // labels will be 14 pixels
   Evts->GetYaxis()->SetLabelFont(43); // labels will be 14 pixels
-  Evts->GetYaxis()->SetTitleSize(30); // labels will be 14 pixels
-  Evts->GetYaxis()->SetTitleOffset(0.9); // labels will be 14 pixels
-  Evts->GetYaxis()->SetLabelSize(30); // labels will be 14 pixels
+  Evts->GetYaxis()->SetTitleSize(27); // labels will be 14 pixels
+  Evts->GetYaxis()->SetTitleOffset(1.2); // labels will be 14 pixels
+  Evts->GetYaxis()->SetLabelSize(27); // labels will be 14 pixels
   Evts->GetXaxis()->SetLimits(-1,75); // labels will be 14 pixels
   Evts->GetYaxis()->SetRangeUser(0,50000.);
   Evts->GetYaxis()->SetMaxDigits(3);
@@ -154,8 +154,13 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
 
   //  gPad->SetLogy();
   Evts->Draw("AEP");
+  legFDB2->SetFillStyle(0);
+  legFDB2->SetLineWidth(0);
   legFDB2->AddEntry(Evts,legend,"");
   legFDB2->Draw();
+
+
+  
   TLine *  lineb = new TLine( 12./MPV*100,0.,12./MPV*100,50000);
   lineb->SetLineColor(kGray);
   lineb->SetLineWidth(2);
@@ -176,17 +181,17 @@ void ThrScan_forPaper(TString thr="500",TString name = "preliminary_ThrScan", TS
   clsizePlot->GetYaxis()->SetNdivisions(5,0,5);
 			       
   clsizePlot->GetXaxis()->SetTitleFont(43);
-  clsizePlot->GetXaxis()->SetTitleSize(30); // labels will be 14 pixels
+  clsizePlot->GetXaxis()->SetTitleSize(27); // labels will be 14 pixels
   clsizePlot->GetXaxis()->SetTitleOffset(2.); // labels will be 14 pixels
   clsizePlot->GetXaxis()->SetLabelFont(43);
-  clsizePlot->GetXaxis()->SetLabelSize(30); // labels will be 14 pixels
+  clsizePlot->GetXaxis()->SetLabelSize(27); // labels will be 14 pixels
 
   clsizePlot->GetYaxis()->SetTitleFont(43);
-  clsizePlot->GetYaxis()->SetTitleSize(30); // labels will be 14 pixels
-  clsizePlot->GetYaxis()->SetTitleOffset(0.9); // labels will be 14 pixels
+  clsizePlot->GetYaxis()->SetTitleSize(27); // labels will be 14 pixels
+  clsizePlot->GetYaxis()->SetTitleOffset(1.2); // labels will be 14 pixels
 
   clsizePlot->GetYaxis()->SetLabelFont(43);
-  clsizePlot->GetYaxis()->SetLabelSize(30); // labels will be 14 pixels
+  clsizePlot->GetYaxis()->SetLabelSize(27); // labels will be 14 pixels
   clsizePlot->GetXaxis()->SetLimits(-1.,75.);
   clsizePlot->GetYaxis()->SetRangeUser(0.,5.);
 
