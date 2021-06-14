@@ -345,7 +345,7 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
 
 
   
-  resolutionPlotInvSquare[0]->GetYaxis()->SetRangeUser(0.,300.);
+  resolutionPlotInvSquare[0]->GetYaxis()->SetRangeUser(0.,400.);
   resolutionPlotInvSquare[0]->GetXaxis()->SetLimits(0.,1.1);
 
   TF1 *fit32 = new TF1("fit32","pol1", 0., 0.45);
@@ -388,47 +388,28 @@ void resolutionMomScanTreeEntries_forPaper(TString name = "preliminary_TreeCorrE
 
 
 
-  TLegend* lgI2 = new TLegend(0.4,0.28,0.88,0.65);
+  TLegend* lgI2 = new TLegend(0.1,0.95,0.9,1.);
   lgI2->SetLineWidth(0);
   lgI2->SetFillStyle(0);
-
   lgI2->AddEntry(resolutionPlotInvSquare[0],"Optimal incidence angle","");
-
-  lgI2->AddEntry(resolutionPlotInvSquare[0],"Non-irradiated, 120 V","lp");
-  lgI2->AddEntry(fit32,"#sigma_{intr}^{2}+(#sigma_{MS}/p_{beam})^{2}","l");
-  lgI2->AddEntry(fnotsq,"#sigma_{extr} = ("+ss_fit2[0]+" #pm "+ss_fit_err2[0]+") #mum","");
-
-
-  
-  lgI2->AddEntry(resolutionPlotInvSquare[1],"#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton","lp");
-  lgI2->AddEntry(resolutionPlotInvSquare[1],"600 V","");
-  //  lgI2->AddEntry(resolutionPlot[1],"600V, optimal angle","");                                                                                                                                            
-  lgI2->AddEntry(fitI,"#sigma_{intr}^{2}+(#sigma_{MS}/p_{beam})^{2}","l");
-  lgI2->AddEntry(fnotsqi,"#sigma_{extr} = ("+ss_fitI[0]+" #pm "+ss_fit_errI[0]+") #mum","");
-
-
   lgI2->Draw();
 
-  /*
-  TLatex Tl_22;
-  Tl_22.SetTextAlign(12);
-  Tl_22.SetTextSize(0.05);
-  Tl_22.DrawLatexNDC(0.2,0.85,"#sigma_{intr} = ("+ss_fit2[0]+" #pm "+ss_fit_err2[0]+") #mum");
+  TLegend* lg = new TLegend(0.45,0.3,0.9,0.48);
+  lg->SetLineWidth(0);
+  lg->SetFillStyle(0);
+  lg->AddEntry(resolutionPlotInvSquare[0],"Non-irradiated, 120 V","lp");
+  lg->AddEntry(fit32,"#sigma_{extr}^{2}+(#sigma_{MS}/p_{beam})^{2},","l");
+  lg->AddEntry(fnotsq,"#sigma_{extr} = ("+ss_fit2[0]+" #pm "+ss_fit_err2[0]+") #mum","");
+  lg->Draw();
 
-  Tl_22.SetTextSize(0.05);
-  Tl_22.DrawLatexNDC(0.2,0.77,"#sigma_{MS} = ("+ss_fit2[1]+" #pm "+ss_fit_err2[1]+") #mum*GeV");
+  TLegend* lgi = new TLegend(0.16,0.8,0.9,0.93);
+  lgi->SetLineWidth(0);
+  lg->SetFillStyle(0);
+  lgi->AddEntry(resolutionPlotInvSquare[1],"#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton, 600 V","lp");
+  lgi->AddEntry(fitI,"#sigma_{extr}^{2}+(#sigma_{MS}/p_{beam})^{2}, #sigma_{extr} = ("+ss_fitI[0]+" #pm "+ss_fit_errI[0]+") #mum","l");
+  lgi->Draw();
 
-
-  TLegend* leg42 = new TLegend(0.38,0.25,0.8,0.45);
-  leg42->SetLineColor(0);
-  leg42->SetTextSize(0.04);
-  leg42->SetBorderSize(0);
-                               
-  leg42->AddEntry(resolutionPlotInvSquare[0],"Non-irradiated, 120V, optimal angle" ,"ep");
-  leg42->AddEntry(fit32,"#sigma_{intr}^{2}+(#sigma_{MS}/momentum)^{2}" , "l");
-  leg42->Draw();
-  */
-  c42->Update();
+   c42->Update();
   //TDR2(c42);                                                                                                                                                                                                                                
   name = outputDir+"ResolutionSummaryPaper_momScans25Squared_"+name;
   c42->SaveAs(name+".eps");
