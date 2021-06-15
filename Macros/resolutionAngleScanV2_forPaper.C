@@ -296,7 +296,7 @@ void resolutionAngleScanV2_forPaper(TString thr="500",TString name = "preliminar
 
   resolutionPlotN[0]->SetTitle(" ");
   resolutionPlotN[0]->GetYaxis()->SetTitle("#sigma_{x}  [#mum]");
-  resolutionPlotN[0]->GetXaxis()->SetTitle("Incidence angle [deg]");
+  resolutionPlotN[0]->GetXaxis()->SetTitle("Incidence angle [#circ]");
   resolutionPlotN[0]->GetXaxis()->SetTitleFont(43);
   resolutionPlotN[0]->GetXaxis()->SetTitleSize(30); // labels will be 14 pixels
   resolutionPlotN[0]->GetXaxis()->SetTitleOffset(0.9); // labels will be 14 pixels
@@ -470,7 +470,7 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   
 
 
-  TLegend* leg3 = new TLegend(0.15,0.65,0.55,0.93);
+  TLegend* leg3 = new TLegend(0.14,0.66,0.55,0.94);
   leg3->SetLineColor(0);
   leg3->AddEntry(resolutionPlot[0],irr[0],"lp");
   leg3->AddEntry(resolutionPlot[1],irr[1],"lp");
@@ -492,7 +492,7 @@ TString  outname = outputDir+"ResolutionSummaryPaper_angleBiasScans25Neutron_"+n
   
   clsizePlot[0]->SetTitle(" ");
   clsizePlot[0]->GetYaxis()->SetTitle("Mean cluster size");
-  clsizePlot[0]->GetXaxis()->SetTitle("Incidence angle [deg]");
+  clsizePlot[0]->GetXaxis()->SetTitle("Incidence angle [#circ]");
   clsizePlot[0]->GetYaxis()->SetNdivisions(5);
 
   clsizePlot[0]->GetXaxis()->SetTitleFont(43);
