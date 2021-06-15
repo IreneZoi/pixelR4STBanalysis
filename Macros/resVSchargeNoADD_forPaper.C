@@ -31,7 +31,7 @@ void resVSchargeNoADD_forPaper(){
   TString filenames[irradiations][angles];
   TString rootfilenames[irradiations][angles];
   TString Angles[angles]={"0.000000","8.750000","27.500000"};
-  TString AnglesNice[angles]={"0 deg","8.8 deg","27.5 deg"};
+  TString AnglesNice[angles]={"0#bf{#circ}","8.8#bf{#circ}","27.5#bf{#circ}"};
   TString baseNONirr="Ascan_resTree_148_dphcutB12_RMSself_beamdiv_A13C14_angle";
   TString basePirr2="Ascan_resTree_120i_dphcutB15_RMSself_beamdiv_A12C15_";
   TString baseNONirrROOT="_dphcut12_beamdiv_A13C14.root";
@@ -246,7 +246,7 @@ void resVSchargeNoADD_forPaper(){
     //    fLandau[0][i]->GetXaxis()->SetMaxDigits(3);
     fLandau[0][i]->GetYaxis()->SetMaxDigits(3);
     fLandau[0][i]->GetYaxis()->SetTitle("Normalized number of clusters");
-    fLandau[0][i]->GetXaxis()->SetTitle("Cluster charge [ADC]");
+    fLandau[0][i]->GetXaxis()->SetTitle("Cluster charge [ADC counts]");
 
     fLandau[0][i]->GetXaxis()->SetTitleFont(43);
     fLandau[0][i]->GetXaxis()->SetTitleOffset(2.);
@@ -439,7 +439,7 @@ void resVSchargeNoADD_forPaper(){
     fLandau[0][i]->GetXaxis()->SetNdivisions(5);
     //fLandau[0][i]->GetYaxis()->SetMaxDigits(3);
     fLandau[0][i]->GetYaxis()->SetTitle("Normalized number of clusters");
-    fLandau[0][i]->GetXaxis()->SetTitle("Cluster charge [ADC]");
+    fLandau[0][i]->GetXaxis()->SetTitle("Cluster charge [ADC counts]");
     
     fLandau[0][i]->GetXaxis()->SetTitleFont(43);
     fLandau[0][i]->GetXaxis()->SetTitleOffset(0.9);
@@ -488,20 +488,72 @@ void resVSchargeNoADD_forPaper(){
     
     TLine *  linea;
     TLine *  lineaI;
+
+    float offset = 0;
+    TLatex * Tl[perc];
+    Double_t x[perc], y[perc];
     for(int l = 0; l<perc;l++){
-    linea    = new TLine( high_0[i][l],0., high_0[i][l],.1);
-    linea->SetLineColor(kBlack);
-    linea->SetLineStyle(1);
-    linea->Draw("same");
-    lineaI    = new TLine( high_1[i][l],0., high_1[i][l],.1);
-    lineaI->SetLineColor(kGreen+1);
-    lineaI->SetLineStyle(2);
-    lineaI->Draw("same");
+      float position = offset	+ (high_0[i][l]-offset)/2.;
+      x[l] = position;
+      if(l == perc-1)  x[l] = 450;
+      y[l] = 0.11;
+      offset = high_0[i][l];     
+    }
+    TGraph* gr = new TGraph(perc,x,y);
+    gr->SetMarkerStyle(1);
+    gr->SetMarkerSize(0);
+    gr->SetMarkerColor(kWhite);
+
+    float offset1 = 0;
+    TLatex * Tl1[perc];
+    Double_t x1[perc], y1[perc];
+    for(int l = 0; l<perc;l++){
+      float position1 = offset1	+ 0.4*(high_1[i][l]-offset1)/2.;
+      x1[l] = position1;
+      if(l == perc-1)  x1[l] = 400;
+      y1[l] = 0.11;
+      offset1 = high_1[i][l];     
+    }
+    TGraph* gr1 = new TGraph(perc,x1,y1);
+    gr1->SetMarkerStyle(1);
+    gr1->SetMarkerSize(0);
+    gr1->SetMarkerColor(kWhite);
+
+    for(int l = 0; l<perc;l++){
+      linea    = new TLine( high_0[i][l],0., high_0[i][l],.12);
+      linea->SetLineColor(kBlack);
+      linea->SetLineStyle(1);
+      linea->Draw("same");
+
+      TString interval;
+      interval.Form("%d",l+1);
+      Tl[l] = new TLatex(gr->GetX()[l],gr->GetY()[l],interval);
+      Tl[l]->SetTextAlign(12);
+      Tl[l]->SetTextSize(30);
+      gr->GetListOfFunctions()->Add(Tl[l]);
+
+
+      
+      lineaI    = new TLine( high_1[i][l],0., high_1[i][l],.12);
+      lineaI->SetLineColor(kGreen+1);
+      lineaI->SetLineStyle(2);
+      lineaI->Draw("same");
+
+      TString interval1;
+      interval1.Form("%d",l+1);
+      Tl1[l] = new TLatex(gr1->GetX()[l],gr1->GetY()[l],interval1);
+      Tl1[l]->SetTextAlign(12);
+      Tl1[l]->SetTextSize(30);
+      Tl1[l]->SetTextColor(kGreen+1);
+      gr1->GetListOfFunctions()->Add(Tl1[l]);
     }
 
+    gr->Draw("Psame");
+    gr1->Draw("Psame");
 
 
-    TLegend* leg = new TLegend(0.2,0.75,0.85,0.9);
+
+    TLegend* leg = new TLegend(0.2,0.78,0.85,0.93);
     leg->SetLineColor(0);
     leg->SetFillStyle(0);
 
@@ -537,7 +589,7 @@ void resVSchargeNoADD_forPaper(){
     
     cout << " Canvas for angle " << i << endl;
     cL[i] = new TCanvas("cFDB2", "FDB resolution", 600, 600);
-    cL[i]->SetBottomMargin(0.45);
+    //cL[i]->SetBottomMargin(0.45);
     cL[i]->SetTopMargin(0.02);
     cL[i]->SetRightMargin(0.02);
     cL[i]->SetLeftMargin(0.12);
@@ -554,7 +606,8 @@ void resVSchargeNoADD_forPaper(){
     gStyle->SetLegendTextSize(24);
 
 
-    const char *Interval[perc] = {"  [0,MPV-#sigma]","  [MPV-#sigma,MPV+#sigma]","  [MPV+#sigma,MPV+3#sigma]","  [MPV+3#sigma,MPV+5#sigma]"," >MPV+5#sigma"};
+    //const char *Interval[perc] = {"  [0,MPV-#sigma]","  [MPV-#sigma,MPV+#sigma]","  [MPV+#sigma,MPV+3#sigma]","  [MPV+3#sigma,MPV+5#sigma]"," >MPV+5#sigma"};
+    const char *Interval[perc] = {"1","2","3","4","5"}; //  [0,MPV-#sigma]","  [MPV-#sigma,MPV+#sigma]","  [MPV+#sigma,MPV+3#sigma]","  [MPV+3#sigma,MPV+5#sigma]"," >MPV+5#sigma"};
     //const char *Interval[perc] = {"  [0,MPV-#sigma]","  MPV#pm#sigma","  [MPV+#sigma,MPV+3#sigma]","  [MPV+3#sigma,MPV+5#sigma]"," >MPV+5#sigma"};
     TH1D* resolutionHist[irradiations];
     resolutionHist[0] = new TH1D("noirr","noirr",perc,0,perc);
@@ -572,7 +625,7 @@ void resVSchargeNoADD_forPaper(){
 
     gPad->SetTicks(1,1);
     resolutionHist[0]->SetCanExtend(TH1::kAllAxes);
-    resolutionHist[0]->LabelsOption("v");
+    //resolutionHist[0]->LabelsOption("v");
     //resolutionHist[0]->LabelsDeflate();
     resolutionHist[0]->SetTitle(" ");
     resolutionHist[0]->GetYaxis()->SetTitle("#sigma_{x} [#mum]");
@@ -626,7 +679,7 @@ void resVSchargeNoADD_forPaper(){
     tlB.SetTextSize(24);
     tlB.DrawLatexNDC(0.2,0.89,AnglesNice[i]+", 5.6 GeV");
 
-    TLegend* leg3 = new TLegend(0.145,0.5,0.85,0.6);
+    TLegend* leg3 = new TLegend(0.145,0.7,0.85,0.87);
     leg3->SetLineColor(0);
     leg3->SetFillStyle(0);
     for(int l =0; l < irradiations; l++)
