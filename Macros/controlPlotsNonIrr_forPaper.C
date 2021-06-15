@@ -39,9 +39,9 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   //ang[1] = "#phi_{eq} = 2.1 #times 10^{15} cm^{-2}, proton, 800 V";
 
   TString ang[angles];
-  ang[0] = "0 deg"; 
-  ang[1] = "8.8 deg";
-  ang[2] = "27.5 deg";
+  ang[0] = "0#circ"; 
+  ang[1] = "8.8#circ";
+  ang[2] = "27.5#circ";
   TString angshort[angles];
   angshort[0] = "0"; 
   angshort[1] = "8p8";
@@ -130,7 +130,7 @@ void controlPlotsNonIrr_forPaper(TString name = "preliminary_beamdiv")
   cout << "starting making hists pretty" << endl;
   h_landau_orig[0].SetTitle(" ");
   h_landau_orig[0].GetYaxis()->SetTitle("Normalized number of events");
-  h_landau_orig[0].GetXaxis()->SetTitle("Cluster charge [ADC]");
+  h_landau_orig[0].GetXaxis()->SetTitle("Cluster charge [ADC counts]");
   //  h_landau_orig[0].SetMarkerSize(2.5);
   h_landau_orig[0].SetLineColor(color[0]);
   h_landau_orig[0].SetMarkerColor(color[0]);
