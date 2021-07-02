@@ -50,8 +50,8 @@ Double_t Tracks[irradiation][measurements];
 	   if(print)	 cout  <<  " " << irr[i] << " " << Resolution[i][k] << " " << Tracks[i][k] << endl;
 	   //  i++;
 	   if(irr[i] == 0) ss_irr[i] = "Non-irradiated, 120 V";
-	   else if (irr[i] == 1) ss_irr[i] = "2.1#times10^{15}, proton, 800 V";
-	   else if (irr[i] == 2) ss_irr[i] = "3.6#times10^{15}, neutron, 800 V";
+	   else if (irr[i] == 1) ss_irr[i] = "2.1 #times 10^{15}, proton, 800 V";
+	   else if (irr[i] == 2) ss_irr[i] = "3.6 #times 10^{15}, neutron, 800 V";
 	   //	  ss_irr[i].Form("%f",irr[i]);
 	 }
      }
@@ -61,7 +61,7 @@ Double_t Tracks[irradiation][measurements];
 
 
 
-TCanvas *c3 = new TCanvas("c3", "FDB resolution", 600, 600);
+  TCanvas *c3 = new TCanvas("c3", "FDB resolution",600, 600);
   gROOT->SetStyle("Plain");
   c3->SetLeftMargin(0.12);
   c3->SetRightMargin(0.02);
@@ -83,17 +83,17 @@ TCanvas *c3 = new TCanvas("c3", "FDB resolution", 600, 600);
   TPad *pad2 = new TPad("pad2","",0,0.,1,0.4);
   pad2->SetTopMargin(0.04);
   pad2->SetBottomMargin(0.25);
-  pad2->SetLeftMargin(0.12);
+  pad2->SetLeftMargin(0.16);
   pad2->SetRightMargin(0.02);
   
   pad2->Draw();
 
   //pad2->SetFillStyle(4000); //will be transparent
   //#pad2->SetFrameFillStyle(0);
-  TPad *pad1 = new TPad("pad1","",0,0.4,1,1);  
+  TPad *pad1 = new TPad("pad1","",0,0.41,1,1);  
   pad1->Draw();
   pad1->SetBottomMargin(0.03);
-  pad1->SetLeftMargin(0.12);
+  pad1->SetLeftMargin(0.16);
   pad1->SetRightMargin(0.02);
   
   pad1->cd();
@@ -115,7 +115,8 @@ TCanvas *c3 = new TCanvas("c3", "FDB resolution", 600, 600);
 
   resolutionPlot[0]->GetYaxis()->SetLabelFont(43);
   resolutionPlot[0]->GetYaxis()->SetLabelSize(30); // labels will be 14 pixels
-  
+  resolutionPlot[0]->GetYaxis()->SetTitleOffset(1.3);
+    
   resolutionPlot[0]->GetXaxis()->SetLabelFont(43);
   resolutionPlot[0]->GetXaxis()->SetLabelSize(0); // labels will be 14 pixels
 
@@ -155,7 +156,7 @@ TCanvas *c3 = new TCanvas("c3", "FDB resolution", 600, 600);
   linemax2->Draw("same");
 
 
-  TLegend* leg3 = new TLegend(0.15,0.67,0.55,0.87);
+  TLegend* leg3 = new TLegend(0.2,0.65,0.55,0.87);
   leg3->SetLineColor(0);
   leg3->AddEntry(resolutionPlot[0],ss_irr[0],"lp");
   leg3->AddEntry(resolutionPlot[1],ss_irr[1],"lp");
@@ -179,12 +180,12 @@ TCanvas *c3 = new TCanvas("c3", "FDB resolution", 600, 600);
   clsizePlot[0]->SetTitle(" ");
   clsizePlot[0]->GetYaxis()->SetTitle("Tracks [%]");
   clsizePlot[0]->GetYaxis()->SetNdivisions(5);
-  clsizePlot[0]->GetXaxis()->SetTitle("N RMS");
+  clsizePlot[0]->GetXaxis()->SetTitle("N");
 
 
   clsizePlot[0]->GetXaxis()->SetTitleFont(43);
   clsizePlot[0]->GetXaxis()->SetTitleSize(30); // labels will be 14 pixels
-  clsizePlot[0]->GetXaxis()->SetTitleOffset(1.8); // labels will be 14 pixels
+  clsizePlot[0]->GetXaxis()->SetTitleOffset(1.9); // labels will be 14 pixels
   clsizePlot[0]->GetXaxis()->SetLabelFont(43);
   clsizePlot[0]->GetXaxis()->SetLabelSize(30); // labels will be 14 pixels
   
@@ -192,7 +193,7 @@ TCanvas *c3 = new TCanvas("c3", "FDB resolution", 600, 600);
   clsizePlot[0]->GetYaxis()->SetTitleSize(30); // labels will be 14 pixels
   clsizePlot[0]->GetYaxis()->SetLabelFont(43);
   clsizePlot[0]->GetYaxis()->SetLabelSize(30); // labels will be 14 pixels
-  clsizePlot[0]->GetYaxis()->SetTitleOffset(1.1); // labels will be 14 pixels
+  clsizePlot[0]->GetYaxis()->SetTitleOffset(1.3); // labels will be 14 pixels
   
   clsizePlot[0]->SetMarkerColor(kBlack);
   clsizePlot[0]->SetLineColor(kBlack);
